@@ -302,17 +302,12 @@ export default function VigieFactures() {
         const text = await extractTextFromFile(fileObj.file);
 
         // Send to MindStudio API
-        const response = await fetch(MINDSTUDIO_API, {
+       const response = await fetch(MINDSTUDIO_API, {
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${MINDSTUDIO_KEY}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            appId: MINDSTUDIO_APP_ID,
-            variables: { uploaded_file: text },
-            workflow: "Vigie-Factures-Main.flow",
-          }),
+          body: JSON.stringify({ text }),
         });
 
         const data = await response.json();
