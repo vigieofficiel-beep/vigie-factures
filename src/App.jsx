@@ -7,7 +7,7 @@ import { FileText, AlertTriangle, TrendingUp, Calendar, Search, Filter, Eye, X, 
 // ═══════════════════════════════════════════
 const SUPABASE_URL = "https://qkvqujnctdyaxsenvwsm.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrdnF1am5jdGR5YXhzZW52d3NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5Nzc1MzcsImV4cCI6MjA4NjU1MzUzN30.XtzE94TOrI7KRh8Naj3cBxM80wGPDjZvI8nhUbxIvdA";
-const MINDSTUDIO_API = "https://api.mindstudio.ai/developer/v2/apps/run";
+const MINDSTUDIO_API = "/api/analyze";
 const MINDSTUDIO_KEY = "skg0tCIZw5vqKYAa6OKgY6w2Gom2Q";
 const MINDSTUDIO_APP_ID = "vigiefactures2-66aa30f6";
 
