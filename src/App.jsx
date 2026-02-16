@@ -1,191 +1,40 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-} from "recharts";
-import {
-  FileText,
-  AlertTriangle,
-  TrendingUp,
-  Calendar,
-  Search,
-  Filter,
-  Eye,
-  X,
-  Bell,
-  RefreshCw,
-  Upload,
-  CheckCircle,
-  Clock,
-  Trash2,
-  ArrowUpRight,
-  ArrowDownRight,
-  Loader,
-  Plus,
-  LayoutDashboard,
-  UploadCloud,
-  Download,
-  Menu,
-  Home,
-  Shield,
-  Zap,
-  BarChart3,
-  Wallet,
-  FileBarChart,
-} from "lucide-react";
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { FileText, AlertTriangle, TrendingUp, Calendar, Search, Filter, Eye, X, Bell, RefreshCw, Upload, CheckCircle, Clock, Trash2, ArrowUpRight, ArrowDownRight, Loader, Plus, LayoutDashboard, UploadCloud, Download, Menu, Home, Shield, Zap, BarChart3, Wallet, FileBarChart } from "lucide-react";
 
 const SUPABASE_URL = "https://qkvqujnctdyaxsenvwsm.supabase.co";
-const SUPABASE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrdnF1am5jdGR5YXhzZW52d3NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5Nzc1MzcsImV4cCI6MjA4NjU1MzUzN30.XtzE94TOrI7KRh8Naj3cBxM80wGPDjZvI8nhUbxIvdA";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrdnF1am5jdGR5YXhzZW52d3NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5Nzc1MzcsImV4cCI6MjA4NjU1MzUzN30.XtzE94TOrI7KRh8Naj3cBxM80wGPDjZvI8nhUbxIvdA";
 const ANALYZE_API = "/api/analyze";
-const COLORS = [
-  "#D4A853",
-  "#C75B4E",
-  "#5BA3C7",
-  "#5BC78A",
-  "#A85BC7",
-  "#C78A5B",
-  "#5BC7B8",
-  "#C75BA8",
-];
-const MONTHS_FR = [
-  "Jan",
-  "Fév",
-  "Mar",
-  "Avr",
-  "Mai",
-  "Juin",
-  "Juil",
-  "Août",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Déc",
-];
+const COLORS = ["#D4A853", "#C75B4E", "#5BA3C7", "#5BC78A", "#A85BC7", "#C78A5B", "#5BC7B8", "#C75BA8"];
+const MONTHS_FR = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
 
 const BUDGET_CATEGORIES = {
-  Logement: {
-    color: "#5BA3C7",
-    keywords: [
-      "loyer",
-      "immobilier",
-      "habitation",
-      "logement",
-      "eau",
-      "edf",
-      "engie",
-      "électricité",
-      "gaz",
-      "chauffage",
-    ],
-  },
-  Transport: {
-    color: "#5BC78A",
-    keywords: [
-      "transport",
-      "essence",
-      "carburant",
-      "sncf",
-      "ratp",
-      "uber",
-      "taxi",
-      "parking",
-      "autoroute",
-      "péage",
-    ],
-  },
-  Alimentation: {
-    color: "#D4A853",
-    keywords: [
-      "alimentaire",
-      "restaurant",
-      "supermarché",
-      "courses",
-      "épicerie",
-      "boulangerie",
-    ],
-  },
-  Télécom: {
-    color: "#A85BC7",
-    keywords: [
-      "télécom",
-      "mobile",
-      "internet",
-      "free",
-      "orange",
-      "sfr",
-      "bouygues",
-      "fibre",
-      "forfait",
-    ],
-  },
-  Santé: {
-    color: "#C75B4E",
-    keywords: [
-      "santé",
-      "médecin",
-      "pharmacie",
-      "mutuelle",
-      "dentiste",
-      "opticien",
-      "hôpital",
-    ],
-  },
-  Assurance: {
-    color: "#C78A5B",
-    keywords: ["assurance", "axa", "maif", "macif", "allianz", "groupama"],
-  },
-  Loisirs: {
-    color: "#5BC7B8",
-    keywords: [
-      "loisir",
-      "sport",
-      "cinéma",
-      "netflix",
-      "spotify",
-      "abonnement",
-      "média",
-      "btlv",
-      "streaming",
-    ],
-  },
-  Divers: { color: "#888", keywords: [] },
+  "Logement": { color: "#5BA3C7", keywords: ["loyer", "immobilier", "habitation", "logement", "eau", "edf", "engie", "électricité", "gaz", "chauffage"] },
+  "Transport": { color: "#5BC78A", keywords: ["transport", "essence", "carburant", "sncf", "ratp", "uber", "taxi", "parking", "autoroute", "péage"] },
+  "Alimentation": { color: "#D4A853", keywords: ["alimentaire", "restaurant", "supermarché", "courses", "épicerie", "boulangerie"] },
+  "Télécom": { color: "#A85BC7", keywords: ["télécom", "mobile", "internet", "free", "orange", "sfr", "bouygues", "fibre", "forfait"] },
+  "Santé": { color: "#C75B4E", keywords: ["santé", "médecin", "pharmacie", "mutuelle", "dentiste", "opticien", "hôpital"] },
+  "Assurance": { color: "#C78A5B", keywords: ["assurance", "axa", "maif", "macif", "allianz", "groupama"] },
+  "Loisirs": { color: "#5BC7B8", keywords: ["loisir", "sport", "cinéma", "netflix", "spotify", "abonnement", "média", "btlv", "streaming"] },
+  "Divers": { color: "#888", keywords: [] },
 };
 
 function getBudgetCategory(invoice) {
-  const text = [invoice.category, invoice.subcategory, invoice.provider]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
+  const text = [invoice.category, invoice.subcategory, invoice.provider].filter(Boolean).join(" ").toLowerCase();
   for (const [cat, { keywords }] of Object.entries(BUDGET_CATEGORIES)) {
     if (cat === "Divers") continue;
-    if (keywords.some((k) => text.includes(k))) return cat;
+    if (keywords.some(k => text.includes(k))) return cat;
   }
   return "Divers";
 }
 
 function formatEuro(n) {
   if (n == null) return "—";
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
-  }).format(n);
+  return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(n);
 }
 function formatDate(d) {
   if (!d) return "—";
-  return new Date(d).toLocaleDateString("fr-FR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  return new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
 }
 
 // ═══ PDF TEXT EXTRACTION ═══
@@ -211,14 +60,9 @@ async function extractTextFromPDF(file) {
             }
           }
         }
-        if (text.trim().length < 20)
-          text = raw
-            .replace(/[^\x20-\x7E\xA0-\xFF\n\r\t]/g, " ")
-            .replace(/\s{3,}/g, "\n");
+        if (text.trim().length < 20) text = raw.replace(/[^\x20-\x7E\xA0-\xFF\n\r\t]/g, " ").replace(/\s{3,}/g, "\n");
         resolve(text.trim() || "Impossible d'extraire le texte");
-      } catch (err) {
-        reject(err);
-      }
+      } catch (err) { reject(err); }
     };
     reader.onerror = reject;
     reader.readAsArrayBuffer(file);
@@ -236,110 +80,34 @@ async function extractTextFromFile(file) {
 
 // ═══ EXPORT CSV ═══
 function exportCSV(invoices) {
-  const headers = [
-    "Numero",
-    "Fournisseur",
-    "Montant TTC",
-    "Montant HT",
-    "TVA",
-    "Date",
-    "Categorie",
-    "Frequence",
-    "Anomalie",
-  ];
-  const rows = invoices.map((i) => [
-    i.invoice_number || "",
-    i.provider || "",
-    i.amount_ttc || "",
-    i.amount_ht || "",
-    i.tax || "",
-    i.invoice_date || "",
-    i.category || "",
-    i.frequency || "",
-    i.has_anomaly ? "OUI" : "NON",
+  const headers = ["Numero", "Fournisseur", "Montant TTC", "Montant HT", "TVA", "Date", "Categorie", "Frequence", "Anomalie"];
+  const rows = invoices.map(i => [
+    i.invoice_number || "", i.provider || "", i.amount_ttc || "", i.amount_ht || "", i.tax || "",
+    i.invoice_date || "", i.category || "", i.frequency || "", i.has_anomaly ? "OUI" : "NON"
   ]);
-  const csv = [headers, ...rows].map((r) => r.join(";")).join("\n");
+  const csv = [headers, ...rows].map(r => r.join(";")).join("\n");
   const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url;
-  a.download = "vigie-factures-export.csv";
-  a.click();
+  a.href = url; a.download = "vigie-factures-export.csv"; a.click();
   URL.revokeObjectURL(url);
 }
 
 // ═══ STAT CARD ═══
 function StatCard({ icon: Icon, label, value, sub, color, trend }) {
   return (
-    <div
-      style={{
-        background: "rgba(255,255,255,0.02)",
-        border: "1px solid rgba(255,255,255,0.06)",
-        borderRadius: 14,
-        padding: "18px 20px",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          top: -30,
-          right: -30,
-          width: 80,
-          height: 80,
-          borderRadius: "50%",
-          background: `${color}08`,
-        }}
-      />
+    <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 14, padding: "18px 20px", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", top: -30, right: -30, width: 80, height: 80, borderRadius: "50%", background: `${color}08` }} />
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-        <div
-          style={{
-            width: 30,
-            height: 30,
-            borderRadius: 7,
-            background: `${color}15`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
+        <div style={{ width: 30, height: 30, borderRadius: 7, background: `${color}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <Icon size={14} color={color} />
         </div>
-        <span
-          style={{
-            fontSize: 10,
-            color: "rgba(255,255,255,0.4)",
-            letterSpacing: 1,
-            textTransform: "uppercase",
-            fontWeight: 600,
-          }}
-        >
-          {label}
-        </span>
+        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", letterSpacing: 1, textTransform: "uppercase", fontWeight: 600 }}>{label}</span>
       </div>
-      <div style={{ fontSize: 22, fontWeight: 700, color: "#EDE8DB", fontFamily: "'Cormorant Garamond', serif" }}>
-        {value}
-      </div>
+      <div style={{ fontSize: 22, fontWeight: 700, color: "#EDE8DB", fontFamily: "'Cormorant Garamond', serif" }}>{value}</div>
       {sub && (
-        <div
-          style={{
-            fontSize: 10,
-            color:
-              trend === "up"
-                ? "#C75B4E"
-                : trend === "down"
-                ? "#5BC78A"
-                : "rgba(255,255,255,0.3)",
-            display: "flex",
-            alignItems: "center",
-            gap: 3,
-            marginTop: 3,
-          }}
-        >
-          {trend === "up" && <ArrowUpRight size={11} />}
-          {trend === "down" && <ArrowDownRight size={11} />}
-          {sub}
+        <div style={{ fontSize: 10, color: trend === "up" ? "#C75B4E" : trend === "down" ? "#5BC78A" : "rgba(255,255,255,0.3)", display: "flex", alignItems: "center", gap: 3, marginTop: 3 }}>
+          {trend === "up" && <ArrowUpRight size={11} />}{trend === "down" && <ArrowDownRight size={11} />}{sub}
         </div>
       )}
     </div>
@@ -348,83 +116,23 @@ function StatCard({ icon: Icon, label, value, sub, color, trend }) {
 
 // ═══ FILE ITEM ═══
 function FileItem({ file, onRemove }) {
-  const sc = {
-    pending: "rgba(255,255,255,0.3)",
-    processing: "#D4A853",
-    done: "#5BC78A",
-    error: "#C75B4E",
-  };
+  const sc = { pending: "rgba(255,255,255,0.3)", processing: "#D4A853", done: "#5BC78A", error: "#C75B4E" };
   const si = { pending: Clock, processing: Loader, done: CheckCircle, error: AlertTriangle };
   const SI = si[file.status];
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-        padding: "12px 16px",
-        background: file.status === "processing" ? "rgba(212,168,83,0.06)" : "rgba(255,255,255,0.02)",
-        border: `1px solid ${
-          file.status === "processing"
-            ? "rgba(212,168,83,0.2)"
-            : file.status === "error"
-            ? "rgba(199,91,78,0.2)"
-            : file.status === "done"
-            ? "rgba(91,199,138,0.15)"
-            : "rgba(255,255,255,0.05)"
-        }`,
-        borderRadius: 10,
-      }}
-    >
-      <div
-        style={{
-          width: 34,
-          height: 34,
-          borderRadius: 7,
-          background: file.status === "done" ? "rgba(91,199,138,0.1)" : "rgba(255,255,255,0.04)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-        }}
-      >
+    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: file.status === "processing" ? "rgba(212,168,83,0.06)" : "rgba(255,255,255,0.02)", border: `1px solid ${file.status === "processing" ? "rgba(212,168,83,0.2)" : file.status === "error" ? "rgba(199,91,78,0.2)" : file.status === "done" ? "rgba(91,199,138,0.15)" : "rgba(255,255,255,0.05)"}`, borderRadius: 10 }}>
+      <div style={{ width: 34, height: 34, borderRadius: 7, background: file.status === "done" ? "rgba(91,199,138,0.1)" : "rgba(255,255,255,0.04)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
         <FileText size={16} color={file.status === "done" ? "#5BC78A" : "rgba(255,255,255,0.4)"} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div
-          style={{
-            fontSize: 12,
-            color: "#EDE8DB",
-            fontWeight: 500,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {file.name}
-        </div>
+        <div style={{ fontSize: 12, color: "#EDE8DB", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{file.name}</div>
         <div style={{ fontSize: 10, color: sc[file.status], marginTop: 2, display: "flex", alignItems: "center", gap: 4 }}>
           <SI size={11} style={file.status === "processing" ? { animation: "spin 1s linear infinite" } : {}} />
-          {file.status === "pending" && "En attente"}
-          {file.status === "processing" && "Analyse en cours..."}
-          {file.status === "done" &&
-            `✓ ${file.result?.extraction?.provider || "Analysé"} — ${formatEuro(file.result?.extraction?.amount_ttc)}`}
-          {file.status === "error" && (file.errorMsg || "Erreur")}
+          {file.status === "pending" && "En attente"}{file.status === "processing" && "Analyse en cours..."}{file.status === "done" && `✓ ${file.result?.extraction?.provider || "Analysé"} — ${formatEuro(file.result?.extraction?.amount_ttc)}`}{file.status === "error" && (file.errorMsg || "Erreur")}
         </div>
       </div>
       {(file.status === "pending" || file.status === "error") && (
-        <button
-          onClick={() => onRemove(file.id)}
-          style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            padding: 4,
-            color: "rgba(255,255,255,0.2)",
-          }}
-        >
-          <Trash2 size={13} />
-        </button>
+        <button onClick={() => onRemove(file.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "rgba(255,255,255,0.2)" }}><Trash2 size={13} /></button>
       )}
     </div>
   );
@@ -434,75 +142,16 @@ function FileItem({ file, onRemove }) {
 function InvoiceModal({ inv, onClose }) {
   if (!inv) return null;
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 1000,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "rgba(0,0,0,0.7)",
-        backdropFilter: "blur(8px)",
-        padding: 16,
-      }}
-      onClick={onClose}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          background: "#161513",
-          border: "1px solid rgba(255,255,255,0.08)",
-          borderRadius: 16,
-          padding: "24px 28px",
-          width: "100%",
-          maxWidth: 460,
-          maxHeight: "80vh",
-          overflowY: "auto",
-          animation: "modalIn 0.3s ease-out",
-        }}
-      >
+    <div style={{ position: "fixed", inset: 0, zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)", padding: 16 }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#161513", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "24px 28px", width: "100%", maxWidth: 460, maxHeight: "80vh", overflowY: "auto", animation: "modalIn 0.3s ease-out" }}>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
-          <h3 style={{ color: "#EDE8DB", fontFamily: "'Cormorant Garamond', serif", fontSize: 20, margin: 0 }}>
-            Détails
-          </h3>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer" }}>
-            <X size={16} color="rgba(255,255,255,0.3)" />
-          </button>
+          <h3 style={{ color: "#EDE8DB", fontFamily: "'Cormorant Garamond', serif", fontSize: 20, margin: 0 }}>Détails</h3>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={16} color="rgba(255,255,255,0.3)" /></button>
         </div>
-        {[
-          ["Numéro", inv.invoice_number],
-          ["Fournisseur", inv.provider],
-          ["Date", formatDate(inv.invoice_date)],
-          ["Montant HT", formatEuro(inv.amount_ht)],
-          ["TVA", `${formatEuro(inv.tax)} (${inv.tax_rate || "—"}%)`],
-          ["Montant TTC", formatEuro(inv.amount_ttc)],
-          ["Catégorie", `${inv.category || "—"} / ${inv.subcategory || "—"}`],
-          ["Fréquence", inv.frequency || "—"],
-          ["Coût annuel", formatEuro(inv.total_year)],
-          ["Anomalie", inv.has_anomaly ? `⚠️ ${inv.anomaly_explanation}` : "✅ Aucune"],
-        ].map(([k, v]) => (
-          <div
-            key={k}
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              padding: "8px 0",
-              borderBottom: "1px solid rgba(255,255,255,0.04)",
-            }}
-          >
+        {[["Numéro", inv.invoice_number], ["Fournisseur", inv.provider], ["Date", formatDate(inv.invoice_date)], ["Montant HT", formatEuro(inv.amount_ht)], ["TVA", `${formatEuro(inv.tax)} (${inv.tax_rate || "—"}%)`], ["Montant TTC", formatEuro(inv.amount_ttc)], ["Catégorie", `${inv.category || "—"} / ${inv.subcategory || "—"}`], ["Fréquence", inv.frequency || "—"], ["Coût annuel", formatEuro(inv.total_year)], ["Anomalie", inv.has_anomaly ? `⚠️ ${inv.anomaly_explanation}` : "✅ Aucune"]].map(([k, v]) => (
+          <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
             <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 11 }}>{k}</span>
-            <span
-              style={{
-                color: "#EDE8DB",
-                fontSize: 11,
-                fontWeight: 500,
-                textAlign: "right",
-                maxWidth: "60%",
-              }}
-            >
-              {v || "—"}
-            </span>
+            <span style={{ color: "#EDE8DB", fontSize: 11, fontWeight: 500, textAlign: "right", maxWidth: "60%" }}>{v || "—"}</span>
           </div>
         ))}
       </div>
@@ -514,15 +163,7 @@ function InvoiceModal({ inv, onClose }) {
 function CustomTooltip({ active, payload }) {
   if (!active || !payload?.length) return null;
   return (
-    <div
-      style={{
-        background: "#161513",
-        border: "1px solid rgba(255,255,255,0.08)",
-        borderRadius: 8,
-        padding: "6px 10px",
-        fontSize: 10,
-      }}
-    >
+    <div style={{ background: "#161513", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, padding: "6px 10px", fontSize: 10 }}>
       <div style={{ color: "rgba(255,255,255,0.4)" }}>{payload[0]?.name || payload[0]?.payload?.name}</div>
       <div style={{ color: "#D4A853", fontWeight: 700 }}>{formatEuro(payload[0]?.value)}</div>
     </div>
@@ -545,24 +186,13 @@ function LandingPage({ onStart }) {
         <p style={{ fontSize: "clamp(14px, 2.5vw, 18px)", color: "rgba(255,255,255,0.45)", maxWidth: 520, margin: "0 auto 36px", lineHeight: 1.6 }}>
           Vigie-Factures détecte les anomalies, compare les prix et vous alerte automatiquement. Plus jamais de mauvaises surprises.
         </p>
-        <button
-          onClick={onStart}
-          style={{
-            background: "linear-gradient(135deg, #D4A853, #C78A5B)",
-            color: "#0E0D0B",
-            border: "none",
-            borderRadius: 12,
-            padding: "16px 40px",
-            fontSize: 16,
-            fontWeight: 700,
-            cursor: "pointer",
-            fontFamily: "'Nunito Sans', sans-serif",
-            boxShadow: "0 4px 24px rgba(212,168,83,0.3)",
-            transition: "transform 0.2s",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-2px)")}
-          onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
-        >
+        <button onClick={onStart} style={{
+          background: "linear-gradient(135deg, #D4A853, #C78A5B)", color: "#0E0D0B", border: "none", borderRadius: 12,
+          padding: "16px 40px", fontSize: 16, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito Sans', sans-serif",
+          boxShadow: "0 4px 24px rgba(212,168,83,0.3)", transition: "transform 0.2s",
+        }}
+          onMouseEnter={e => e.currentTarget.style.transform = "translateY(-2px)"}
+          onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}>
           Analyser mes factures →
         </button>
       </div>
@@ -577,12 +207,9 @@ function LandingPage({ onStart }) {
           { icon: Upload, title: "Multi-upload", desc: "Glissez plusieurs factures d'un coup, elles sont toutes analysées en parallèle." },
           { icon: Download, title: "Export Excel/CSV", desc: "Téléchargez vos données pour votre comptable ou vos rapports." },
         ].map((f, i) => (
-          <div
-            key={i}
-            style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, padding: "24px 20px", transition: "border-color 0.3s" }}
-            onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(212,168,83,0.2)")}
-            onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)")}
-          >
+          <div key={i} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, padding: "24px 20px", transition: "border-color 0.3s" }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(212,168,83,0.2)"}
+            onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)"}>
             <div style={{ width: 36, height: 36, borderRadius: 9, background: "rgba(212,168,83,0.08)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
               <f.icon size={17} color="#D4A853" />
             </div>
@@ -642,69 +269,48 @@ export default function VigieFactures() {
     setLoading(false);
   }, []);
 
-  useEffect(() => {
-    fetchInvoices();
-  }, [fetchInvoices]);
+  useEffect(() => { fetchInvoices(); }, [fetchInvoices]);
 
   const addFiles = useCallback((newFiles) => {
-    const fileObjs = Array.from(newFiles)
-      .filter((f) => f.type === "application/pdf" || f.type.startsWith("text/") || f.type.startsWith("image/"))
-      .map((f) => ({
-        id: nextId.current++,
-        file: f,
-        name: f.name,
-        status: "pending",
-        result: null,
-        errorMsg: null,
-      }));
-    setFiles((prev) => [...prev, ...fileObjs]);
+    const fileObjs = Array.from(newFiles).filter(f => f.type === "application/pdf" || f.type.startsWith("text/") || f.type.startsWith("image/")).map(f => ({
+      id: nextId.current++, file: f, name: f.name, status: "pending", result: null, errorMsg: null,
+    }));
+    setFiles(prev => [...prev, ...fileObjs]);
   }, []);
 
-  const removeFile = useCallback((id) => {
-    setFiles((prev) => prev.filter((f) => f.id !== id));
-  }, []);
+  const removeFile = useCallback((id) => { setFiles(prev => prev.filter(f => f.id !== id)); }, []);
 
   const processAll = useCallback(async () => {
     setIsProcessing(true);
-    const pending = files.filter((f) => f.status === "pending" || f.status === "error");
+    const pending = files.filter(f => f.status === "pending" || f.status === "error");
     for (const fileObj of pending) {
-      setFiles((prev) => prev.map((f) => (f.id === fileObj.id ? { ...f, status: "processing" } : f)));
+      setFiles(prev => prev.map(f => f.id === fileObj.id ? { ...f, status: "processing" } : f));
       try {
         const text = await extractTextFromFile(fileObj.file);
         const response = await fetch(ANALYZE_API, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text }),
+          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }),
         });
         const data = await response.json();
         if (data.success && data.result) {
-          setFiles((prev) => prev.map((f) => (f.id === fileObj.id ? { ...f, status: "done", result: data.result } : f)));
+          setFiles(prev => prev.map(f => f.id === fileObj.id ? { ...f, status: "done", result: data.result } : f));
         } else {
-          setFiles((prev) => prev.map((f) => (f.id === fileObj.id ? { ...f, status: "error", errorMsg: data.error || "Erreur API" } : f)));
+          setFiles(prev => prev.map(f => f.id === fileObj.id ? { ...f, status: "error", errorMsg: data.error || "Erreur API" } : f));
         }
       } catch (err) {
-        setFiles((prev) => prev.map((f) => (f.id === fileObj.id ? { ...f, status: "error", errorMsg: err.message } : f)));
+        setFiles(prev => prev.map(f => f.id === fileObj.id ? { ...f, status: "error", errorMsg: err.message } : f));
       }
     }
     setIsProcessing(false);
     fetchInvoices();
   }, [files, fetchInvoices]);
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setDragOver(true);
-  };
+  const handleDragOver = (e) => { e.preventDefault(); setDragOver(true); };
   const handleDragLeave = () => setDragOver(false);
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setDragOver(false);
-    addFiles(e.dataTransfer.files);
-  };
+  const handleDrop = (e) => { e.preventDefault(); setDragOver(false); addFiles(e.dataTransfer.files); };
 
   const filtered = useMemo(() => {
-    return invoices.filter((inv) => {
-      const m1 =
-        !search || [inv.provider, inv.invoice_number, inv.category].some((f) => f?.toLowerCase().includes(search.toLowerCase()));
+    return invoices.filter(inv => {
+      const m1 = !search || [inv.provider, inv.invoice_number, inv.category].some(f => f?.toLowerCase().includes(search.toLowerCase()));
       const m2 = filterFreq === "all" || inv.frequency === filterFreq;
       return m1 && m2;
     });
@@ -713,40 +319,31 @@ export default function VigieFactures() {
   const stats = useMemo(() => {
     const total = invoices.reduce((s, i) => s + (i.amount_ttc || 0), 0);
     const totalYear = invoices.reduce((s, i) => s + (i.total_year || 0), 0);
-    const anomalies = invoices.filter((i) => i.has_anomaly).length;
-    const providers = [...new Set(invoices.map((i) => i.provider).filter(Boolean))].length;
+    const anomalies = invoices.filter(i => i.has_anomaly).length;
+    const providers = [...new Set(invoices.map(i => i.provider).filter(Boolean))].length;
     return { total, totalYear, anomalies, providers, count: invoices.length };
   }, [invoices]);
 
   const pieData = useMemo(() => {
     const bp = {};
-    invoices.forEach((i) => {
-      const p = i.provider || "Inconnu";
-      bp[p] = (bp[p] || 0) + (i.amount_ttc || 0);
-    });
-    return Object.entries(bp)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 8);
+    invoices.forEach(i => { const p = i.provider || "Inconnu"; bp[p] = (bp[p] || 0) + (i.amount_ttc || 0); });
+    return Object.entries(bp).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 8);
   }, [invoices]);
 
   const barData = useMemo(() => {
     const bm = {};
-    invoices.forEach((i) => {
+    invoices.forEach(i => {
       if (!i.invoice_date) return;
       const d = new Date(i.invoice_date);
       const k = `${d.getFullYear()}-${String(d.getMonth()).padStart(2, "0")}`;
       bm[k] = { name: `${MONTHS_FR[d.getMonth()]} ${d.getFullYear()}`, total: (bm[k]?.total || 0) + (i.amount_ttc || 0) };
     });
-    return Object.entries(bm)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([, v]) => v)
-      .slice(-12);
+    return Object.entries(bm).sort(([a], [b]) => a.localeCompare(b)).map(([, v]) => v).slice(-12);
   }, [invoices]);
 
-  const alerts = useMemo(() => invoices.filter((i) => i.has_anomaly).map((i) => ({ provider: i.provider, explanation: i.anomaly_explanation })), [invoices]);
-  const pendingCount = files.filter((f) => f.status === "pending").length;
-  const doneCount = files.filter((f) => f.status === "done").length;
+  const alerts = useMemo(() => invoices.filter(i => i.has_anomaly).map(i => ({ provider: i.provider, explanation: i.anomaly_explanation })), [invoices]);
+  const pendingCount = files.filter(f => f.status === "pending").length;
+  const doneCount = files.filter(f => f.status === "done").length;
 
   // ═══ LANDING PAGE ═══
   if (page === "landing") return <LandingPage onStart={() => setPage("upload")} />;
@@ -774,29 +371,10 @@ export default function VigieFactures() {
       `}</style>
 
       {/* Mobile header */}
-      <div
-        style={{
-          display: "none",
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 52,
-          background: "#0E0D0B",
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
-          zIndex: 150,
-          alignItems: "center",
-          padding: "0 16px",
-          justifyContent: "space-between",
-        }}
+      <div style={{ display: "none", position: "fixed", top: 0, left: 0, right: 0, height: 52, background: "#0E0D0B", borderBottom: "1px solid rgba(255,255,255,0.06)", zIndex: 150, alignItems: "center", padding: "0 16px", justifyContent: "space-between" }}
         className="mobile-header"
-        ref={(el) => {
-          if (el) el.style.display = window.innerWidth <= 768 ? "flex" : "none";
-        }}
-      >
-        <button onClick={() => setMobileMenu(!mobileMenu)} style={{ background: "none", border: "none", cursor: "pointer" }}>
-          <Menu size={20} color="#D4A853" />
-        </button>
+        ref={el => { if (el) el.style.display = window.innerWidth <= 768 ? "flex" : "none"; }}>
+        <button onClick={() => setMobileMenu(!mobileMenu)} style={{ background: "none", border: "none", cursor: "pointer" }}><Menu size={20} color="#D4A853" /></button>
         <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, fontWeight: 700, color: "#D4A853" }}>Vigie</span>
         <div style={{ width: 20 }} />
       </div>
@@ -805,29 +383,9 @@ export default function VigieFactures() {
       {mobileMenu && <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 190 }} onClick={() => setMobileMenu(false)} />}
 
       {/* Sidebar */}
-      <div
-        className={`sidebar ${mobileMenu ? "open" : ""}`}
-        style={{
-          position: "fixed",
-          left: 0,
-          top: 0,
-          bottom: 0,
-          width: 200,
-          background: "rgba(255,255,255,0.015)",
-          borderRight: "1px solid rgba(255,255,255,0.05)",
-          padding: "24px 14px",
-          display: "flex",
-          flexDirection: "column",
-          zIndex: 200,
-          transition: "transform 0.3s",
-        }}
-      >
-        <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 700, color: "#D4A853", marginBottom: 4, paddingLeft: 8 }}>
-          Vigie
-        </h1>
-        <p style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", letterSpacing: 2, textTransform: "uppercase", paddingLeft: 8, marginBottom: 32 }}>
-          Factures
-        </p>
+      <div className={`sidebar ${mobileMenu ? "open" : ""}`} style={{ position: "fixed", left: 0, top: 0, bottom: 0, width: 200, background: "rgba(255,255,255,0.015)", borderRight: "1px solid rgba(255,255,255,0.05)", padding: "24px 14px", display: "flex", flexDirection: "column", zIndex: 200, transition: "transform 0.3s" }}>
+        <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 700, color: "#D4A853", marginBottom: 4, paddingLeft: 8 }}>Vigie</h1>
+        <p style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", letterSpacing: 2, textTransform: "uppercase", paddingLeft: 8, marginBottom: 32 }}>Factures</p>
 
         {[
           { id: "landing", icon: Home, label: "Accueil" },
@@ -835,178 +393,64 @@ export default function VigieFactures() {
           { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
           { id: "budget", icon: Wallet, label: "Budget" },
           { id: "report", icon: FileBarChart, label: "Rapport" },
-        ].map((item) => (
-          <button
-            key={item.id}
-            onClick={() => {
-              setPage(item.id);
-              setMobileMenu(false);
-            }}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "10px 12px",
-              borderRadius: 9,
-              border: "none",
-              background: page === item.id ? "rgba(212,168,83,0.1)" : "transparent",
-              color: page === item.id ? "#D4A853" : "rgba(255,255,255,0.4)",
-              cursor: "pointer",
-              fontSize: 12,
-              fontWeight: page === item.id ? 600 : 400,
-              width: "100%",
-              textAlign: "left",
-              marginBottom: 3,
-              fontFamily: "'Nunito Sans', sans-serif",
-            }}
-          >
-            <item.icon size={16} />
-            {item.label}
-            {item.badge && (
-              <span style={{ marginLeft: "auto", background: "#D4A853", color: "#0E0D0B", borderRadius: 10, padding: "1px 6px", fontSize: 9, fontWeight: 700 }}>
-                {item.badge}
-              </span>
-            )}
+        ].map(item => (
+          <button key={item.id} onClick={() => { setPage(item.id); setMobileMenu(false); }} style={{
+            display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 9, border: "none",
+            background: page === item.id ? "rgba(212,168,83,0.1)" : "transparent",
+            color: page === item.id ? "#D4A853" : "rgba(255,255,255,0.4)",
+            cursor: "pointer", fontSize: 12, fontWeight: page === item.id ? 600 : 400,
+            width: "100%", textAlign: "left", marginBottom: 3, fontFamily: "'Nunito Sans', sans-serif",
+          }}>
+            <item.icon size={16} />{item.label}
+            {item.badge && <span style={{ marginLeft: "auto", background: "#D4A853", color: "#0E0D0B", borderRadius: 10, padding: "1px 6px", fontSize: 9, fontWeight: 700 }}>{item.badge}</span>}
           </button>
         ))}
 
         <div style={{ marginTop: "auto", padding: "14px 8px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.2)" }}>
-            {invoices.length} facture{invoices.length > 1 ? "s" : ""}
-          </div>
-          {alerts.length > 0 && (
-            <div style={{ fontSize: 10, color: "#C75B4E", marginTop: 3, display: "flex", alignItems: "center", gap: 3 }}>
-              <Bell size={10} /> {alerts.length} alerte{alerts.length > 1 ? "s" : ""}
-            </div>
-          )}
+          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.2)" }}>{invoices.length} facture{invoices.length > 1 ? "s" : ""}</div>
+          {alerts.length > 0 && <div style={{ fontSize: 10, color: "#C75B4E", marginTop: 3, display: "flex", alignItems: "center", gap: 3 }}><Bell size={10} /> {alerts.length} alerte{alerts.length > 1 ? "s" : ""}</div>}
         </div>
       </div>
 
       {/* Main Content */}
       <div className="main-content" style={{ marginLeft: 200, padding: "28px 32px 50px", paddingTop: window.innerWidth <= 768 ? 72 : 28 }}>
+
         {/* ═══ UPLOAD PAGE ═══ */}
         {page === "upload" && (
           <div style={{ maxWidth: 640, margin: "0 auto" }}>
             <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 28, fontWeight: 700, marginBottom: 6 }}>Analyser des factures</h2>
-            <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 13, marginBottom: 28 }}>
-              Glisse tes fichiers ou clique pour les ajouter. Lance l'analyse quand tu es prêt.
-            </p>
+            <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 13, marginBottom: 28 }}>Glisse tes fichiers ou clique pour les ajouter. Lance l'analyse quand tu es prêt.</p>
 
-            <div
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-              style={{
-                border: `2px dashed ${dragOver ? "rgba(212,168,83,0.6)" : "rgba(255,255,255,0.1)"}`,
-                borderRadius: 14,
-                padding: "40px 24px",
-                textAlign: "center",
-                cursor: "pointer",
-                background: dragOver ? "rgba(212,168,83,0.04)" : "rgba(255,255,255,0.01)",
-                marginBottom: 20,
-              }}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                accept=".pdf,.txt,.png,.jpg,.jpeg"
-                onChange={(e) => {
-                  addFiles(e.target.files);
-                  e.target.value = "";
-                }}
-              />
+            <div onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} onClick={() => fileInputRef.current?.click()} style={{
+              border: `2px dashed ${dragOver ? "rgba(212,168,83,0.6)" : "rgba(255,255,255,0.1)"}`, borderRadius: 14, padding: "40px 24px", textAlign: "center", cursor: "pointer",
+              background: dragOver ? "rgba(212,168,83,0.04)" : "rgba(255,255,255,0.01)", marginBottom: 20,
+            }}>
+              <input ref={fileInputRef} type="file" multiple accept=".pdf,.txt,.png,.jpg,.jpeg" onChange={e => { addFiles(e.target.files); e.target.value = ""; }} />
               <Upload size={32} color={dragOver ? "#D4A853" : "rgba(255,255,255,0.2)"} style={{ marginBottom: 12 }} />
-              <div style={{ color: dragOver ? "#D4A853" : "rgba(255,255,255,0.5)", fontSize: 14, fontWeight: 500, marginBottom: 6 }}>
-                {dragOver ? "Lâche tes fichiers ici !" : "Glisse tes factures ici"}
-              </div>
+              <div style={{ color: dragOver ? "#D4A853" : "rgba(255,255,255,0.5)", fontSize: 14, fontWeight: 500, marginBottom: 6 }}>{dragOver ? "Lâche tes fichiers ici !" : "Glisse tes factures ici"}</div>
               <div style={{ color: "rgba(255,255,255,0.25)", fontSize: 11 }}>ou clique pour parcourir • PDF, images, texte</div>
             </div>
 
             {files.length > 0 && (
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: "8px 14px",
-                  borderRadius: 7,
-                  background: "rgba(255,255,255,0.03)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  color: "rgba(255,255,255,0.5)",
-                  fontSize: 11,
-                  cursor: "pointer",
-                  marginBottom: 14,
-                  fontFamily: "'Nunito Sans', sans-serif",
-                }}
-              >
+              <button onClick={() => fileInputRef.current?.click()} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 7, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)", fontSize: 11, cursor: "pointer", marginBottom: 14, fontFamily: "'Nunito Sans', sans-serif" }}>
                 <Plus size={12} /> Ajouter d'autres factures
               </button>
             )}
 
-            {files.length > 0 && <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 20 }}>{files.map((f) => <FileItem key={f.id} file={f} onRemove={removeFile} />)}</div>}
+            {files.length > 0 && <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 20 }}>{files.map(f => <FileItem key={f.id} file={f} onRemove={removeFile} />)}</div>}
 
             {files.length > 0 && (
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <button
-                  onClick={processAll}
-                  disabled={isProcessing || pendingCount === 0}
-                  style={{
-                    flex: 1,
-                    minWidth: 200,
-                    padding: "12px 20px",
-                    borderRadius: 10,
-                    border: "none",
-                    background: isProcessing
-                      ? "rgba(212,168,83,0.15)"
-                      : pendingCount === 0
-                      ? "rgba(255,255,255,0.05)"
-                      : "linear-gradient(135deg, #D4A853, #C78A5B)",
-                    color: isProcessing ? "#D4A853" : pendingCount === 0 ? "rgba(255,255,255,0.3)" : "#0E0D0B",
-                    fontSize: 13,
-                    fontWeight: 700,
-                    cursor: isProcessing || pendingCount === 0 ? "not-allowed" : "pointer",
-                    fontFamily: "'Nunito Sans', sans-serif",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 6,
-                  }}
-                >
-                  {isProcessing ? (
-                    <>
-                      <Loader size={14} style={{ animation: "spin 1s linear infinite" }} /> Analyse en cours...
-                    </>
-                  ) : pendingCount === 0 ? (
-                    <>
-                      <CheckCircle size={14} /> Toutes analysées !
-                    </>
-                  ) : (
-                    <>
-                      <UploadCloud size={14} /> Analyser {pendingCount} facture{pendingCount > 1 ? "s" : ""}
-                    </>
-                  )}
+                <button onClick={processAll} disabled={isProcessing || pendingCount === 0} style={{
+                  flex: 1, minWidth: 200, padding: "12px 20px", borderRadius: 10, border: "none",
+                  background: isProcessing ? "rgba(212,168,83,0.15)" : pendingCount === 0 ? "rgba(255,255,255,0.05)" : "linear-gradient(135deg, #D4A853, #C78A5B)",
+                  color: isProcessing ? "#D4A853" : pendingCount === 0 ? "rgba(255,255,255,0.3)" : "#0E0D0B",
+                  fontSize: 13, fontWeight: 700, cursor: isProcessing || pendingCount === 0 ? "not-allowed" : "pointer", fontFamily: "'Nunito Sans', sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                }}>
+                  {isProcessing ? <><Loader size={14} style={{ animation: "spin 1s linear infinite" }} /> Analyse en cours...</> : pendingCount === 0 ? <><CheckCircle size={14} /> Toutes analysées !</> : <><UploadCloud size={14} /> Analyser {pendingCount} facture{pendingCount > 1 ? "s" : ""}</>}
                 </button>
                 {doneCount > 0 && (
-                  <button
-                    onClick={() => setPage("dashboard")}
-                    style={{
-                      padding: "12px 16px",
-                      borderRadius: 10,
-                      border: "1px solid rgba(91,199,138,0.3)",
-                      background: "rgba(91,199,138,0.08)",
-                      color: "#5BC78A",
-                      fontSize: 12,
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      fontFamily: "'Nunito Sans', sans-serif",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6,
-                    }}
-                  >
+                  <button onClick={() => setPage("dashboard")} style={{ padding: "12px 16px", borderRadius: 10, border: "1px solid rgba(91,199,138,0.3)", background: "rgba(91,199,138,0.08)", color: "#5BC78A", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Nunito Sans', sans-serif", display: "flex", alignItems: "center", gap: 6 }}>
                     <LayoutDashboard size={13} /> Dashboard
                   </button>
                 )}
@@ -1025,75 +469,30 @@ export default function VigieFactures() {
                 <p style={{ color: "rgba(255,255,255,0.25)", fontSize: 11 }}>Vue d'ensemble de vos factures</p>
               </div>
               <div style={{ display: "flex", gap: 8 }}>
-                <button
-                  onClick={() => exportCSV(filtered)}
-                  style={{
-                    background: "rgba(91,199,138,0.08)",
-                    border: "1px solid rgba(91,199,138,0.2)",
-                    borderRadius: 7,
-                    padding: "7px 12px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 5,
-                    color: "#5BC78A",
-                    fontSize: 11,
-                    fontFamily: "'Nunito Sans', sans-serif",
-                  }}
-                >
+                <button onClick={() => exportCSV(filtered)} style={{ background: "rgba(91,199,138,0.08)", border: "1px solid rgba(91,199,138,0.2)", borderRadius: 7, padding: "7px 12px", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, color: "#5BC78A", fontSize: 11, fontFamily: "'Nunito Sans', sans-serif" }}>
                   <Download size={12} /> Export CSV
                 </button>
-                <button
-                  onClick={fetchInvoices}
-                  style={{
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    borderRadius: 7,
-                    padding: "7px 12px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 5,
-                    color: "rgba(255,255,255,0.4)",
-                    fontSize: 11,
-                    fontFamily: "'Nunito Sans', sans-serif",
-                  }}
-                >
+                <button onClick={fetchInvoices} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 7, padding: "7px 12px", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, color: "rgba(255,255,255,0.4)", fontSize: 11, fontFamily: "'Nunito Sans', sans-serif" }}>
                   <RefreshCw size={12} /> Actualiser
                 </button>
               </div>
             </div>
 
-            {alerts.length > 0 && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 20 }}>
-                {alerts.map((a, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      background: "rgba(199,91,78,0.06)",
-                      border: "1px solid rgba(199,91,78,0.15)",
-                      borderRadius: 9,
-                      padding: "10px 14px",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10,
-                      animation: "slideIn 0.3s ease-out",
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <AlertTriangle size={14} color="#C75B4E" />
-                    <span style={{ color: "#C75B4E", fontWeight: 600, fontSize: 11 }}>{a.provider}</span>
-                    <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 11 }}>— {a.explanation}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+            {alerts.length > 0 && <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 20 }}>
+              {alerts.map((a, i) => (
+                <div key={i} style={{ background: "rgba(199,91,78,0.06)", border: "1px solid rgba(199,91,78,0.15)", borderRadius: 9, padding: "10px 14px", display: "flex", alignItems: "center", gap: 10, animation: "slideIn 0.3s ease-out", flexWrap: "wrap" }}>
+                  <AlertTriangle size={14} color="#C75B4E" />
+                  <span style={{ color: "#C75B4E", fontWeight: 600, fontSize: 11 }}>{a.provider}</span>
+                  <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 11 }}>— {a.explanation}</span>
+                </div>
+              ))}
+            </div>}
 
             <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
               <StatCard icon={FileText} label="Factures" value={stats.count} sub={`${stats.providers} fournisseur${stats.providers > 1 ? "s" : ""}`} color="#D4A853" />
               <StatCard icon={TrendingUp} label="Total" value={formatEuro(stats.total)} sub={`${formatEuro(stats.totalYear)} est. annuel`} color="#5BA3C7" />
               <StatCard icon={AlertTriangle} label="Anomalies" value={stats.anomalies} sub={stats.anomalies > 0 ? "À vérifier" : "RAS"} color={stats.anomalies > 0 ? "#C75B4E" : "#5BC78A"} trend={stats.anomalies > 0 ? "up" : undefined} />
-              <StatCard icon={Calendar} label="Récurrents" value={invoices.filter((i) => i.frequency === "mensuel").length} sub={`${formatEuro(invoices.filter((i) => i.frequency === "mensuel").reduce((s, i) => s + (i.amount_ttc || 0), 0))}/mois`} color="#A85BC7" />
+              <StatCard icon={Calendar} label="Récurrents" value={invoices.filter(i => i.frequency === "mensuel").length} sub={`${formatEuro(invoices.filter(i => i.frequency === "mensuel").reduce((s, i) => s + (i.amount_ttc || 0), 0))}/mois`} color="#A85BC7" />
             </div>
 
             <div className="charts-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 24 }}>
@@ -1101,16 +500,7 @@ export default function VigieFactures() {
                 <h3 style={{ color: "rgba(255,255,255,0.4)", fontSize: 9, letterSpacing: 1.5, marginBottom: 14, fontWeight: 600, textTransform: "uppercase" }}>Par fournisseur</h3>
                 {pieData.length > 0 ? (
                   <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                    <ResponsiveContainer width="50%" height={160}>
-                      <PieChart>
-                        <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={3} dataKey="value">
-                          {pieData.map((_, i) => (
-                            <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip content={<CustomTooltip />} />
-                      </PieChart>
-                    </ResponsiveContainer>
+                    <ResponsiveContainer width="50%" height={160}><PieChart><Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={3} dataKey="value">{pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}</Pie><Tooltip content={<CustomTooltip />} /></PieChart></ResponsiveContainer>
                     <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                       {pieData.map((d, i) => (
                         <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10 }}>
@@ -1121,168 +511,57 @@ export default function VigieFactures() {
                       ))}
                     </div>
                   </div>
-                ) : (
-                  <div style={{ color: "rgba(255,255,255,0.15)", textAlign: "center", padding: 36, fontSize: 11 }}>Aucune donnée</div>
-                )}
+                ) : <div style={{ color: "rgba(255,255,255,0.15)", textAlign: "center", padding: 36, fontSize: 11 }}>Aucune donnée</div>}
               </div>
-
               <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, padding: 18 }}>
                 <h3 style={{ color: "rgba(255,255,255,0.4)", fontSize: 9, letterSpacing: 1.5, marginBottom: 14, fontWeight: 600, textTransform: "uppercase" }}>Par mois</h3>
                 {barData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={160}>
-                    <BarChart data={barData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                      <XAxis dataKey="name" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 9 }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 9 }} axisLine={false} tickLine={false} />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Bar dataKey="total" radius={[4, 4, 0, 0]}>
-                        {barData.map((_, i) => (
-                          <Cell key={i} fill={`rgba(212,168,83,${0.35 + (i / barData.length) * 0.65})`} />
-                        ))}
-                      </Bar>
-                    </BarChart>
+                    <BarChart data={barData}><CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" /><XAxis dataKey="name" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 9 }} axisLine={false} tickLine={false} /><YAxis tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 9 }} axisLine={false} tickLine={false} /><Tooltip content={<CustomTooltip />} /><Bar dataKey="total" radius={[4, 4, 0, 0]}>{barData.map((_, i) => <Cell key={i} fill={`rgba(212,168,83,${0.35 + (i / barData.length) * 0.65})`} />)}</Bar></BarChart>
                   </ResponsiveContainer>
-                ) : (
-                  <div style={{ color: "rgba(255,255,255,0.15)", textAlign: "center", padding: 36, fontSize: 11 }}>Aucune donnée</div>
-                )}
+                ) : <div style={{ color: "rgba(255,255,255,0.15)", textAlign: "center", padding: 36, fontSize: 11 }}>Aucune donnée</div>}
               </div>
             </div>
 
             <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
               <div style={{ flex: 1, minWidth: 180, display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 9, padding: "0 12px" }}>
                 <Search size={12} color="rgba(255,255,255,0.25)" />
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Rechercher..."
-                  style={{
-                    background: "none",
-                    border: "none",
-                    outline: "none",
-                    color: "#EDE8DB",
-                    fontSize: 11,
-                    padding: "9px 0",
-                    width: "100%",
-                    fontFamily: "'Nunito Sans', sans-serif",
-                  }}
-                />
+                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher..." style={{ background: "none", border: "none", outline: "none", color: "#EDE8DB", fontSize: 11, padding: "9px 0", width: "100%", fontFamily: "'Nunito Sans', sans-serif" }} />
               </div>
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                style={{
-                  background: "rgba(255,255,255,0.03)",
-                  border: "1px solid rgba(255,255,255,0.06)",
-                  borderRadius: 9,
-                  padding: "7px 12px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                  color: "rgba(255,255,255,0.4)",
-                  fontSize: 11,
-                  fontFamily: "'Nunito Sans', sans-serif",
-                }}
-              >
-                <Filter size={11} /> Filtres
-              </button>
+              <button onClick={() => setShowFilters(!showFilters)} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 9, padding: "7px 12px", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, color: "rgba(255,255,255,0.4)", fontSize: 11, fontFamily: "'Nunito Sans', sans-serif" }}><Filter size={11} /> Filtres</button>
             </div>
 
-            {showFilters && (
-              <div style={{ display: "flex", gap: 5, marginBottom: 12, flexWrap: "wrap" }}>
-                {[
-                  ["all", "Tous"],
-                  ["mensuel", "Mensuel"],
-                  ["annuel", "Annuel"],
-                  ["ponctuel", "Ponctuel"],
-                ].map(([v, l]) => (
-                  <button
-                    key={v}
-                    onClick={() => setFilterFreq(v)}
-                    style={{
-                      background: filterFreq === v ? "rgba(212,168,83,0.12)" : "rgba(255,255,255,0.03)",
-                      border: `1px solid ${filterFreq === v ? "rgba(212,168,83,0.25)" : "rgba(255,255,255,0.06)"}`,
-                      borderRadius: 14,
-                      padding: "4px 12px",
-                      cursor: "pointer",
-                      color: filterFreq === v ? "#D4A853" : "rgba(255,255,255,0.4)",
-                      fontSize: 10,
-                      fontWeight: filterFreq === v ? 600 : 400,
-                      fontFamily: "'Nunito Sans', sans-serif",
-                    }}
-                  >
-                    {l}
-                  </button>
-                ))}
-              </div>
-            )}
+            {showFilters && <div style={{ display: "flex", gap: 5, marginBottom: 12, flexWrap: "wrap" }}>
+              {[["all", "Tous"], ["mensuel", "Mensuel"], ["annuel", "Annuel"], ["ponctuel", "Ponctuel"]].map(([v, l]) => (
+                <button key={v} onClick={() => setFilterFreq(v)} style={{ background: filterFreq === v ? "rgba(212,168,83,0.12)" : "rgba(255,255,255,0.03)", border: `1px solid ${filterFreq === v ? "rgba(212,168,83,0.25)" : "rgba(255,255,255,0.06)"}`, borderRadius: 14, padding: "4px 12px", cursor: "pointer", color: filterFreq === v ? "#D4A853" : "rgba(255,255,255,0.4)", fontSize: 10, fontWeight: filterFreq === v ? 600 : 400, fontFamily: "'Nunito Sans', sans-serif" }}>{l}</button>
+              ))}
+            </div>}
 
             <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, overflow: "hidden" }}>
               <div style={{ overflowX: "auto" }}>
                 <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 600 }}>
-                  <thead>
-                    <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                      {["N°", "Fournisseur", "TTC", "Date", "Fréq.", "Statut", ""].map((h) => (
-                        <th key={h} style={{ padding: "10px 12px", textAlign: "left", color: "rgba(255,255,255,0.3)", fontSize: 9, fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase" }}>
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
+                  <thead><tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                    {["N°", "Fournisseur", "TTC", "Date", "Fréq.", "Statut", ""].map(h => (
+                      <th key={h} style={{ padding: "10px 12px", textAlign: "left", color: "rgba(255,255,255,0.3)", fontSize: 9, fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase" }}>{h}</th>
+                    ))}
+                  </tr></thead>
                   <tbody>
-                    {loading ? (
-                      <tr>
-                        <td colSpan={7} style={{ padding: 36, textAlign: "center", color: "rgba(255,255,255,0.15)", fontSize: 11 }}>
-                          Chargement...
-                        </td>
+                    {loading ? <tr><td colSpan={7} style={{ padding: 36, textAlign: "center", color: "rgba(255,255,255,0.15)", fontSize: 11 }}>Chargement...</td></tr>
+                    : filtered.length === 0 ? <tr><td colSpan={7} style={{ padding: 36, textAlign: "center", color: "rgba(255,255,255,0.15)", fontSize: 11 }}>Aucune facture</td></tr>
+                    : filtered.map((inv, i) => (
+                      <tr key={inv.id || i} style={{ borderBottom: "1px solid rgba(255,255,255,0.03)", cursor: "pointer" }}
+                        onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.02)"}
+                        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                        onClick={() => setSelectedInv(inv)}>
+                        <td style={{ padding: "10px 12px", color: "#EDE8DB", fontSize: 11, fontWeight: 500 }}>{inv.invoice_number || "—"}</td>
+                        <td style={{ padding: "10px 12px", color: "rgba(255,255,255,0.6)", fontSize: 11 }}>{inv.provider || "—"}</td>
+                        <td style={{ padding: "10px 12px", color: "#D4A853", fontSize: 11, fontWeight: 600 }}>{formatEuro(inv.amount_ttc)}</td>
+                        <td style={{ padding: "10px 12px", color: "rgba(255,255,255,0.4)", fontSize: 11 }}>{formatDate(inv.invoice_date)}</td>
+                        <td style={{ padding: "10px 12px" }}><span style={{ padding: "2px 7px", borderRadius: 10, fontSize: 9, fontWeight: 600, background: inv.frequency === "mensuel" ? "rgba(91,163,199,0.12)" : "rgba(255,255,255,0.05)", color: inv.frequency === "mensuel" ? "#5BA3C7" : "rgba(255,255,255,0.4)" }}>{inv.frequency || "—"}</span></td>
+                        <td style={{ padding: "10px 12px" }}>{inv.has_anomaly ? <span style={{ color: "#C75B4E", fontSize: 10, fontWeight: 600, display: "flex", alignItems: "center", gap: 3 }}><AlertTriangle size={11} /> Anomalie</span> : <span style={{ color: "rgba(91,199,138,0.6)", fontSize: 10 }}>✓ OK</span>}</td>
+                        <td style={{ padding: "10px 6px" }}><Eye size={12} color="rgba(255,255,255,0.2)" /></td>
                       </tr>
-                    ) : filtered.length === 0 ? (
-                      <tr>
-                        <td colSpan={7} style={{ padding: 36, textAlign: "center", color: "rgba(255,255,255,0.15)", fontSize: 11 }}>
-                          Aucune facture
-                        </td>
-                      </tr>
-                    ) : (
-                      filtered.map((inv, i) => (
-                        <tr
-                          key={inv.id || i}
-                          style={{ borderBottom: "1px solid rgba(255,255,255,0.03)", cursor: "pointer" }}
-                          onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.02)")}
-                          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                          onClick={() => setSelectedInv(inv)}
-                        >
-                          <td style={{ padding: "10px 12px", color: "#EDE8DB", fontSize: 11, fontWeight: 500 }}>{inv.invoice_number || "—"}</td>
-                          <td style={{ padding: "10px 12px", color: "rgba(255,255,255,0.6)", fontSize: 11 }}>{inv.provider || "—"}</td>
-                          <td style={{ padding: "10px 12px", color: "#D4A853", fontSize: 11, fontWeight: 600 }}>{formatEuro(inv.amount_ttc)}</td>
-                          <td style={{ padding: "10px 12px", color: "rgba(255,255,255,0.4)", fontSize: 11 }}>{formatDate(inv.invoice_date)}</td>
-                          <td style={{ padding: "10px 12px" }}>
-                            <span
-                              style={{
-                                padding: "2px 7px",
-                                borderRadius: 10,
-                                fontSize: 9,
-                                fontWeight: 600,
-                                background: inv.frequency === "mensuel" ? "rgba(91,163,199,0.12)" : "rgba(255,255,255,0.05)",
-                                color: inv.frequency === "mensuel" ? "#5BA3C7" : "rgba(255,255,255,0.4)",
-                              }}
-                            >
-                              {inv.frequency || "—"}
-                            </span>
-                          </td>
-                          <td style={{ padding: "10px 12px" }}>
-                            {inv.has_anomaly ? (
-                              <span style={{ color: "#C75B4E", fontSize: 10, fontWeight: 600, display: "flex", alignItems: "center", gap: 3 }}>
-                                <AlertTriangle size={11} /> Anomalie
-                              </span>
-                            ) : (
-                              <span style={{ color: "rgba(91,199,138,0.6)", fontSize: 10 }}>✓ OK</span>
-                            )}
-                          </td>
-                          <td style={{ padding: "10px 6px" }}>
-                            <Eye size={12} color="rgba(255,255,255,0.2)" />
-                          </td>
-                        </tr>
-                      ))
-                    )}
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -1295,106 +574,265 @@ export default function VigieFactures() {
         )}
 
         {/* ═══ BUDGET PAGE ═══ */}
-        {page === "budget" &&
-          (() => {
-            const budgetData = {};
-            invoices.forEach((inv) => {
-              const cat = getBudgetCategory(inv);
-              if (!budgetData[cat]) budgetData[cat] = { total: 0, yearly: 0, count: 0, invoices: [] };
-              budgetData[cat].total += inv.amount_ttc || 0;
-              budgetData[cat].yearly += inv.total_year || inv.amount_ttc || 0;
-              budgetData[cat].count++;
-              budgetData[cat].invoices.push(inv);
-            });
-            const sortedCats = Object.entries(budgetData).sort(([, a], [, b]) => b.total - a.total);
-            const grandTotal = sortedCats.reduce((s, [, d]) => s + d.total, 0);
-            const grandYearly = sortedCats.reduce((s, [, d]) => s + d.yearly, 0);
+        {page === "budget" && (() => {
+          const budgetData = {};
+          invoices.forEach(inv => {
+            const cat = getBudgetCategory(inv);
+            if (!budgetData[cat]) budgetData[cat] = { total: 0, yearly: 0, count: 0, invoices: [] };
+            budgetData[cat].total += inv.amount_ttc || 0;
+            budgetData[cat].yearly += inv.total_year || inv.amount_ttc || 0;
+            budgetData[cat].count++;
+            budgetData[cat].invoices.push(inv);
+          });
+          const sortedCats = Object.entries(budgetData).sort(([,a], [,b]) => b.total - a.total);
+          const grandTotal = sortedCats.reduce((s, [,d]) => s + d.total, 0);
+          const grandYearly = sortedCats.reduce((s, [,d]) => s + d.yearly, 0);
 
-            return (
-              <>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, flexWrap: "wrap", gap: 10 }}>
-                  <div>
-                    <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 700, marginBottom: 3 }}>Budget</h2>
-                    <p style={{ color: "rgba(255,255,255,0.25)", fontSize: 11 }}>Répartition de vos dépenses par catégorie</p>
-                  </div>
-                  <div style={{ background: "rgba(212,168,83,0.08)", border: "1px solid rgba(212,168,83,0.15)", borderRadius: 10, padding: "10px 16px", textAlign: "center" }}>
-                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 3 }}>Estimation annuelle</div>
-                    <div style={{ fontSize: 20, fontWeight: 700, color: "#D4A853", fontFamily: "'Cormorant Garamond', serif" }}>{formatEuro(grandYearly)}</div>
+          return (
+            <>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, flexWrap: "wrap", gap: 10 }}>
+                <div>
+                  <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 700, marginBottom: 3 }}>Budget</h2>
+                  <p style={{ color: "rgba(255,255,255,0.25)", fontSize: 11 }}>Répartition de vos dépenses par catégorie</p>
+                </div>
+                <div style={{ background: "rgba(212,168,83,0.08)", border: "1px solid rgba(212,168,83,0.15)", borderRadius: 10, padding: "10px 16px", textAlign: "center" }}>
+                  <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 3 }}>Estimation annuelle</div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: "#D4A853", fontFamily: "'Cormorant Garamond', serif" }}>{formatEuro(grandYearly)}</div>
+                </div>
+              </div>
+
+              {/* Budget pie chart */}
+              <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, padding: 20, marginBottom: 20 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap", justifyContent: "center" }}>
+                  <ResponsiveContainer width={200} height={200}>
+                    <PieChart>
+                      <Pie data={sortedCats.map(([name, d]) => ({ name, value: d.total }))} cx="50%" cy="50%" innerRadius={50} outerRadius={85} paddingAngle={2} dataKey="value">
+                        {sortedCats.map(([cat], i) => <Cell key={i} fill={BUDGET_CATEGORIES[cat]?.color || "#888"} />)}
+                      </Pie>
+                      <Tooltip content={<CustomTooltip />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {sortedCats.map(([cat, d]) => {
+                      const pct = grandTotal > 0 ? Math.round((d.total / grandTotal) * 100) : 0;
+                      const color = BUDGET_CATEGORIES[cat]?.color || "#888";
+                      return (
+                        <div key={cat} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <div style={{ width: 10, height: 10, borderRadius: 3, background: color, flexShrink: 0 }} />
+                          <span style={{ color: "rgba(255,255,255,0.6)", fontSize: 12, minWidth: 90 }}>{cat}</span>
+                          <span style={{ color, fontSize: 12, fontWeight: 600, minWidth: 70, textAlign: "right" }}>{formatEuro(d.total)}</span>
+                          <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 10, minWidth: 35, textAlign: "right" }}>{pct}%</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
+              </div>
 
-                {/* Budget pie chart */}
-                <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, padding: 20, marginBottom: 20 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap", justifyContent: "center" }}>
-                    <ResponsiveContainer width={200} height={200}>
-                      <PieChart>
-                        <Pie
-                          data={sortedCats.map(([name, d]) => ({ name, value: d.total }))}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={50}
-                          outerRadius={85}
-                          paddingAngle={2}
-                          dataKey="value"
-                        >
-                          {sortedCats.map(([cat], i) => (
-                            <Cell key={i} fill={BUDGET_CATEGORIES[cat]?.color || "#888"} />
-                          ))}
-                        </Pie>
-                        <Tooltip content={<CustomTooltip />} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                      {sortedCats.map(([cat, d]) => {
-                        const pct = grandTotal > 0 ? Math.round((d.total / grandTotal) * 100) : 0;
-                        const color = BUDGET_CATEGORIES[cat]?.color || "#888";
-                        return (
-                          <div key={cat} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                            <div style={{ width: 10, height: 10, borderRadius: 3, background: color, flexShrink: 0 }} />
-                            <span style={{ color: "rgba(255,255,255,0.6)", fontSize: 12, minWidth: 90 }}>{cat}</span>
-                            <span style={{ color, fontSize: 12, fontWeight: 600, minWidth: 70, textAlign: "right" }}>{formatEuro(d.total)}</span>
-                            <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 10, minWidth: 35, textAlign: "right" }}>{pct}%</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Budget cards per category */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12 }}>
-                  {sortedCats.map(([cat, d]) => {
-                    const color = BUDGET_CATEGORIES[cat]?.color || "#888";
-                    const pct = grandTotal > 0 ? Math.round((d.total / grandTotal) * 100) : 0;
-                    return (
-                      <div key={cat} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 12, padding: "16px 18px", borderLeft: `3px solid ${color}` }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                          <span style={{ color: "#EDE8DB", fontSize: 14, fontWeight: 600 }}>{cat}</span>
-                          <span style={{ background: `${color}18`, color, padding: "2px 8px", borderRadius: 10, fontSize: 10, fontWeight: 600 }}>{pct}%</span>
+              {/* Budget cards per category */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12 }}>
+                {sortedCats.map(([cat, d]) => {
+                  const color = BUDGET_CATEGORIES[cat]?.color || "#888";
+                  const pct = grandTotal > 0 ? Math.round((d.total / grandTotal) * 100) : 0;
+                  return (
+                    <div key={cat} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 12, padding: "16px 18px", borderLeft: `3px solid ${color}` }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                        <span style={{ color: "#EDE8DB", fontSize: 14, fontWeight: 600 }}>{cat}</span>
+                        <span style={{ background: `${color}18`, color, padding: "2px 8px", borderRadius: 10, fontSize: 10, fontWeight: 600 }}>{pct}%</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                        <div>
+                          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>Total factures</div>
+                          <div style={{ fontSize: 18, fontWeight: 700, color, fontFamily: "'Cormorant Garamond', serif" }}>{formatEuro(d.total)}</div>
                         </div>
-                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                          <div>
-                            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>Total factures</div>
-                            <div style={{ fontSize: 18, fontWeight: 700, color, fontFamily: "'Cormorant Garamond', serif" }}>{formatEuro(d.total)}</div>
-                          </div>
-                          <div style={{ textAlign: "right" }}>
-                            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>Est. annuel</div>
-                            <div style={{ fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.5)" }}>{formatEuro(d.yearly)}</div>
-                          </div>
-                        </div>
-                        {/* Progress bar */}
-                        <div style={{ height: 4, background: "rgba(255,255,255,0.04)", borderRadius: 2, overflow: "hidden", marginBottom: 10 }}>
-                          <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 2, transition: "width 0.5s" }} />
-                        </div>
-                        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)" }}>
-                          {d.count} facture{d.count > 1 ? "s" : ""} — {d.invoices.map((i) => i.provider).filter((v, i, a) => a.indexOf(v) === i).join(", ")}
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>Est. annuel</div>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.5)" }}>{formatEuro(d.yearly)}</div>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              </>
-            );
-          })()}
+                      {/* Progress bar */}
+                      <div style={{ height: 4, background: "rgba(255,255,255,0.04)", borderRadius: 2, overflow: "hidden", marginBottom: 10 }}>
+                        <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 2, transition: "width 0.5s" }} />
+                      </div>
+                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)" }}>
+                        {d.count} facture{d.count > 1 ? "s" : ""} — {d.invoices.map(i => i.provider).filter((v, i, a) => a.indexOf(v) === i).join(", ")}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          );
+        })()}
 
-        {
+        {/* ═══ REPORT PAGE ═══ */}
+        {page === "report" && (() => {
+          const now = new Date();
+          const currentMonth = now.getMonth();
+          const currentYear = now.getFullYear();
+          const monthInvoices = invoices.filter(i => {
+            if (!i.invoice_date) return false;
+            const d = new Date(i.invoice_date);
+            return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+          });
+          const prevMonthInvoices = invoices.filter(i => {
+            if (!i.invoice_date) return false;
+            const d = new Date(i.invoice_date);
+            const pm = currentMonth === 0 ? 11 : currentMonth - 1;
+            const py = currentMonth === 0 ? currentYear - 1 : currentYear;
+            return d.getMonth() === pm && d.getFullYear() === py;
+          });
+          const monthTotal = monthInvoices.reduce((s, i) => s + (i.amount_ttc || 0), 0);
+          const prevTotal = prevMonthInvoices.reduce((s, i) => s + (i.amount_ttc || 0), 0);
+          const variation = prevTotal > 0 ? ((monthTotal - prevTotal) / prevTotal) * 100 : 0;
+          const monthAnomalies = monthInvoices.filter(i => i.has_anomaly);
+          const recurring = invoices.filter(i => i.frequency === "mensuel");
+          const recurringTotal = recurring.reduce((s, i) => s + (i.amount_ttc || 0), 0);
+
+          // Budget breakdown for current month
+          const monthBudget = {};
+          monthInvoices.forEach(inv => {
+            const cat = getBudgetCategory(inv);
+            monthBudget[cat] = (monthBudget[cat] || 0) + (inv.amount_ttc || 0);
+          });
+
+          const reportDate = `${MONTHS_FR[currentMonth]} ${currentYear}`;
+
+          const printReport = () => {
+            const w = window.open("", "_blank");
+            w.document.write(`<!DOCTYPE html><html><head><title>Rapport ${reportDate} - Vigie-Factures</title>
+            <style>body{font-family:Arial,sans-serif;max-width:700px;margin:40px auto;color:#222;padding:0 20px}
+            h1{color:#B8860B;border-bottom:2px solid #B8860B;padding-bottom:10px}
+            h2{color:#555;margin-top:30px}
+            .stat{display:inline-block;background:#f5f0e8;padding:12px 20px;border-radius:8px;margin:5px;text-align:center}
+            .stat .value{font-size:24px;font-weight:bold;color:#B8860B}
+            .stat .label{font-size:11px;color:#888;margin-top:3px}
+            table{width:100%;border-collapse:collapse;margin:15px 0}
+            th,td{padding:8px 12px;text-align:left;border-bottom:1px solid #eee;font-size:13px}
+            th{background:#f5f0e8;color:#555;font-size:11px;text-transform:uppercase}
+            .anomaly{color:#c0392b;font-weight:bold}
+            .ok{color:#27ae60}
+            .footer{margin-top:40px;text-align:center;color:#bbb;font-size:11px;border-top:1px solid #eee;padding-top:15px}
+            </style></head><body>
+            <h1>📊 Rapport mensuel — ${reportDate}</h1>
+            <p style="color:#888">Généré le ${now.toLocaleDateString("fr-FR")} par Vigie-Factures</p>
+
+            <div style="margin:20px 0">
+              <div class="stat"><div class="value">${monthInvoices.length}</div><div class="label">Factures</div></div>
+              <div class="stat"><div class="value">${formatEuro(monthTotal)}</div><div class="label">Total du mois</div></div>
+              <div class="stat"><div class="value">${variation > 0 ? "+" : ""}${Math.round(variation)}%</div><div class="label">vs mois précédent</div></div>
+              <div class="stat"><div class="value">${monthAnomalies.length}</div><div class="label">Anomalies</div></div>
+            </div>
+
+            <h2>Répartition budgétaire</h2>
+            <table><tr><th>Catégorie</th><th>Montant</th><th>%</th></tr>
+            ${Object.entries(monthBudget).sort(([,a],[,b]) => b - a).map(([cat, total]) =>
+              `<tr><td>${cat}</td><td>${formatEuro(total)}</td><td>${monthTotal > 0 ? Math.round((total / monthTotal) * 100) : 0}%</td></tr>`
+            ).join("")}
+            <tr style="font-weight:bold;border-top:2px solid #B8860B"><td>Total</td><td>${formatEuro(monthTotal)}</td><td>100%</td></tr>
+            </table>
+
+            <h2>Détail des factures</h2>
+            <table><tr><th>Fournisseur</th><th>Montant TTC</th><th>Date</th><th>Catégorie</th><th>Statut</th></tr>
+            ${monthInvoices.map(i =>
+              `<tr><td>${i.provider || "—"}</td><td>${formatEuro(i.amount_ttc)}</td><td>${formatDate(i.invoice_date)}</td><td>${getBudgetCategory(i)}</td><td class="${i.has_anomaly ? "anomaly" : "ok"}">${i.has_anomaly ? "⚠️ Anomalie" : "✅ OK"}</td></tr>`
+            ).join("")}
+            </table>
+
+            ${monthAnomalies.length > 0 ? `<h2>⚠️ Anomalies détectées</h2>
+            <table><tr><th>Fournisseur</th><th>Détail</th></tr>
+            ${monthAnomalies.map(i => `<tr><td>${i.provider}</td><td>${i.anomaly_explanation || "Anomalie détectée"}</td></tr>`).join("")}
+            </table>` : ""}
+
+            <h2>Charges récurrentes</h2>
+            <table><tr><th>Fournisseur</th><th>Montant/mois</th><th>Coût annuel</th></tr>
+            ${recurring.map(i => `<tr><td>${i.provider || "—"}</td><td>${formatEuro(i.amount_ttc)}</td><td>${formatEuro(i.total_year)}</td></tr>`).join("")}
+            <tr style="font-weight:bold;border-top:2px solid #B8860B"><td>Total récurrent</td><td>${formatEuro(recurringTotal)}/mois</td><td>${formatEuro(recurringTotal * 12)}/an</td></tr>
+            </table>
+
+            <div class="footer">Vigie-Factures © 2026 — Rapport généré automatiquement</div>
+            </body></html>`);
+            w.document.close();
+            w.print();
+          };
+
+          return (
+            <>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, flexWrap: "wrap", gap: 10 }}>
+                <div>
+                  <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 700, marginBottom: 3 }}>Rapport mensuel</h2>
+                  <p style={{ color: "rgba(255,255,255,0.25)", fontSize: 11 }}>{reportDate} — {monthInvoices.length} facture{monthInvoices.length > 1 ? "s" : ""} ce mois</p>
+                </div>
+                <button onClick={printReport} style={{ background: "linear-gradient(135deg, #D4A853, #C78A5B)", color: "#0E0D0B", border: "none", borderRadius: 9, padding: "10px 18px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito Sans', sans-serif", display: "flex", alignItems: "center", gap: 6 }}>
+                  <Download size={13} /> Télécharger PDF
+                </button>
+              </div>
+
+              {/* Summary stats */}
+              <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
+                <StatCard icon={FileText} label="Factures du mois" value={monthInvoices.length} color="#D4A853" />
+                <StatCard icon={TrendingUp} label="Total du mois" value={formatEuro(monthTotal)} sub={`${variation > 0 ? "+" : ""}${Math.round(variation)}% vs mois préc.`} color="#5BA3C7" trend={variation > 5 ? "up" : variation < -5 ? "down" : undefined} />
+                <StatCard icon={AlertTriangle} label="Anomalies" value={monthAnomalies.length} sub={monthAnomalies.length > 0 ? "À vérifier" : "RAS"} color={monthAnomalies.length > 0 ? "#C75B4E" : "#5BC78A"} />
+                <StatCard icon={Wallet} label="Récurrents" value={formatEuro(recurringTotal)} sub={`${recurring.length} abonnement${recurring.length > 1 ? "s" : ""}`} color="#A85BC7" />
+              </div>
+
+              {/* Budget breakdown */}
+              <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, padding: 20, marginBottom: 20 }}>
+                <h3 style={{ color: "rgba(255,255,255,0.4)", fontSize: 9, letterSpacing: 1.5, marginBottom: 14, fontWeight: 600, textTransform: "uppercase" }}>Répartition budgétaire du mois</h3>
+                {Object.entries(monthBudget).length > 0 ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {Object.entries(monthBudget).sort(([,a],[,b]) => b - a).map(([cat, total]) => {
+                      const pct = monthTotal > 0 ? Math.round((total / monthTotal) * 100) : 0;
+                      const color = BUDGET_CATEGORIES[cat]?.color || "#888";
+                      return (
+                        <div key={cat}>
+                          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                            <span style={{ color: "rgba(255,255,255,0.6)", fontSize: 12 }}>{cat}</span>
+                            <span style={{ color, fontSize: 12, fontWeight: 600 }}>{formatEuro(total)} <span style={{ color: "rgba(255,255,255,0.25)", fontWeight: 400 }}>({pct}%)</span></span>
+                          </div>
+                          <div style={{ height: 6, background: "rgba(255,255,255,0.04)", borderRadius: 3, overflow: "hidden" }}>
+                            <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 3, transition: "width 0.5s" }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : <div style={{ color: "rgba(255,255,255,0.15)", textAlign: "center", padding: 24, fontSize: 11 }}>Aucune facture ce mois</div>}
+              </div>
+
+              {/* Invoice list for the month */}
+              <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, overflow: "hidden" }}>
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 500 }}>
+                    <thead><tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                      {["Fournisseur", "TTC", "Catégorie", "Statut"].map(h => (
+                        <th key={h} style={{ padding: "10px 12px", textAlign: "left", color: "rgba(255,255,255,0.3)", fontSize: 9, fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase" }}>{h}</th>
+                      ))}
+                    </tr></thead>
+                    <tbody>
+                      {monthInvoices.length === 0 ? <tr><td colSpan={4} style={{ padding: 36, textAlign: "center", color: "rgba(255,255,255,0.15)", fontSize: 11 }}>Aucune facture ce mois</td></tr>
+                      : monthInvoices.map((inv, i) => {
+                        const cat = getBudgetCategory(inv);
+                        const catColor = BUDGET_CATEGORIES[cat]?.color || "#888";
+                        return (
+                          <tr key={i} style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
+                            <td style={{ padding: "10px 12px", color: "#EDE8DB", fontSize: 11, fontWeight: 500 }}>{inv.provider || "—"}</td>
+                            <td style={{ padding: "10px 12px", color: "#D4A853", fontSize: 11, fontWeight: 600 }}>{formatEuro(inv.amount_ttc)}</td>
+                            <td style={{ padding: "10px 12px" }}><span style={{ background: `${catColor}18`, color: catColor, padding: "2px 8px", borderRadius: 10, fontSize: 9, fontWeight: 600 }}>{cat}</span></td>
+                            <td style={{ padding: "10px 12px" }}>{inv.has_anomaly ? <span style={{ color: "#C75B4E", fontSize: 10, fontWeight: 600 }}>⚠️ Anomalie</span> : <span style={{ color: "rgba(91,199,138,0.6)", fontSize: 10 }}>✅ OK</span>}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          );
+        })()}
+      </div>
+
+      <InvoiceModal inv={selectedInv} onClose={() => setSelectedInv(null)} />
+    </div>
+  );
+}
