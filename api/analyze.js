@@ -23,8 +23,6 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         appId: 'vigiefactures2-66aa30f6',
         variables: { uploaded_file: text },
-        workflow: 'Vigie-Factures-Main.flow',
-      }),
     });
 
     const data = await response.json();
