@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const CLAUDE_API_KEY = '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';
+const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
   const SUPABASE_URL = 'https://qkvqujnctdyaxsenvwsm.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrdnF1am5jdGR5YXhzZW52d3NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5Nzc1MzcsImV4cCI6MjA4NjU1MzUzN30.XtzE94TOrI7KRh8Naj3cBxM80wGPDjZvI8nhUbxIvdA';
 
