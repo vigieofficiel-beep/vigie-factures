@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const RESEND_KEY = re_HQ2KyxUq_QBUbSBty2AA41zUNMbmd3fr5;
+  const RESEND_KEY = 're_HQ2KyxUq_QBUbSBty2AA41zUNMbmd3fr5';
 
   try {
     const { invoice, anomaly } = req.body;
