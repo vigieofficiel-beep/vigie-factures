@@ -1,12 +1,32 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { FileText, AlertTriangle, TrendingUp, Calendar, Search, Filter, Eye, X, Bell, RefreshCw, Upload, CheckCircle, Clock, Trash2, ArrowUpRight, ArrowDownRight, Loader, Plus, LayoutDashboard, UploadCloud, Download, Menu, Home, Shield, Zap, BarChart3 } from "lucide-react";
+import { FileText, AlertTriangle, TrendingUp, Calendar, Search, Filter, Eye, X, Bell, RefreshCw, Upload, CheckCircle, Clock, Trash2, ArrowUpRight, ArrowDownRight, Loader, Plus, LayoutDashboard, UploadCloud, Download, Menu, Home, Shield, Zap, BarChart3, Wallet, FileBarChart } from "lucide-react";
 
 const SUPABASE_URL = "https://qkvqujnctdyaxsenvwsm.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrdnF1am5jdGR5YXhzZW52d3NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5Nzc1MzcsImV4cCI6MjA4NjU1MzUzN30.XtzE94TOrI7KRh8Naj3cBxM80wGPDjZvI8nhUbxIvdA";
 const ANALYZE_API = "/api/analyze";
 const COLORS = ["#D4A853", "#C75B4E", "#5BA3C7", "#5BC78A", "#A85BC7", "#C78A5B", "#5BC7B8", "#C75BA8"];
 const MONTHS_FR = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
+
+const BUDGET_CATEGORIES = {
+  "Logement": { color: "#5BA3C7", keywords: ["loyer", "immobilier", "habitation", "logement", "eau", "edf", "engie", "électricité", "gaz", "chauffage"] },
+  "Transport": { color: "#5BC78A", keywords: ["transport", "essence", "carburant", "sncf", "ratp", "uber", "taxi", "parking", "autoroute", "péage"] },
+  "Alimentation": { color: "#D4A853", keywords: ["alimentaire", "restaurant", "supermarché", "courses", "épicerie", "boulangerie"] },
+  "Télécom": { color: "#A85BC7", keywords: ["télécom", "mobile", "internet", "free", "orange", "sfr", "bouygues", "fibre", "forfait"] },
+  "Santé": { color: "#C75B4E", keywords: ["santé", "médecin", "pharmacie", "mutuelle", "dentiste", "opticien", "hôpital"] },
+  "Assurance": { color: "#C78A5B", keywords: ["assurance", "axa", "maif", "macif", "allianz", "groupama"] },
+  "Loisirs": { color: "#5BC7B8", keywords: ["loisir", "sport", "cinéma", "netflix", "spotify", "abonnement", "média", "btlv", "streaming"] },
+  "Divers": { color: "#888", keywords: [] },
+};
+
+function getBudgetCategory(invoice) {
+  const text = [invoice.category, invoice.subcategory, invoice.provider].filter(Boolean).join(" ").toLowerCase();
+  for (const [cat, { keywords }] of Object.entries(BUDGET_CATEGORIES)) {
+    if (cat === "Divers") continue;
+    if (keywords.some(k => text.includes(k))) return cat;
+  }
+  return "Divers";
+}
 
 function formatEuro(n) {
   if (n == null) return "—";
@@ -161,7 +181,7 @@ function LandingPage({ onStart }) {
           <Zap size={12} /> Propulsé par l'IA Claude
         </div>
         <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(36px, 7vw, 64px)", fontWeight: 700, lineHeight: 1.1, marginBottom: 20 }}>
-          Vos factures,<br /><span style={{ color: "#D4A853" }}>analysées en secondes</span>
+          Analysez vos factures<br /><span style={{ color: "#D4A853" }}>en un clic</span>
         </h1>
         <p style={{ fontSize: "clamp(14px, 2.5vw, 18px)", color: "rgba(255,255,255,0.45)", maxWidth: 520, margin: "0 auto 36px", lineHeight: 1.6 }}>
           Vigie-Factures détecte les anomalies, compare les prix et vous alerte automatiquement. Plus jamais de mauvaises surprises.
@@ -371,6 +391,8 @@ export default function VigieFactures() {
           { id: "landing", icon: Home, label: "Accueil" },
           { id: "upload", icon: UploadCloud, label: "Analyser", badge: pendingCount > 0 ? pendingCount : null },
           { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
+          { id: "budget", icon: Wallet, label: "Budget" },
+          { id: "report", icon: FileBarChart, label: "Rapport" },
         ].map(item => (
           <button key={item.id} onClick={() => { setPage(item.id); setMobileMenu(false); }} style={{
             display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 9, border: "none",
@@ -550,6 +572,264 @@ export default function VigieFactures() {
             </div>
           </>
         )}
+
+        {/* ═══ BUDGET PAGE ═══ */}
+        {page === "budget" && (() => {
+          const budgetData = {};
+          invoices.forEach(inv => {
+            const cat = getBudgetCategory(inv);
+            if (!budgetData[cat]) budgetData[cat] = { total: 0, yearly: 0, count: 0, invoices: [] };
+            budgetData[cat].total += inv.amount_ttc || 0;
+            budgetData[cat].yearly += inv.total_year || inv.amount_ttc || 0;
+            budgetData[cat].count++;
+            budgetData[cat].invoices.push(inv);
+          });
+          const sortedCats = Object.entries(budgetData).sort(([,a], [,b]) => b.total - a.total);
+          const grandTotal = sortedCats.reduce((s, [,d]) => s + d.total, 0);
+          const grandYearly = sortedCats.reduce((s, [,d]) => s + d.yearly, 0);
+
+          return (
+            <>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, flexWrap: "wrap", gap: 10 }}>
+                <div>
+                  <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 700, marginBottom: 3 }}>Budget</h2>
+                  <p style={{ color: "rgba(255,255,255,0.25)", fontSize: 11 }}>Répartition de vos dépenses par catégorie</p>
+                </div>
+                <div style={{ background: "rgba(212,168,83,0.08)", border: "1px solid rgba(212,168,83,0.15)", borderRadius: 10, padding: "10px 16px", textAlign: "center" }}>
+                  <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 3 }}>Estimation annuelle</div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: "#D4A853", fontFamily: "'Cormorant Garamond', serif" }}>{formatEuro(grandYearly)}</div>
+                </div>
+              </div>
+
+              {/* Budget pie chart */}
+              <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, padding: 20, marginBottom: 20 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap", justifyContent: "center" }}>
+                  <ResponsiveContainer width={200} height={200}>
+                    <PieChart>
+                      <Pie data={sortedCats.map(([name, d]) => ({ name, value: d.total }))} cx="50%" cy="50%" innerRadius={50} outerRadius={85} paddingAngle={2} dataKey="value">
+                        {sortedCats.map(([cat], i) => <Cell key={i} fill={BUDGET_CATEGORIES[cat]?.color || "#888"} />)}
+                      </Pie>
+                      <Tooltip content={<CustomTooltip />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {sortedCats.map(([cat, d]) => {
+                      const pct = grandTotal > 0 ? Math.round((d.total / grandTotal) * 100) : 0;
+                      const color = BUDGET_CATEGORIES[cat]?.color || "#888";
+                      return (
+                        <div key={cat} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <div style={{ width: 10, height: 10, borderRadius: 3, background: color, flexShrink: 0 }} />
+                          <span style={{ color: "rgba(255,255,255,0.6)", fontSize: 12, minWidth: 90 }}>{cat}</span>
+                          <span style={{ color, fontSize: 12, fontWeight: 600, minWidth: 70, textAlign: "right" }}>{formatEuro(d.total)}</span>
+                          <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 10, minWidth: 35, textAlign: "right" }}>{pct}%</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Budget cards per category */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12 }}>
+                {sortedCats.map(([cat, d]) => {
+                  const color = BUDGET_CATEGORIES[cat]?.color || "#888";
+                  const pct = grandTotal > 0 ? Math.round((d.total / grandTotal) * 100) : 0;
+                  return (
+                    <div key={cat} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 12, padding: "16px 18px", borderLeft: `3px solid ${color}` }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                        <span style={{ color: "#EDE8DB", fontSize: 14, fontWeight: 600 }}>{cat}</span>
+                        <span style={{ background: `${color}18`, color, padding: "2px 8px", borderRadius: 10, fontSize: 10, fontWeight: 600 }}>{pct}%</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                        <div>
+                          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>Total factures</div>
+                          <div style={{ fontSize: 18, fontWeight: 700, color, fontFamily: "'Cormorant Garamond', serif" }}>{formatEuro(d.total)}</div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>Est. annuel</div>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.5)" }}>{formatEuro(d.yearly)}</div>
+                        </div>
+                      </div>
+                      {/* Progress bar */}
+                      <div style={{ height: 4, background: "rgba(255,255,255,0.04)", borderRadius: 2, overflow: "hidden", marginBottom: 10 }}>
+                        <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 2, transition: "width 0.5s" }} />
+                      </div>
+                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)" }}>
+                        {d.count} facture{d.count > 1 ? "s" : ""} — {d.invoices.map(i => i.provider).filter((v, i, a) => a.indexOf(v) === i).join(", ")}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          );
+        })()}
+
+        {/* ═══ REPORT PAGE ═══ */}
+        {page === "report" && (() => {
+          const now = new Date();
+          const currentMonth = now.getMonth();
+          const currentYear = now.getFullYear();
+          const monthInvoices = invoices.filter(i => {
+            if (!i.invoice_date) return false;
+            const d = new Date(i.invoice_date);
+            return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+          });
+          const prevMonthInvoices = invoices.filter(i => {
+            if (!i.invoice_date) return false;
+            const d = new Date(i.invoice_date);
+            const pm = currentMonth === 0 ? 11 : currentMonth - 1;
+            const py = currentMonth === 0 ? currentYear - 1 : currentYear;
+            return d.getMonth() === pm && d.getFullYear() === py;
+          });
+          const monthTotal = monthInvoices.reduce((s, i) => s + (i.amount_ttc || 0), 0);
+          const prevTotal = prevMonthInvoices.reduce((s, i) => s + (i.amount_ttc || 0), 0);
+          const variation = prevTotal > 0 ? ((monthTotal - prevTotal) / prevTotal) * 100 : 0;
+          const monthAnomalies = monthInvoices.filter(i => i.has_anomaly);
+          const recurring = invoices.filter(i => i.frequency === "mensuel");
+          const recurringTotal = recurring.reduce((s, i) => s + (i.amount_ttc || 0), 0);
+
+          // Budget breakdown for current month
+          const monthBudget = {};
+          monthInvoices.forEach(inv => {
+            const cat = getBudgetCategory(inv);
+            monthBudget[cat] = (monthBudget[cat] || 0) + (inv.amount_ttc || 0);
+          });
+
+          const reportDate = `${MONTHS_FR[currentMonth]} ${currentYear}`;
+
+          const printReport = () => {
+            const w = window.open("", "_blank");
+            w.document.write(`<!DOCTYPE html><html><head><title>Rapport ${reportDate} - Vigie-Factures</title>
+            <style>body{font-family:Arial,sans-serif;max-width:700px;margin:40px auto;color:#222;padding:0 20px}
+            h1{color:#B8860B;border-bottom:2px solid #B8860B;padding-bottom:10px}
+            h2{color:#555;margin-top:30px}
+            .stat{display:inline-block;background:#f5f0e8;padding:12px 20px;border-radius:8px;margin:5px;text-align:center}
+            .stat .value{font-size:24px;font-weight:bold;color:#B8860B}
+            .stat .label{font-size:11px;color:#888;margin-top:3px}
+            table{width:100%;border-collapse:collapse;margin:15px 0}
+            th,td{padding:8px 12px;text-align:left;border-bottom:1px solid #eee;font-size:13px}
+            th{background:#f5f0e8;color:#555;font-size:11px;text-transform:uppercase}
+            .anomaly{color:#c0392b;font-weight:bold}
+            .ok{color:#27ae60}
+            .footer{margin-top:40px;text-align:center;color:#bbb;font-size:11px;border-top:1px solid #eee;padding-top:15px}
+            </style></head><body>
+            <h1>📊 Rapport mensuel — ${reportDate}</h1>
+            <p style="color:#888">Généré le ${now.toLocaleDateString("fr-FR")} par Vigie-Factures</p>
+
+            <div style="margin:20px 0">
+              <div class="stat"><div class="value">${monthInvoices.length}</div><div class="label">Factures</div></div>
+              <div class="stat"><div class="value">${formatEuro(monthTotal)}</div><div class="label">Total du mois</div></div>
+              <div class="stat"><div class="value">${variation > 0 ? "+" : ""}${Math.round(variation)}%</div><div class="label">vs mois précédent</div></div>
+              <div class="stat"><div class="value">${monthAnomalies.length}</div><div class="label">Anomalies</div></div>
+            </div>
+
+            <h2>Répartition budgétaire</h2>
+            <table><tr><th>Catégorie</th><th>Montant</th><th>%</th></tr>
+            ${Object.entries(monthBudget).sort(([,a],[,b]) => b - a).map(([cat, total]) =>
+              `<tr><td>${cat}</td><td>${formatEuro(total)}</td><td>${monthTotal > 0 ? Math.round((total / monthTotal) * 100) : 0}%</td></tr>`
+            ).join("")}
+            <tr style="font-weight:bold;border-top:2px solid #B8860B"><td>Total</td><td>${formatEuro(monthTotal)}</td><td>100%</td></tr>
+            </table>
+
+            <h2>Détail des factures</h2>
+            <table><tr><th>Fournisseur</th><th>Montant TTC</th><th>Date</th><th>Catégorie</th><th>Statut</th></tr>
+            ${monthInvoices.map(i =>
+              `<tr><td>${i.provider || "—"}</td><td>${formatEuro(i.amount_ttc)}</td><td>${formatDate(i.invoice_date)}</td><td>${getBudgetCategory(i)}</td><td class="${i.has_anomaly ? "anomaly" : "ok"}">${i.has_anomaly ? "⚠️ Anomalie" : "✅ OK"}</td></tr>`
+            ).join("")}
+            </table>
+
+            ${monthAnomalies.length > 0 ? `<h2>⚠️ Anomalies détectées</h2>
+            <table><tr><th>Fournisseur</th><th>Détail</th></tr>
+            ${monthAnomalies.map(i => `<tr><td>${i.provider}</td><td>${i.anomaly_explanation || "Anomalie détectée"}</td></tr>`).join("")}
+            </table>` : ""}
+
+            <h2>Charges récurrentes</h2>
+            <table><tr><th>Fournisseur</th><th>Montant/mois</th><th>Coût annuel</th></tr>
+            ${recurring.map(i => `<tr><td>${i.provider || "—"}</td><td>${formatEuro(i.amount_ttc)}</td><td>${formatEuro(i.total_year)}</td></tr>`).join("")}
+            <tr style="font-weight:bold;border-top:2px solid #B8860B"><td>Total récurrent</td><td>${formatEuro(recurringTotal)}/mois</td><td>${formatEuro(recurringTotal * 12)}/an</td></tr>
+            </table>
+
+            <div class="footer">Vigie-Factures © 2026 — Rapport généré automatiquement</div>
+            </body></html>`);
+            w.document.close();
+            w.print();
+          };
+
+          return (
+            <>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, flexWrap: "wrap", gap: 10 }}>
+                <div>
+                  <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 700, marginBottom: 3 }}>Rapport mensuel</h2>
+                  <p style={{ color: "rgba(255,255,255,0.25)", fontSize: 11 }}>{reportDate} — {monthInvoices.length} facture{monthInvoices.length > 1 ? "s" : ""} ce mois</p>
+                </div>
+                <button onClick={printReport} style={{ background: "linear-gradient(135deg, #D4A853, #C78A5B)", color: "#0E0D0B", border: "none", borderRadius: 9, padding: "10px 18px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito Sans', sans-serif", display: "flex", alignItems: "center", gap: 6 }}>
+                  <Download size={13} /> Télécharger PDF
+                </button>
+              </div>
+
+              {/* Summary stats */}
+              <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
+                <StatCard icon={FileText} label="Factures du mois" value={monthInvoices.length} color="#D4A853" />
+                <StatCard icon={TrendingUp} label="Total du mois" value={formatEuro(monthTotal)} sub={`${variation > 0 ? "+" : ""}${Math.round(variation)}% vs mois préc.`} color="#5BA3C7" trend={variation > 5 ? "up" : variation < -5 ? "down" : undefined} />
+                <StatCard icon={AlertTriangle} label="Anomalies" value={monthAnomalies.length} sub={monthAnomalies.length > 0 ? "À vérifier" : "RAS"} color={monthAnomalies.length > 0 ? "#C75B4E" : "#5BC78A"} />
+                <StatCard icon={Wallet} label="Récurrents" value={formatEuro(recurringTotal)} sub={`${recurring.length} abonnement${recurring.length > 1 ? "s" : ""}`} color="#A85BC7" />
+              </div>
+
+              {/* Budget breakdown */}
+              <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, padding: 20, marginBottom: 20 }}>
+                <h3 style={{ color: "rgba(255,255,255,0.4)", fontSize: 9, letterSpacing: 1.5, marginBottom: 14, fontWeight: 600, textTransform: "uppercase" }}>Répartition budgétaire du mois</h3>
+                {Object.entries(monthBudget).length > 0 ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {Object.entries(monthBudget).sort(([,a],[,b]) => b - a).map(([cat, total]) => {
+                      const pct = monthTotal > 0 ? Math.round((total / monthTotal) * 100) : 0;
+                      const color = BUDGET_CATEGORIES[cat]?.color || "#888";
+                      return (
+                        <div key={cat}>
+                          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                            <span style={{ color: "rgba(255,255,255,0.6)", fontSize: 12 }}>{cat}</span>
+                            <span style={{ color, fontSize: 12, fontWeight: 600 }}>{formatEuro(total)} <span style={{ color: "rgba(255,255,255,0.25)", fontWeight: 400 }}>({pct}%)</span></span>
+                          </div>
+                          <div style={{ height: 6, background: "rgba(255,255,255,0.04)", borderRadius: 3, overflow: "hidden" }}>
+                            <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 3, transition: "width 0.5s" }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : <div style={{ color: "rgba(255,255,255,0.15)", textAlign: "center", padding: 24, fontSize: 11 }}>Aucune facture ce mois</div>}
+              </div>
+
+              {/* Invoice list for the month */}
+              <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, overflow: "hidden" }}>
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 500 }}>
+                    <thead><tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                      {["Fournisseur", "TTC", "Catégorie", "Statut"].map(h => (
+                        <th key={h} style={{ padding: "10px 12px", textAlign: "left", color: "rgba(255,255,255,0.3)", fontSize: 9, fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase" }}>{h}</th>
+                      ))}
+                    </tr></thead>
+                    <tbody>
+                      {monthInvoices.length === 0 ? <tr><td colSpan={4} style={{ padding: 36, textAlign: "center", color: "rgba(255,255,255,0.15)", fontSize: 11 }}>Aucune facture ce mois</td></tr>
+                      : monthInvoices.map((inv, i) => {
+                        const cat = getBudgetCategory(inv);
+                        const catColor = BUDGET_CATEGORIES[cat]?.color || "#888";
+                        return (
+                          <tr key={i} style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
+                            <td style={{ padding: "10px 12px", color: "#EDE8DB", fontSize: 11, fontWeight: 500 }}>{inv.provider || "—"}</td>
+                            <td style={{ padding: "10px 12px", color: "#D4A853", fontSize: 11, fontWeight: 600 }}>{formatEuro(inv.amount_ttc)}</td>
+                            <td style={{ padding: "10px 12px" }}><span style={{ background: `${catColor}18`, color: catColor, padding: "2px 8px", borderRadius: 10, fontSize: 9, fontWeight: 600 }}>{cat}</span></td>
+                            <td style={{ padding: "10px 12px" }}>{inv.has_anomaly ? <span style={{ color: "#C75B4E", fontSize: 10, fontWeight: 600 }}>⚠️ Anomalie</span> : <span style={{ color: "rgba(91,199,138,0.6)", fontSize: 10 }}>✅ OK</span>}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          );
+        })()}
       </div>
 
       <InvoiceModal inv={selectedInv} onClose={() => setSelectedInv(null)} />
