@@ -6,7 +6,9 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-const CLAUDE_API_KEY = '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';  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrdnF1am5jdGR5YXhzZW52d3NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5Nzc1MzcsImV4cCI6MjA4NjU1MzUzN30.XtzE94TOrI7KRh8Naj3cBxM80wGPDjZvI8nhUbxIvdA';
+  const CLAUDE_API_KEY = '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';
+  const SUPABASE_URL = 'https://qkvqujnctdyaxsenvwsm.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrdnF1am5jdGR5YXhzZW52d3NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5Nzc1MzcsImV4cCI6MjA4NjU1MzUzN30.XtzE94TOrI7KRh8Naj3cBxM80wGPDjZvI8nhUbxIvdA';
 
   try {
     const { text } = req.body;
@@ -14,6 +16,7 @@ const CLAUDE_API_KEY = 'sk-ant-api03-8vMVoOqlTHBj6e1E7w2aJ3yGQ5LBkOV1cV0qQQ9bUTn
 
     const shortText = text.substring(0, 4000);
 
+    // ═══ STEP 1: Main analysis (extraction + classification + calendar) ═══
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -55,6 +58,7 @@ ${shortText}` }],
       return res.status(500).json({ error: 'JSON invalide', raw: data.content[0].text });
     }
 
+    // ═══ STEP 2: Fetch historical invoices ═══
     let historical = [];
     if (result.extraction && result.extraction.provider) {
       try {
@@ -86,6 +90,47 @@ ${shortText}` }],
       } catch (e) {}
     }
 
+    // ═══ STEP 3: Agent-5 Comparator with web search ═══
+    if (result.classification && result.classification.frequency === 'mensuel' && result.extraction.amount_ttc) {
+      try {
+        const compRes = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'x-api-key': CLAUDE_API_KEY,
+            'anthropic-version': '2023-06-01',
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'claude-haiku-4-5-20251001',
+            max_tokens: 1024,
+            tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+            messages: [{ role: 'user', content: `Trouve des alternatives moins cheres pour ce service en France.
+Fournisseur actuel: ${result.extraction.provider}
+Type: ${result.classification.category} / ${result.classification.subcategory}
+Prix mensuel: ${result.extraction.amount_ttc} EUR/mois
+
+Cherche 2-3 concurrents avec leurs prix. Retourne UNIQUEMENT un JSON:
+{"current_provider":"${result.extraction.provider}","current_price_monthly":${result.extraction.amount_ttc},"alternatives":[{"provider":"nom","price_monthly":0,"savings_yearly":0}],"best_option":{"provider":"nom","savings_yearly":0},"recommendation":"conseil"}` }],
+          }),
+        });
+
+        const compData = await compRes.json();
+        if (compData.content) {
+          for (const block of compData.content) {
+            if (block.type === 'text') {
+              try {
+                const jsonMatch = block.text.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                  result.comparison = JSON.parse(jsonMatch[0]);
+                }
+              } catch (e) {}
+            }
+          }
+        }
+      } catch (e) {}
+    }
+
+    // ═══ STEP 4: Save to Supabase ═══
     try {
       await fetch(SUPABASE_URL + '/rest/v1/invoices', {
         method: 'POST',
@@ -114,6 +159,26 @@ ${shortText}` }],
       });
     } catch (e) {}
 
+    // ═══ STEP 5: Send email alert if anomaly ═══
+    if (result.anomaly && result.anomaly.has_anomaly) {
+      try {
+        await fetch('https://vigie-factures.vercel.app/api/send-alert', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            invoice: {
+              provider: result.extraction.provider,
+              amount_ttc: result.extraction.amount_ttc,
+              invoice_date: result.extraction.invoice_date,
+              invoice_number: result.extraction.invoice_number
+            },
+            anomaly: result.anomaly
+          })
+        });
+      } catch (e) {}
+    }
+
+    // ═══ RETURN RESULT ═══
     result.historical_invoices = historical;
     result.processing_date = new Date().toISOString();
 
