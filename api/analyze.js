@@ -6,17 +6,21 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const CLAUDE_API_KEY = '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';
-  const SUPABASE_URL = 'https://qkvqujnctdyaxsenvwsm.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrdnF1am5jdGR5YXhzZW52d3NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5Nzc1MzcsImV4cCI6MjA4NjU1MzUzN30.XtzE94TOrI7KRh8Naj3cBxM80wGPDjZvI8nhUbxIvdA';
+  const CLAUDE_API_KEY = process.env.ANTHROPIC_API_KEY;
+  const SUPABASE_URL = process.env.SUPABASE_URL || 'https://qkvqujnctdyaxsenvwsm.supabase.co';
+  const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrdnF1am5jdGR5YXhzZW52d3NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5Nzc1MzcsImV4cCI6MjA4NjU1MzUzN30.XtzE94TOrI7KRh8Naj3cBxM80wGPDjZvI8nhUbxIvdA';
+
+  if (!CLAUDE_API_KEY) {
+    return res.status(500).json({ error: 'ANTHROPIC_API_KEY non configurée dans les variables d\'environnement Vercel.' });
+  }
 
   try {
-    const { text } = req.body;
+    const { text, user_id } = req.body;
     if (!text) return res.status(400).json({ error: 'No text provided' });
 
     const shortText = text.substring(0, 4000);
 
-    // ═══ STEP 1: Main analysis (extraction + classification + calendar) ═══
+    // ═══ STEP 1: Analyse principale (extraction + classification + calendrier) ═══
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -28,43 +32,89 @@ export default async function handler(req, res) {
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 2048,
         system: 'Tu es un expert en analyse de factures. Tu retournes UNIQUEMENT du JSON valide, sans texte, sans backticks.',
-        messages: [{ role: 'user', content: `Analyse cette facture. Retourne UNIQUEMENT un JSON valide.
+        messages: [{
+          role: 'user',
+          content: `Analyse cette facture. Retourne UNIQUEMENT un JSON valide.
 Regles: Montants=nombres. Dates=YYYY-MM-DD. Inconnu=null. due_date uniquement si ecrit explicitement. frequency=mensuel/trimestriel/annuel/ponctuel. total_year=amount_ttc x12 si mensuel, x4 si trimestriel, x1 sinon. next_payments=3 prochaines dates si mensuel, sinon []. current_price_monthly=amount_ttc si mensuel, sinon null.
 
 {
-"extraction":{"provider":null,"provider_siret":null,"amount_ttc":null,"amount_ht":null,"tax":null,"tax_rate":null,"invoice_date":null,"due_date":null,"invoice_number":null,"ocr_confidence":null},
-"classification":{"document_type":"facture","category":null,"subcategory":null,"frequency":"ponctuel","confidence":null},
-"anomaly":{"has_anomaly":false,"anomaly_type":null,"variation_percent":null,"previous_amount":null,"current_amount":null,"explanation":"Premiere analyse","severity":null},
-"calendar":{"frequency":"ponctuel","next_payments":[],"total_year":null},
-"comparison":{"current_provider":null,"current_price_monthly":null,"alternatives":[],"best_option":null}
+  "extraction": {
+    "provider": null,
+    "provider_siret": null,
+    "amount_ttc": null,
+    "amount_ht": null,
+    "tax": null,
+    "tax_rate": null,
+    "invoice_date": null,
+    "due_date": null,
+    "invoice_number": null,
+    "ocr_confidence": null
+  },
+  "classification": {
+    "document_type": "facture",
+    "category": null,
+    "subcategory": null,
+    "frequency": "ponctuel",
+    "confidence": null
+  },
+  "anomaly": {
+    "has_anomaly": false,
+    "anomaly_type": null,
+    "variation_percent": null,
+    "previous_amount": null,
+    "current_amount": null,
+    "explanation": "Premiere analyse",
+    "severity": null
+  },
+  "calendar": {
+    "frequency": "ponctuel",
+    "next_payments": [],
+    "total_year": null
+  },
+  "comparison": {
+    "current_provider": null,
+    "current_price_monthly": null,
+    "alternatives": [],
+    "best_option": null
+  }
 }
 
 Texte:
-${shortText}` }],
+${shortText}`,
+        }],
       }),
     });
 
     const data = await response.json();
 
     if (!data.content || !data.content[0]) {
-      return res.status(500).json({ error: data.error?.message || 'Claude API error' });
+      return res.status(500).json({ error: data.error?.message || 'Erreur API Claude' });
     }
 
     let result;
     try {
-      const raw = data.content[0].text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+      const raw = data.content[0].text
+        .replace(/```json\s*/g, '')
+        .replace(/```\s*/g, '')
+        .trim();
       result = JSON.parse(raw);
     } catch {
-      return res.status(500).json({ error: 'JSON invalide', raw: data.content[0].text });
+      return res.status(500).json({ error: 'JSON invalide retourné par Claude', raw: data.content[0].text });
     }
 
-    // ═══ STEP 2: Fetch historical invoices ═══
+    // ═══ STEP 2: Récupération de l'historique Supabase ═══
     let historical = [];
-    if (result.extraction && result.extraction.provider) {
+    if (result.extraction?.provider) {
       try {
         const histRes = await fetch(
-          SUPABASE_URL + '/rest/v1/invoices?provider=eq.' + encodeURIComponent(result.extraction.provider) + '&order=invoice_date.desc&limit=6',
-          { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' } }
+          `${SUPABASE_URL}/rest/v1/invoices?provider=eq.${encodeURIComponent(result.extraction.provider)}&order=invoice_date.desc&limit=6`,
+          {
+            headers: {
+              apikey: SUPABASE_KEY,
+              Authorization: `Bearer ${SUPABASE_KEY}`,
+              'Content-Type': 'application/json',
+            },
+          }
         );
         if (histRes.ok) {
           historical = await histRes.json();
@@ -79,19 +129,29 @@ ${shortText}` }],
                 variation_percent: Math.round(v * 100) / 100,
                 previous_amount: prev,
                 current_amount: curr,
-                explanation: Math.abs(v) > 10 ? 'Variation de ' + Math.round(v) + '% (' + prev + ' EUR vers ' + curr + ' EUR)' : 'Legere variation de ' + Math.round(v) + '%',
+                explanation: Math.abs(v) > 10
+                  ? `Variation de ${Math.round(v)}% (${prev} EUR → ${curr} EUR)`
+                  : `Légère variation de ${Math.round(v)}%`,
                 severity: Math.abs(v) > 30 ? 'high' : Math.abs(v) > 10 ? 'medium' : 'low',
               };
             } else if (prev && curr) {
-              result.anomaly = { has_anomaly: false, anomaly_type: null, variation_percent: 0, previous_amount: prev, current_amount: curr, explanation: 'Montant identique', severity: null };
+              result.anomaly = {
+                has_anomaly: false,
+                anomaly_type: null,
+                variation_percent: 0,
+                previous_amount: prev,
+                current_amount: curr,
+                explanation: 'Montant identique',
+                severity: null,
+              };
             }
           }
         }
-      } catch (e) {}
+      } catch (_e) {}
     }
 
-    // ═══ STEP 3: Agent-5 Comparator with web search ═══
-    if (result.classification && result.classification.frequency === 'mensuel' && result.extraction.amount_ttc) {
+    // ═══ STEP 3: Comparateur de prix (web search) — uniquement si mensuel ═══
+    if (result.classification?.frequency === 'mensuel' && result.extraction?.amount_ttc) {
       try {
         const compRes = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
@@ -104,13 +164,16 @@ ${shortText}` }],
             model: 'claude-haiku-4-5-20251001',
             max_tokens: 1024,
             tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-            messages: [{ role: 'user', content: `Trouve des alternatives moins cheres pour ce service en France.
+            messages: [{
+              role: 'user',
+              content: `Trouve des alternatives moins cheres pour ce service en France.
 Fournisseur actuel: ${result.extraction.provider}
 Type: ${result.classification.category} / ${result.classification.subcategory}
 Prix mensuel: ${result.extraction.amount_ttc} EUR/mois
 
 Cherche 2-3 concurrents avec leurs prix. Retourne UNIQUEMENT un JSON:
-{"current_provider":"${result.extraction.provider}","current_price_monthly":${result.extraction.amount_ttc},"alternatives":[{"provider":"nom","price_monthly":0,"savings_yearly":0}],"best_option":{"provider":"nom","savings_yearly":0},"recommendation":"conseil"}` }],
+{"current_provider":"${result.extraction.provider}","current_price_monthly":${result.extraction.amount_ttc},"alternatives":[{"provider":"nom","price_monthly":0,"savings_yearly":0}],"best_option":{"provider":"nom","savings_yearly":0},"recommendation":"conseil"}`,
+            }],
           }),
         });
 
@@ -120,22 +183,26 @@ Cherche 2-3 concurrents avec leurs prix. Retourne UNIQUEMENT un JSON:
             if (block.type === 'text') {
               try {
                 const jsonMatch = block.text.match(/\{[\s\S]*\}/);
-                if (jsonMatch) {
-                  result.comparison = JSON.parse(jsonMatch[0]);
-                }
-              } catch (e) {}
+                if (jsonMatch) result.comparison = JSON.parse(jsonMatch[0]);
+              } catch (_e) {}
             }
           }
         }
-      } catch (e) {}
+      } catch (_e) {}
     }
 
-    // ═══ STEP 4: Save to Supabase ═══
+    // ═══ STEP 4: Sauvegarde dans Supabase ═══
     try {
-      await fetch(SUPABASE_URL + '/rest/v1/invoices', {
+      await fetch(`${SUPABASE_URL}/rest/v1/invoices`, {
         method: 'POST',
-        headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', Prefer: 'return=representation,resolution=merge-duplicates' },
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=representation,resolution=merge-duplicates',
+        },
         body: JSON.stringify({
+          user_id: user_id || null,
           provider: result.extraction.provider,
           provider_siret: result.extraction.provider_siret,
           amount_ttc: result.extraction.amount_ttc,
@@ -148,19 +215,19 @@ Cherche 2-3 concurrents avec leurs prix. Retourne UNIQUEMENT un JSON:
           category: result.classification.category,
           subcategory: result.classification.subcategory,
           frequency: result.classification.frequency,
-          has_anomaly: result.anomaly.has_anomaly || false,
-          anomaly_explanation: result.anomaly.explanation,
-          calendar_frequency: result.calendar.frequency,
-          total_year: result.calendar.total_year,
-          current_provider: result.comparison.current_provider,
-          current_price_monthly: result.comparison.current_price_monthly,
+          has_anomaly: result.anomaly?.has_anomaly || false,
+          anomaly_explanation: result.anomaly?.explanation || null,
+          calendar_frequency: result.calendar?.frequency || null,
+          total_year: result.calendar?.total_year || null,
+          current_provider: result.comparison?.current_provider || null,
+          current_price_monthly: result.comparison?.current_price_monthly || null,
           ocr_confidence: result.extraction.ocr_confidence,
         }),
       });
-    } catch (e) {}
+    } catch (_e) {}
 
-    // ═══ STEP 5: Send email alert if anomaly ═══
-    if (result.anomaly && result.anomaly.has_anomaly) {
+    // ═══ STEP 5: Alerte email si anomalie détectée ═══
+    if (result.anomaly?.has_anomaly) {
       try {
         await fetch('https://vigie-factures.vercel.app/api/send-alert', {
           method: 'POST',
@@ -170,19 +237,19 @@ Cherche 2-3 concurrents avec leurs prix. Retourne UNIQUEMENT un JSON:
               provider: result.extraction.provider,
               amount_ttc: result.extraction.amount_ttc,
               invoice_date: result.extraction.invoice_date,
-              invoice_number: result.extraction.invoice_number
+              invoice_number: result.extraction.invoice_number,
             },
-            anomaly: result.anomaly
-          })
+            anomaly: result.anomaly,
+          }),
         });
-      } catch (e) {}
+      } catch (_e) {}
     }
 
-    // ═══ RETURN RESULT ═══
+    // ═══ RETOUR ═══
     result.historical_invoices = historical;
     result.processing_date = new Date().toISOString();
 
-    return res.status(200).json({ success: true, result: result });
+    return res.status(200).json({ success: true, result });
 
   } catch (error) {
     return res.status(500).json({ error: error.message });
