@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { FileText, AlertTriangle, TrendingUp, Calendar, Search, Filter, Eye, X, Bell, RefreshCw, Upload, CheckCircle, Clock, Trash2, ArrowUpRight, ArrowDownRight, Loader, Plus, LayoutDashboard, UploadCloud, Download, Menu, Home, Shield, Zap, BarChart3, Wallet, FileBarChart, LogOut } from "lucide-react";
+import { FileText, AlertTriangle, TrendingUp, Calendar, Search, Filter, Eye, X, Bell, RefreshCw, Upload, CheckCircle, Clock, Trash2, ArrowUpRight, ArrowDownRight, Loader, Plus, LayoutDashboard, UploadCloud, Download, Menu, Shield, Zap, BarChart3, Wallet, FileBarChart, LogOut } from "lucide-react";
 import { LegalModal } from './LegalPages.jsx';
 
 // ═══ SUPABASE AUTH CLIENT ═══
@@ -36,6 +36,7 @@ function formatEuro(n) {
   if (n == null) return "—";
   return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(n);
 }
+
 function formatDate(d) {
   if (!d) return "—";
   return new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
@@ -72,6 +73,7 @@ async function extractTextFromPDF(file) {
     reader.readAsArrayBuffer(file);
   });
 }
+
 async function extractTextFromFile(file) {
   if (file.type === "application/pdf") return extractTextFromPDF(file);
   return new Promise((resolve, reject) => {
@@ -111,7 +113,9 @@ function StatCard({ icon: Icon, label, value, sub, color, trend }) {
       <div style={{ fontSize: 22, fontWeight: 700, color: "#EDE8DB", fontFamily: "'Cormorant Garamond', serif" }}>{value}</div>
       {sub && (
         <div style={{ fontSize: 10, color: trend === "up" ? "#C75B4E" : trend === "down" ? "#5BC78A" : "rgba(255,255,255,0.3)", display: "flex", alignItems: "center", gap: 3, marginTop: 3 }}>
-          {trend === "up" && <ArrowUpRight size={11} />}{trend === "down" && <ArrowDownRight size={11} />}{sub}
+          {trend === "up" && <ArrowUpRight size={11} />}
+          {trend === "down" && <ArrowDownRight size={11} />}
+          {sub}
         </div>
       )}
     </div>
@@ -132,11 +136,16 @@ function FileItem({ file, onRemove }) {
         <div style={{ fontSize: 12, color: "#EDE8DB", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{file.name}</div>
         <div style={{ fontSize: 10, color: sc[file.status], marginTop: 2, display: "flex", alignItems: "center", gap: 4 }}>
           <SI size={11} style={file.status === "processing" ? { animation: "spin 1s linear infinite" } : {}} />
-          {file.status === "pending" && "En attente"}{file.status === "processing" && "Analyse en cours..."}{file.status === "done" && `✓ ${file.result?.extraction?.provider || "Analysé"} — ${formatEuro(file.result?.extraction?.amount_ttc)}`}{file.status === "error" && (file.errorMsg || "Erreur")}
+          {file.status === "pending" && "En attente"}
+          {file.status === "processing" && "Analyse en cours..."}
+          {file.status === "done" && `✓ ${file.result?.extraction?.provider || "Analysé"} — ${formatEuro(file.result?.extraction?.amount_ttc)}`}
+          {file.status === "error" && (file.errorMsg || "Erreur")}
         </div>
       </div>
       {(file.status === "pending" || file.status === "error") && (
-        <button onClick={() => onRemove(file.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "rgba(255,255,255,0.2)" }}><Trash2 size={13} /></button>
+        <button onClick={() => onRemove(file.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "rgba(255,255,255,0.2)" }}>
+          <Trash2 size={13} />
+        </button>
       )}
     </div>
   );
@@ -152,7 +161,18 @@ function InvoiceModal({ inv, onClose }) {
           <h3 style={{ color: "#EDE8DB", fontFamily: "'Cormorant Garamond', serif", fontSize: 20, margin: 0 }}>Détails</h3>
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={16} color="rgba(255,255,255,0.3)" /></button>
         </div>
-        {[["Numéro", inv.invoice_number], ["Fournisseur", inv.provider], ["Date", formatDate(inv.invoice_date)], ["Montant HT", formatEuro(inv.amount_ht)], ["TVA", `${formatEuro(inv.tax)} (${inv.tax_rate || "—"}%)`], ["Montant TTC", formatEuro(inv.amount_ttc)], ["Catégorie", `${inv.category || "—"} / ${inv.subcategory || "—"}`], ["Fréquence", inv.frequency || "—"], ["Coût annuel", formatEuro(inv.total_year)], ["Anomalie", inv.has_anomaly ? `⚠️ ${inv.anomaly_explanation}` : "✅ Aucune"]].map(([k, v]) => (
+        {[
+          ["Numéro", inv.invoice_number],
+          ["Fournisseur", inv.provider],
+          ["Date", formatDate(inv.invoice_date)],
+          ["Montant HT", formatEuro(inv.amount_ht)],
+          ["TVA", `${formatEuro(inv.tax)} (${inv.tax_rate || "—"}%)`],
+          ["Montant TTC", formatEuro(inv.amount_ttc)],
+          ["Catégorie", `${inv.category || "—"} / ${inv.subcategory || "—"}`],
+          ["Fréquence", inv.frequency || "—"],
+          ["Coût annuel", formatEuro(inv.total_year)],
+          ["Anomalie", inv.has_anomaly ? `⚠️ ${inv.anomaly_explanation}` : "✅ Aucune"],
+        ].map(([k, v]) => (
           <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
             <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 11 }}>{k}</span>
             <span style={{ color: "#EDE8DB", fontSize: 11, fontWeight: 500, textAlign: "right", maxWidth: "60%" }}>{v || "—"}</span>
@@ -174,30 +194,50 @@ function CustomTooltip({ active, payload }) {
   );
 }
 
+// ═══ LEGAL LINKS CONFIG ═══
+const LEGAL_LINKS = [
+  { label: "Mentions légales", page: "legal" },
+  { label: "CGV", page: "cgv" },
+  { label: "Confidentialité", page: "privacy" },
+  { label: "Cookies", page: "cookies" },
+];
+
 // ═══ LANDING PAGE ═══
-function LandingPage({ onLogin, onSignUp, authError, onLegal }) {Start }) {
+function LandingPage({ onLogin, onSignUp, authError, onLegal }) {
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState("login"); // "login" ou "signup"
+
+  const handleAuthSubmit = (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const email = formData.get('email');
+    const password = formData.get('password');
+    const fullName = formData.get('fullName');
+
+    if (authMode === "login") {
+      onLogin(email, password);
+    } else {
+      onSignUp(email, password, fullName);
+    }
+  };
 
   return (
     <div style={{ minHeight: "100vh", background: "#0E0D0B", color: "#EDE8DB", fontFamily: "'Nunito Sans', sans-serif", overflow: "hidden" }}>
       {/* Hero */}
       <div style={{ position: "relative", padding: "60px 24px 40px", textAlign: "center", maxWidth: 800, margin: "0 auto" }}>
         <div style={{ position: "absolute", top: -100, left: "50%", transform: "translateX(-50%)", width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle, rgba(212,168,83,0.08) 0%, transparent 70%)", pointerEvents: "none" }} />
-        
         <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(36px, 7vw, 64px)", fontWeight: 700, lineHeight: 1.1, marginBottom: 20 }}>
           Analysez vos factures<br /><span style={{ color: "#D4A853" }}>en un clic</span>
         </h1>
         <p style={{ fontSize: "clamp(14px, 2.5vw, 18px)", color: "rgba(255,255,255,0.45)", maxWidth: 520, margin: "0 auto 36px", lineHeight: 1.6 }}>
           Vigie-Factures détecte les anomalies, compare les prix et vous alerte automatiquement. Plus jamais de mauvaises surprises.
         </p>
-        <button onClick={() => setShowAuth(true)} style={{
-          background: "linear-gradient(135deg, #D4A853, #C78A5B)", color: "#0E0D0B", border: "none", borderRadius: 12,
-          padding: "16px 40px", fontSize: 16, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito Sans', sans-serif",
-          boxShadow: "0 4px 24px rgba(212,168,83,0.3)", transition: "transform 0.2s",
-        }}
+        <button
+          onClick={() => setShowAuth(true)}
+          style={{ background: "linear-gradient(135deg, #D4A853, #C78A5B)", color: "#0E0D0B", border: "none", borderRadius: 12, padding: "16px 40px", fontSize: 16, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito Sans', sans-serif", boxShadow: "0 4px 24px rgba(212,168,83,0.3)", transition: "transform 0.2s" }}
           onMouseEnter={e => e.currentTarget.style.transform = "translateY(-2px)"}
-          onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}>
+          onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}
+        >
           Commencer gratuitement →
         </button>
       </div>
@@ -212,9 +252,12 @@ function LandingPage({ onLogin, onSignUp, authError, onLegal }) {Start }) {
           { icon: Upload, title: "Multi-upload", desc: "Glissez plusieurs factures d'un coup, elles sont toutes analysées en parallèle." },
           { icon: Download, title: "Export Excel/CSV", desc: "Téléchargez vos données pour votre comptable ou vos rapports." },
         ].map((f, i) => (
-          <div key={i} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, padding: "24px 20px", transition: "border-color 0.3s" }}
+          <div
+            key={i}
+            style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, padding: "24px 20px", transition: "border-color 0.3s" }}
             onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(212,168,83,0.2)"}
-            onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)"}>
+            onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)"}
+          >
             <div style={{ width: 36, height: 36, borderRadius: 9, background: "rgba(212,168,83,0.08)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
               <f.icon size={17} color="#D4A853" />
             </div>
@@ -224,11 +267,11 @@ function LandingPage({ onLogin, onSignUp, authError, onLegal }) {Start }) {
         ))}
       </div>
 
-      {/* Pricing - NOUVELLE SECTION ABONNEMENTS */}
+      {/* Pricing */}
       <div style={{ textAlign: "center", padding: "48px 24px 60px", maxWidth: 1000, margin: "0 auto" }}>
         <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 32, marginBottom: 12, color: "#EDE8DB" }}>Nos offres</h2>
         <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 14, marginBottom: 40 }}>Choisissez la formule adaptée à vos besoins</p>
-        
+
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 20, maxWidth: 900, margin: "0 auto" }}>
           {/* GRATUIT */}
           <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "32px 24px", textAlign: "left" }}>
@@ -243,7 +286,10 @@ function LandingPage({ onLogin, onSignUp, authError, onLegal }) {Start }) {
               <span style={{ color: "rgba(255,255,255,0.2)" }}>✗ Alertes email</span><br />
               <span style={{ color: "rgba(255,255,255,0.2)" }}>✗ Comparateur de prix</span>
             </div>
-            <button onClick={() => setShowAuth(true)} style={{ width: "100%", padding: "12px", borderRadius: 10, border: "1px solid rgba(212,168,83,0.3)", background: "transparent", color: "#D4A853", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'Nunito Sans', sans-serif" }}>
+            <button
+              onClick={() => setShowAuth(true)}
+              style={{ width: "100%", padding: "12px", borderRadius: 10, border: "1px solid rgba(212,168,83,0.3)", background: "transparent", color: "#D4A853", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'Nunito Sans', sans-serif" }}
+            >
               Essayer gratuitement
             </button>
           </div>
@@ -263,7 +309,10 @@ function LandingPage({ onLogin, onSignUp, authError, onLegal }) {Start }) {
               ✓ Export CSV/Excel<br />
               ✓ Support prioritaire
             </div>
-            <button onClick={() => setShowAuth(true)} style={{ width: "100%", padding: "12px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #D4A853, #C78A5B)", color: "#0E0D0B", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito Sans', sans-serif" }}>
+            <button
+              onClick={() => setShowAuth(true)}
+              style={{ width: "100%", padding: "12px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #D4A853, #C78A5B)", color: "#0E0D0B", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito Sans', sans-serif" }}
+            >
               Commencer
             </button>
           </div>
@@ -281,7 +330,10 @@ function LandingPage({ onLogin, onSignUp, authError, onLegal }) {Start }) {
               ✓ Support 24/7<br />
               ✓ Formation équipe
             </div>
-            <button onClick={() => window.location.href = 'mailto:contact@vigie-factures.fr'} style={{ width: "100%", padding: "12px", borderRadius: 10, border: "1px solid rgba(91,163,199,0.3)", background: "transparent", color: "#5BA3C7", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'Nunito Sans', sans-serif" }}>
+            <button
+              onClick={() => window.location.href = 'mailto:contact@vigie-factures.fr'}
+              style={{ width: "100%", padding: "12px", borderRadius: 10, border: "1px solid rgba(91,163,199,0.3)", background: "transparent", color: "#5BA3C7", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'Nunito Sans', sans-serif" }}
+            >
               Nous contacter
             </button>
           </div>
@@ -304,9 +356,15 @@ function LandingPage({ onLogin, onSignUp, authError, onLegal }) {Start }) {
             <h4 style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", letterSpacing: 1, textTransform: "uppercase", marginBottom: 12, fontWeight: 600 }}>Produit</h4>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {["Fonctionnalités", "Tarifs", "FAQ", "Démo"].map(link => (
-                <a key={link} href="#" style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", textDecoration: "none" }}
+                <a
+                  key={link}
+                  href="#"
+                  style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", textDecoration: "none" }}
                   onMouseEnter={e => e.currentTarget.style.color = "#D4A853"}
-                  onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.35)"}>{link}</a>
+                  onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.35)"}
+                >
+                  {link}
+                </a>
               ))}
             </div>
           </div>
@@ -315,18 +373,18 @@ function LandingPage({ onLogin, onSignUp, authError, onLegal }) {Start }) {
           <div>
             <h4 style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", letterSpacing: 1, textTransform: "uppercase", marginBottom: 12, fontWeight: 600 }}>Légal</h4>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {[
-                { label: "Mentions légales", page: "legal" },
-               {[
-  { label: "Mentions légales", page: "legal" },
-  { label: "CGV", page: "cgv" },
-  { label: "Confidentialité", page: "privacy" },
-  { label: "Cookies", page: "cookies" }
-].map(link => (
-  <a key={link.page} href="#" onClick={(e) => { e.preventDefault(); onLegal(link.page); }} style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", textDecoration: "none" }}
-    onMouseEnter={e => e.currentTarget.style.color = "#D4A853"}
-    onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.35)"}>{link.label}</a>
-))}
+              {LEGAL_LINKS.map(link => (
+                <a
+                  key={link.page}
+                  href="#"
+                  onClick={(e) => { e.preventDefault(); onLegal(link.page); }}
+                  style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", textDecoration: "none" }}
+                  onMouseEnter={e => e.currentTarget.style.color = "#D4A853"}
+                  onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.35)"}
+                >
+                  {link.label}
+                </a>
+              ))}
             </div>
           </div>
 
@@ -350,10 +408,13 @@ function LandingPage({ onLogin, onSignUp, authError, onLegal }) {Start }) {
 
       {/* MODAL AUTH */}
       {showAuth && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)", padding: 16 }} onClick={() => setShowAuth(false)}>
+        <div
+          style={{ position: "fixed", inset: 0, zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)", padding: 16 }}
+          onClick={() => setShowAuth(false)}
+        >
           <div onClick={e => e.stopPropagation()} style={{ background: "#161513", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "32px 36px", width: "100%", maxWidth: 420, animation: "modalIn 0.3s ease-out" }}>
             <button onClick={() => setShowAuth(false)} style={{ float: "right", background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.3)", fontSize: 24, padding: 0, marginTop: -8 }}>×</button>
-            
+
             <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, color: "#EDE8DB", marginBottom: 6 }}>
               {authMode === "login" ? "Connexion" : "Inscription"}
             </h2>
@@ -361,47 +422,42 @@ function LandingPage({ onLogin, onSignUp, authError, onLegal }) {Start }) {
               {authMode === "login" ? "Ravi de vous revoir !" : "Créez votre compte gratuitement"}
             </p>
 
-            <form style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-             <form onSubmit={(e) => {
-  e.preventDefault();
-  const formData = new FormData(e.target);
-  const email = formData.get('email');
-  const password = formData.get('password');
-  const fullName = formData.get('fullName');
-  
-  if (authMode === "login") {
-    onLogin(email, password);
-  } else {
-    onSignUp(email, password, fullName);
-  }
-}} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-  {authMode === "signup" && (
-    <div>
-      <label style={{ display: "block", fontSize: 11, color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>Nom complet</label>
-      <input name="fullName" type="text" placeholder="Jean Dupont" required style={{ width: "100%", padding: "10px 14px", borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#EDE8DB", fontSize: 13, fontFamily: "'Nunito Sans', sans-serif" }} />
-    </div>
-  )}
-  
-  <div>
-    <label style={{ display: "block", fontSize: 11, color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>Email</label>
-    <input name="email" type="email" placeholder="votre@email.fr" required style={{ width: "100%", padding: "10px 14px", borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#EDE8DB", fontSize: 13, fontFamily: "'Nunito Sans', sans-serif" }} />
-  </div>
+            <form onSubmit={handleAuthSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {authMode === "signup" && (
+                <div>
+                  <label style={{ display: "block", fontSize: 11, color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>Nom complet</label>
+                  <input name="fullName" type="text" placeholder="Jean Dupont" required style={{ width: "100%", padding: "10px 14px", borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#EDE8DB", fontSize: 13, fontFamily: "'Nunito Sans', sans-serif" }} />
+                </div>
+              )}
 
-  <div>
-    <label style={{ display: "block", fontSize: 11, color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>Mot de passe</label>
-    <input name="password" type="password" placeholder="••••••••" required minLength={6} style={{ width: "100%", padding: "10px 14px", borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#EDE8DB", fontSize: 13, fontFamily: "'Nunito Sans', sans-serif" }} />
-  </div>
+              <div>
+                <label style={{ display: "block", fontSize: 11, color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>Email</label>
+                <input name="email" type="email" placeholder="votre@email.fr" required style={{ width: "100%", padding: "10px 14px", borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#EDE8DB", fontSize: 13, fontFamily: "'Nunito Sans', sans-serif" }} />
+              </div>
 
-  {authError && <div style={{ color: "#C75B4E", fontSize: 11, background: "rgba(199,91,78,0.1)", padding: "8px 12px", borderRadius: 6 }}>{authError}</div>}
+              <div>
+                <label style={{ display: "block", fontSize: 11, color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>Mot de passe</label>
+                <input name="password" type="password" placeholder="••••••••" required minLength={6} style={{ width: "100%", padding: "10px 14px", borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#EDE8DB", fontSize: 13, fontFamily: "'Nunito Sans', sans-serif" }} />
+              </div>
 
-  <button type="submit" style={{ width: "100%", padding: "12px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #D4A853, #C78A5B)", color: "#0E0D0B", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito Sans', sans-serif", marginTop: 8 }}>
-    {authMode === "login" ? "Se connecter" : "Créer mon compte"}
-  </button>
-</form>
+              {authError && (
+                <div style={{ color: "#C75B4E", fontSize: 11, background: "rgba(199,91,78,0.1)", padding: "8px 12px", borderRadius: 6 }}>{authError}</div>
+              )}
+
+              <button
+                type="submit"
+                style={{ width: "100%", padding: "12px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #D4A853, #C78A5B)", color: "#0E0D0B", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito Sans', sans-serif", marginTop: 8 }}
+              >
+                {authMode === "login" ? "Se connecter" : "Créer mon compte"}
+              </button>
+            </form>
 
             <div style={{ textAlign: "center", marginTop: 20, fontSize: 12, color: "rgba(255,255,255,0.35)" }}>
               {authMode === "login" ? "Pas encore de compte ?" : "Déjà inscrit ?"}{" "}
-              <button onClick={() => setAuthMode(authMode === "login" ? "signup" : "login")} style={{ background: "none", border: "none", color: "#D4A853", cursor: "pointer", textDecoration: "underline", fontFamily: "'Nunito Sans', sans-serif" }}>
+              <button
+                onClick={() => setAuthMode(authMode === "login" ? "signup" : "login")}
+                style={{ background: "none", border: "none", color: "#D4A853", cursor: "pointer", textDecoration: "underline", fontFamily: "'Nunito Sans', sans-serif" }}
+              >
                 {authMode === "login" ? "Inscription" : "Connexion"}
               </button>
             </div>
@@ -456,7 +512,7 @@ export default function VigieFactures() {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } }
+      options: { data: { full_name: fullName } },
     });
     if (error) setAuthError(error.message);
     else alert("Inscription réussie ! Vérifiez votre email pour confirmer votre compte.");
@@ -486,18 +542,22 @@ export default function VigieFactures() {
     setLoading(false);
   }, [user]);
 
-  useEffect(() => { 
-    if (user) fetchInvoices(); 
+  useEffect(() => {
+    if (user) fetchInvoices();
   }, [fetchInvoices, user]);
 
   const addFiles = useCallback((newFiles) => {
-    const fileObjs = Array.from(newFiles).filter(f => f.type === "application/pdf" || f.type.startsWith("text/") || f.type.startsWith("image/")).map(f => ({
-      id: nextId.current++, file: f, name: f.name, status: "pending", result: null, errorMsg: null,
-    }));
+    const fileObjs = Array.from(newFiles)
+      .filter(f => f.type === "application/pdf" || f.type.startsWith("text/") || f.type.startsWith("image/"))
+      .map(f => ({
+        id: nextId.current++, file: f, name: f.name, status: "pending", result: null, errorMsg: null,
+      }));
     setFiles(prev => [...prev, ...fileObjs]);
   }, []);
 
-  const removeFile = useCallback((id) => { setFiles(prev => prev.filter(f => f.id !== id)); }, []);
+  const removeFile = useCallback((id) => {
+    setFiles(prev => prev.filter(f => f.id !== id));
+  }, []);
 
   const processAll = useCallback(async () => {
     setIsProcessing(true);
@@ -507,7 +567,9 @@ export default function VigieFactures() {
       try {
         const text = await extractTextFromFile(fileObj.file);
         const response = await fetch(ANALYZE_API, {
-          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, user_id: user?.id }),
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, user_id: user?.id }),
         });
         const data = await response.json();
         if (data.success && data.result) {
@@ -565,9 +627,20 @@ export default function VigieFactures() {
   const doneCount = files.filter(f => f.status === "done").length;
 
   // ═══ SI PAS CONNECTÉ → LANDING ═══
-  if (authLoading) return <div style={{ minHeight: "100vh", background: "#0E0D0B", display: "flex", alignItems: "center", justifyContent: "center", color: "#D4A853" }}>Chargement...</div>;
-  if (!user && page !== "landing") return <LandingPage onLogin={handleLogin} onSignUp={handleSignUp} authError={authError} />;
-if (page === "landing") return <LandingPage onLogin={handleLogin} onSignUp={handleSignUp} authError={authError} onLegal={setLegalPage} />;
+  if (authLoading) return (
+    <div style={{ minHeight: "100vh", background: "#0E0D0B", display: "flex", alignItems: "center", justifyContent: "center", color: "#D4A853" }}>
+      Chargement...
+    </div>
+  );
+
+  if (!user && page !== "landing") return (
+    <LandingPage onLogin={handleLogin} onSignUp={handleSignUp} authError={authError} onLegal={setLegalPage} />
+  );
+
+  if (page === "landing") return (
+    <LandingPage onLogin={handleLogin} onSignUp={handleSignUp} authError={authError} onLegal={setLegalPage} />
+  );
+
   // ═══ APP LAYOUT ═══
   return (
     <div style={{ minHeight: "100vh", background: "#0E0D0B", color: "#EDE8DB", fontFamily: "'Nunito Sans', sans-serif" }}>
@@ -591,19 +664,28 @@ if (page === "landing") return <LandingPage onLogin={handleLogin} onSignUp={hand
       `}</style>
 
       {/* Mobile header */}
-      <div style={{ display: "none", position: "fixed", top: 0, left: 0, right: 0, height: 52, background: "#0E0D0B", borderBottom: "1px solid rgba(255,255,255,0.06)", zIndex: 150, alignItems: "center", padding: "0 16px", justifyContent: "space-between" }}
+      <div
+        style={{ display: "none", position: "fixed", top: 0, left: 0, right: 0, height: 52, background: "#0E0D0B", borderBottom: "1px solid rgba(255,255,255,0.06)", zIndex: 150, alignItems: "center", padding: "0 16px", justifyContent: "space-between" }}
         className="mobile-header"
-        ref={el => { if (el) el.style.display = window.innerWidth <= 768 ? "flex" : "none"; }}>
-        <button onClick={() => setMobileMenu(!mobileMenu)} style={{ background: "none", border: "none", cursor: "pointer" }}><Menu size={20} color="#D4A853" /></button>
+        ref={el => { if (el) el.style.display = window.innerWidth <= 768 ? "flex" : "none"; }}
+      >
+        <button onClick={() => setMobileMenu(!mobileMenu)} style={{ background: "none", border: "none", cursor: "pointer" }}>
+          <Menu size={20} color="#D4A853" />
+        </button>
         <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, fontWeight: 700, color: "#D4A853" }}>Vigie</span>
         <div style={{ width: 20 }} />
       </div>
 
       {/* Overlay */}
-      {mobileMenu && <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 190 }} onClick={() => setMobileMenu(false)} />}
+      {mobileMenu && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 190 }} onClick={() => setMobileMenu(false)} />
+      )}
 
       {/* Sidebar */}
-      <div className={`sidebar ${mobileMenu ? "open" : ""}`} style={{ position: "fixed", left: 0, top: 0, bottom: 0, width: 200, background: "rgba(255,255,255,0.015)", borderRight: "1px solid rgba(255,255,255,0.05)", padding: "24px 14px", display: "flex", flexDirection: "column", zIndex: 200, transition: "transform 0.3s" }}>
+      <div
+        className={`sidebar ${mobileMenu ? "open" : ""}`}
+        style={{ position: "fixed", left: 0, top: 0, bottom: 0, width: 200, background: "rgba(255,255,255,0.015)", borderRight: "1px solid rgba(255,255,255,0.05)", padding: "24px 14px", display: "flex", flexDirection: "column", zIndex: 200, transition: "transform 0.3s" }}
+      >
         <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 700, color: "#D4A853", marginBottom: 4, paddingLeft: 8 }}>Vigie</h1>
         <p style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", letterSpacing: 2, textTransform: "uppercase", paddingLeft: 8, marginBottom: 32 }}>Factures</p>
 
@@ -613,24 +695,38 @@ if (page === "landing") return <LandingPage onLogin={handleLogin} onSignUp={hand
           { id: "budget", icon: Wallet, label: "Budget" },
           { id: "report", icon: FileBarChart, label: "Rapport" },
         ].map(item => (
-          <button key={item.id} onClick={() => { setPage(item.id); setMobileMenu(false); }} style={{
-            display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 9, border: "none",
-            background: page === item.id ? "rgba(212,168,83,0.1)" : "transparent",
-            color: page === item.id ? "#D4A853" : "rgba(255,255,255,0.4)",
-            cursor: "pointer", fontSize: 12, fontWeight: page === item.id ? 600 : 400,
-            width: "100%", textAlign: "left", marginBottom: 3, fontFamily: "'Nunito Sans', sans-serif",
-          }}>
-            <item.icon size={16} />{item.label}
-            {item.badge && <span style={{ marginLeft: "auto", background: "#D4A853", color: "#0E0D0B", borderRadius: 10, padding: "1px 6px", fontSize: 9, fontWeight: 700 }}>{item.badge}</span>}
+          <button
+            key={item.id}
+            onClick={() => { setPage(item.id); setMobileMenu(false); }}
+            style={{
+              display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 9, border: "none",
+              background: page === item.id ? "rgba(212,168,83,0.1)" : "transparent",
+              color: page === item.id ? "#D4A853" : "rgba(255,255,255,0.4)",
+              cursor: "pointer", fontSize: 12, fontWeight: page === item.id ? 600 : 400,
+              width: "100%", textAlign: "left", marginBottom: 3, fontFamily: "'Nunito Sans', sans-serif",
+            }}
+          >
+            <item.icon size={16} />
+            {item.label}
+            {item.badge && (
+              <span style={{ marginLeft: "auto", background: "#D4A853", color: "#0E0D0B", borderRadius: 10, padding: "1px 6px", fontSize: 9, fontWeight: 700 }}>{item.badge}</span>
+            )}
           </button>
         ))}
 
         <div style={{ marginTop: "auto" }}>
           <div style={{ padding: "14px 8px", borderTop: "1px solid rgba(255,255,255,0.05)", marginBottom: 10 }}>
             <div style={{ fontSize: 10, color: "rgba(255,255,255,0.2)" }}>{invoices.length} facture{invoices.length > 1 ? "s" : ""}</div>
-            {alerts.length > 0 && <div style={{ fontSize: 10, color: "#C75B4E", marginTop: 3, display: "flex", alignItems: "center", gap: 3 }}><Bell size={10} /> {alerts.length} alerte{alerts.length > 1 ? "s" : ""}</div>}
+            {alerts.length > 0 && (
+              <div style={{ fontSize: 10, color: "#C75B4E", marginTop: 3, display: "flex", alignItems: "center", gap: 3 }}>
+                <Bell size={10} /> {alerts.length} alerte{alerts.length > 1 ? "s" : ""}
+              </div>
+            )}
           </div>
-          <button onClick={handleLogout} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderRadius: 7, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)", color: "rgba(255,255,255,0.4)", fontSize: 11, cursor: "pointer", width: "100%", fontFamily: "'Nunito Sans', sans-serif" }}>
+          <button
+            onClick={handleLogout}
+            style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderRadius: 7, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)", color: "rgba(255,255,255,0.4)", fontSize: 11, cursor: "pointer", width: "100%", fontFamily: "'Nunito Sans', sans-serif" }}
+          >
             <LogOut size={14} /> Déconnexion
           </button>
           <LegalModal page={legalPage} onClose={() => setLegalPage(null)} />
@@ -646,44 +742,76 @@ if (page === "landing") return <LandingPage onLogin={handleLogin} onSignUp={hand
             <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 28, fontWeight: 700, marginBottom: 6 }}>Analyser des factures</h2>
             <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 13, marginBottom: 28 }}>Glisse tes fichiers ou clique pour les ajouter. Lance l'analyse quand tu es prêt.</p>
 
-            <div onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} onClick={() => fileInputRef.current?.click()} style={{
-              border: `2px dashed ${dragOver ? "rgba(212,168,83,0.6)" : "rgba(255,255,255,0.1)"}`, borderRadius: 14, padding: "40px 24px", textAlign: "center", cursor: "pointer",
-              background: dragOver ? "rgba(212,168,83,0.04)" : "rgba(255,255,255,0.01)", marginBottom: 20,
-            }}>
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              style={{
+                border: `2px dashed ${dragOver ? "rgba(212,168,83,0.6)" : "rgba(255,255,255,0.1)"}`, borderRadius: 14, padding: "40px 24px", textAlign: "center", cursor: "pointer",
+                background: dragOver ? "rgba(212,168,83,0.04)" : "rgba(255,255,255,0.01)", marginBottom: 20,
+              }}
+            >
               <input ref={fileInputRef} type="file" multiple accept=".pdf,.txt,.png,.jpg,.jpeg" onChange={e => { addFiles(e.target.files); e.target.value = ""; }} />
               <Upload size={32} color={dragOver ? "#D4A853" : "rgba(255,255,255,0.2)"} style={{ marginBottom: 12 }} />
-              <div style={{ color: dragOver ? "#D4A853" : "rgba(255,255,255,0.5)", fontSize: 14, fontWeight: 500, marginBottom: 6 }}>{dragOver ? "Lâche tes fichiers ici !" : "Glisse tes factures ici"}</div>
+              <div style={{ color: dragOver ? "#D4A853" : "rgba(255,255,255,0.5)", fontSize: 14, fontWeight: 500, marginBottom: 6 }}>
+                {dragOver ? "Lâche tes fichiers ici !" : "Glisse tes factures ici"}
+              </div>
               <div style={{ color: "rgba(255,255,255,0.25)", fontSize: 11 }}>ou clique pour parcourir • PDF, images, texte</div>
             </div>
 
             {files.length > 0 && (
-              <button onClick={() => fileInputRef.current?.click()} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 7, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)", fontSize: 11, cursor: "pointer", marginBottom: 14, fontFamily: "'Nunito Sans', sans-serif" }}>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 7, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)", fontSize: 11, cursor: "pointer", marginBottom: 14, fontFamily: "'Nunito Sans', sans-serif" }}
+              >
                 <Plus size={12} /> Ajouter d'autres factures
               </button>
             )}
 
-            {files.length > 0 && <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 20 }}>{files.map(f => <FileItem key={f.id} file={f} onRemove={removeFile} />)}</div>}
+            {files.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 20 }}>
+                {files.map(f => <FileItem key={f.id} file={f} onRemove={removeFile} />)}
+              </div>
+            )}
 
             {files.length > 0 && (
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <button onClick={processAll} disabled={isProcessing || pendingCount === 0} style={{
-                  flex: 1, minWidth: 200, padding: "12px 20px", borderRadius: 10, border: "none",
-                  background: isProcessing ? "rgba(212,168,83,0.15)" : pendingCount === 0 ? "rgba(255,255,255,0.05)" : "linear-gradient(135deg, #D4A853, #C78A5B)",
-                  color: isProcessing ? "#D4A853" : pendingCount === 0 ? "rgba(255,255,255,0.3)" : "#0E0D0B",
-                  fontSize: 13, fontWeight: 700, cursor: isProcessing || pendingCount === 0 ? "not-allowed" : "pointer", fontFamily: "'Nunito Sans', sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                }}>
-                  {isProcessing ? <><Loader size={14} style={{ animation: "spin 1s linear infinite" }} /> Analyse en cours...</> : pendingCount === 0 ? <><CheckCircle size={14} /> Toutes analysées !</> : <><UploadCloud size={14} /> Analyser {pendingCount} facture{pendingCount > 1 ? "s" : ""}</>}
+                <button
+                  onClick={processAll}
+                  disabled={isProcessing || pendingCount === 0}
+                  style={{
+                    flex: 1, minWidth: 200, padding: "12px 20px", borderRadius: 10, border: "none",
+                    background: isProcessing ? "rgba(212,168,83,0.15)" : pendingCount === 0 ? "rgba(255,255,255,0.05)" : "linear-gradient(135deg, #D4A853, #C78A5B)",
+                    color: isProcessing ? "#D4A853" : pendingCount === 0 ? "rgba(255,255,255,0.3)" : "#0E0D0B",
+                    fontSize: 13, fontWeight: 700, cursor: isProcessing || pendingCount === 0 ? "not-allowed" : "pointer",
+                    fontFamily: "'Nunito Sans', sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                  }}
+                >
+                  {isProcessing
+                    ? <><Loader size={14} style={{ animation: "spin 1s linear infinite" }} /> Analyse en cours...</>
+                    : pendingCount === 0
+                      ? <><CheckCircle size={14} /> Toutes analysées !</>
+                      : <><UploadCloud size={14} /> Analyser {pendingCount} facture{pendingCount > 1 ? "s" : ""}</>
+                  }
                 </button>
                 {doneCount > 0 && (
-                  <button onClick={() => setPage("dashboard")} style={{ padding: "12px 16px", borderRadius: 10, border: "1px solid rgba(91,199,138,0.3)", background: "rgba(91,199,138,0.08)", color: "#5BC78A", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Nunito Sans', sans-serif", display: "flex", alignItems: "center", gap: 6 }}>
+                  <button
+                    onClick={() => setPage("dashboard")}
+                    style={{ padding: "12px 16px", borderRadius: 10, border: "1px solid rgba(91,199,138,0.3)", background: "rgba(91,199,138,0.08)", color: "#5BC78A", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Nunito Sans', sans-serif", display: "flex", alignItems: "center", gap: 6 }}
+                  >
                     <LayoutDashboard size={13} /> Dashboard
                   </button>
                 )}
               </div>
             )}
-            {files.length === 0 && <div style={{ textAlign: "center", padding: 16, color: "rgba(255,255,255,0.15)", fontSize: 12 }}>Aucune facture ajoutée</div>}
+
+            {files.length === 0 && (
+              <div style={{ textAlign: "center", padding: 16, color: "rgba(255,255,255,0.15)", fontSize: 12 }}>Aucune facture ajoutée</div>
+            )}
           </div>
         )}
+
         {/* ═══ DASHBOARD PAGE ═══ */}
         {page === "dashboard" && (
           <>
@@ -693,24 +821,32 @@ if (page === "landing") return <LandingPage onLogin={handleLogin} onSignUp={hand
                 <p style={{ color: "rgba(255,255,255,0.25)", fontSize: 11 }}>Vue d'ensemble de vos factures</p>
               </div>
               <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={() => exportCSV(filtered)} style={{ background: "rgba(91,199,138,0.08)", border: "1px solid rgba(91,199,138,0.2)", borderRadius: 7, padding: "7px 12px", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, color: "#5BC78A", fontSize: 11, fontFamily: "'Nunito Sans', sans-serif" }}>
+                <button
+                  onClick={() => exportCSV(filtered)}
+                  style={{ background: "rgba(91,199,138,0.08)", border: "1px solid rgba(91,199,138,0.2)", borderRadius: 7, padding: "7px 12px", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, color: "#5BC78A", fontSize: 11, fontFamily: "'Nunito Sans', sans-serif" }}
+                >
                   <Download size={12} /> Export CSV
                 </button>
-                <button onClick={fetchInvoices} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 7, padding: "7px 12px", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, color: "rgba(255,255,255,0.4)", fontSize: 11, fontFamily: "'Nunito Sans', sans-serif" }}>
+                <button
+                  onClick={fetchInvoices}
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 7, padding: "7px 12px", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, color: "rgba(255,255,255,0.4)", fontSize: 11, fontFamily: "'Nunito Sans', sans-serif" }}
+                >
                   <RefreshCw size={12} /> Actualiser
                 </button>
               </div>
             </div>
 
-            {alerts.length > 0 && <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 20 }}>
-              {alerts.map((a, i) => (
-                <div key={i} style={{ background: "rgba(199,91,78,0.06)", border: "1px solid rgba(199,91,78,0.15)", borderRadius: 9, padding: "10px 14px", display: "flex", alignItems: "center", gap: 10, animation: "slideIn 0.3s ease-out", flexWrap: "wrap" }}>
-                  <AlertTriangle size={14} color="#C75B4E" />
-                  <span style={{ color: "#C75B4E", fontWeight: 600, fontSize: 11 }}>{a.provider}</span>
-                  <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 11 }}>— {a.explanation}</span>
-                </div>
-              ))}
-            </div>}
+            {alerts.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 20 }}>
+                {alerts.map((a, i) => (
+                  <div key={i} style={{ background: "rgba(199,91,78,0.06)", border: "1px solid rgba(199,91,78,0.15)", borderRadius: 9, padding: "10px 14px", display: "flex", alignItems: "center", gap: 10, animation: "slideIn 0.3s ease-out", flexWrap: "wrap" }}>
+                    <AlertTriangle size={14} color="#C75B4E" />
+                    <span style={{ color: "#C75B4E", fontWeight: 600, fontSize: 11 }}>{a.provider}</span>
+                    <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 11 }}>— {a.explanation}</span>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
               <StatCard icon={FileText} label="Factures" value={stats.count} sub={`${stats.providers} fournisseur${stats.providers > 1 ? "s" : ""}`} color="#D4A853" />
@@ -724,7 +860,14 @@ if (page === "landing") return <LandingPage onLogin={handleLogin} onSignUp={hand
                 <h3 style={{ color: "rgba(255,255,255,0.4)", fontSize: 9, letterSpacing: 1.5, marginBottom: 14, fontWeight: 600, textTransform: "uppercase" }}>Par fournisseur</h3>
                 {pieData.length > 0 ? (
                   <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                    <ResponsiveContainer width="50%" height={160}><PieChart><Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={3} dataKey="value">{pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}</Pie><Tooltip content={<CustomTooltip />} /></PieChart></ResponsiveContainer>
+                    <ResponsiveContainer width="50%" height={160}>
+                      <PieChart>
+                        <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={3} dataKey="value">
+                          {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                        </Pie>
+                        <Tooltip content={<CustomTooltip />} />
+                      </PieChart>
+                    </ResponsiveContainer>
                     <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                       {pieData.map((d, i) => (
                         <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10 }}>
@@ -735,57 +878,104 @@ if (page === "landing") return <LandingPage onLogin={handleLogin} onSignUp={hand
                       ))}
                     </div>
                   </div>
-                ) : <div style={{ color: "rgba(255,255,255,0.15)", textAlign: "center", padding: 36, fontSize: 11 }}>Aucune donnée</div>}
+                ) : (
+                  <div style={{ color: "rgba(255,255,255,0.15)", textAlign: "center", padding: 36, fontSize: 11 }}>Aucune donnée</div>
+                )}
               </div>
               <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, padding: 18 }}>
                 <h3 style={{ color: "rgba(255,255,255,0.4)", fontSize: 9, letterSpacing: 1.5, marginBottom: 14, fontWeight: 600, textTransform: "uppercase" }}>Par mois</h3>
                 {barData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={160}>
-                    <BarChart data={barData}><CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" /><XAxis dataKey="name" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 9 }} axisLine={false} tickLine={false} /><YAxis tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 9 }} axisLine={false} tickLine={false} /><Tooltip content={<CustomTooltip />} /><Bar dataKey="total" radius={[4, 4, 0, 0]}>{barData.map((_, i) => <Cell key={i} fill={`rgba(212,168,83,${0.35 + (i / barData.length) * 0.65})`} />)}</Bar></BarChart>
+                    <BarChart data={barData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                      <XAxis dataKey="name" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 9 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 9 }} axisLine={false} tickLine={false} />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Bar dataKey="total" radius={[4, 4, 0, 0]}>
+                        {barData.map((_, i) => <Cell key={i} fill={`rgba(212,168,83,${0.35 + (i / barData.length) * 0.65})`} />)}
+                      </Bar>
+                    </BarChart>
                   </ResponsiveContainer>
-                ) : <div style={{ color: "rgba(255,255,255,0.15)", textAlign: "center", padding: 36, fontSize: 11 }}>Aucune donnée</div>}
+                ) : (
+                  <div style={{ color: "rgba(255,255,255,0.15)", textAlign: "center", padding: 36, fontSize: 11 }}>Aucune donnée</div>
+                )}
               </div>
             </div>
 
             <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
               <div style={{ flex: 1, minWidth: 180, display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 9, padding: "0 12px" }}>
                 <Search size={12} color="rgba(255,255,255,0.25)" />
-                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher..." style={{ background: "none", border: "none", outline: "none", color: "#EDE8DB", fontSize: 11, padding: "9px 0", width: "100%", fontFamily: "'Nunito Sans', sans-serif" }} />
+                <input
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Rechercher..."
+                  style={{ background: "none", border: "none", outline: "none", color: "#EDE8DB", fontSize: 11, padding: "9px 0", width: "100%", fontFamily: "'Nunito Sans', sans-serif" }}
+                />
               </div>
-              <button onClick={() => setShowFilters(!showFilters)} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 9, padding: "7px 12px", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, color: "rgba(255,255,255,0.4)", fontSize: 11, fontFamily: "'Nunito Sans', sans-serif" }}><Filter size={11} /> Filtres</button>
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 9, padding: "7px 12px", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, color: "rgba(255,255,255,0.4)", fontSize: 11, fontFamily: "'Nunito Sans', sans-serif" }}
+              >
+                <Filter size={11} /> Filtres
+              </button>
             </div>
 
-            {showFilters && <div style={{ display: "flex", gap: 5, marginBottom: 12, flexWrap: "wrap" }}>
-              {[["all", "Tous"], ["mensuel", "Mensuel"], ["annuel", "Annuel"], ["ponctuel", "Ponctuel"]].map(([v, l]) => (
-                <button key={v} onClick={() => setFilterFreq(v)} style={{ background: filterFreq === v ? "rgba(212,168,83,0.12)" : "rgba(255,255,255,0.03)", border: `1px solid ${filterFreq === v ? "rgba(212,168,83,0.25)" : "rgba(255,255,255,0.06)"}`, borderRadius: 14, padding: "4px 12px", cursor: "pointer", color: filterFreq === v ? "#D4A853" : "rgba(255,255,255,0.4)", fontSize: 10, fontWeight: filterFreq === v ? 600 : 400, fontFamily: "'Nunito Sans', sans-serif" }}>{l}</button>
-              ))}
-            </div>}
+            {showFilters && (
+              <div style={{ display: "flex", gap: 5, marginBottom: 12, flexWrap: "wrap" }}>
+                {[["all", "Tous"], ["mensuel", "Mensuel"], ["annuel", "Annuel"], ["ponctuel", "Ponctuel"]].map(([v, l]) => (
+                  <button
+                    key={v}
+                    onClick={() => setFilterFreq(v)}
+                    style={{ background: filterFreq === v ? "rgba(212,168,83,0.12)" : "rgba(255,255,255,0.03)", border: `1px solid ${filterFreq === v ? "rgba(212,168,83,0.25)" : "rgba(255,255,255,0.06)"}`, borderRadius: 14, padding: "4px 12px", cursor: "pointer", color: filterFreq === v ? "#D4A853" : "rgba(255,255,255,0.4)", fontSize: 10, fontWeight: filterFreq === v ? 600 : 400, fontFamily: "'Nunito Sans', sans-serif" }}
+                  >
+                    {l}
+                  </button>
+                ))}
+              </div>
+            )}
 
             <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, overflow: "hidden" }}>
               <div style={{ overflowX: "auto" }}>
                 <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 600 }}>
-                  <thead><tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                    {["N°", "Fournisseur", "TTC", "Date", "Fréq.", "Statut", ""].map(h => (
-                      <th key={h} style={{ padding: "10px 12px", textAlign: "left", color: "rgba(255,255,255,0.3)", fontSize: 9, fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase" }}>{h}</th>
-                    ))}
-                  </tr></thead>
+                  <thead>
+                    <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                      {["N°", "Fournisseur", "TTC", "Date", "Fréq.", "Statut", ""].map(h => (
+                        <th key={h} style={{ padding: "10px 12px", textAlign: "left", color: "rgba(255,255,255,0.3)", fontSize: 9, fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase" }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
                   <tbody>
-                    {loading ? <tr><td colSpan={7} style={{ padding: 36, textAlign: "center", color: "rgba(255,255,255,0.15)", fontSize: 11 }}>Chargement...</td></tr>
-                    : filtered.length === 0 ? <tr><td colSpan={7} style={{ padding: 36, textAlign: "center", color: "rgba(255,255,255,0.15)", fontSize: 11 }}>Aucune facture</td></tr>
-                    : filtered.map((inv, i) => (
-                      <tr key={inv.id || i} style={{ borderBottom: "1px solid rgba(255,255,255,0.03)", cursor: "pointer" }}
-                        onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.02)"}
-                        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                        onClick={() => setSelectedInv(inv)}>
-                        <td style={{ padding: "10px 12px", color: "#EDE8DB", fontSize: 11, fontWeight: 500 }}>{inv.invoice_number || "—"}</td>
-                        <td style={{ padding: "10px 12px", color: "rgba(255,255,255,0.6)", fontSize: 11 }}>{inv.provider || "—"}</td>
-                        <td style={{ padding: "10px 12px", color: "#D4A853", fontSize: 11, fontWeight: 600 }}>{formatEuro(inv.amount_ttc)}</td>
-                        <td style={{ padding: "10px 12px", color: "rgba(255,255,255,0.4)", fontSize: 11 }}>{formatDate(inv.invoice_date)}</td>
-                        <td style={{ padding: "10px 12px" }}><span style={{ padding: "2px 7px", borderRadius: 10, fontSize: 9, fontWeight: 600, background: inv.frequency === "mensuel" ? "rgba(91,163,199,0.12)" : "rgba(255,255,255,0.05)", color: inv.frequency === "mensuel" ? "#5BA3C7" : "rgba(255,255,255,0.4)" }}>{inv.frequency || "—"}</span></td>
-                        <td style={{ padding: "10px 12px" }}>{inv.has_anomaly ? <span style={{ color: "#C75B4E", fontSize: 10, fontWeight: 600, display: "flex", alignItems: "center", gap: 3 }}><AlertTriangle size={11} /> Anomalie</span> : <span style={{ color: "rgba(91,199,138,0.6)", fontSize: 10 }}>✓ OK</span>}</td>
-                        <td style={{ padding: "10px 6px" }}><Eye size={12} color="rgba(255,255,255,0.2)" /></td>
-                      </tr>
-                    ))}
+                    {loading
+                      ? <tr><td colSpan={7} style={{ padding: 36, textAlign: "center", color: "rgba(255,255,255,0.15)", fontSize: 11 }}>Chargement...</td></tr>
+                      : filtered.length === 0
+                        ? <tr><td colSpan={7} style={{ padding: 36, textAlign: "center", color: "rgba(255,255,255,0.15)", fontSize: 11 }}>Aucune facture</td></tr>
+                        : filtered.map((inv, i) => (
+                          <tr
+                            key={inv.id || i}
+                            style={{ borderBottom: "1px solid rgba(255,255,255,0.03)", cursor: "pointer" }}
+                            onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.02)"}
+                            onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                            onClick={() => setSelectedInv(inv)}
+                          >
+                            <td style={{ padding: "10px 12px", color: "#EDE8DB", fontSize: 11, fontWeight: 500 }}>{inv.invoice_number || "—"}</td>
+                            <td style={{ padding: "10px 12px", color: "rgba(255,255,255,0.6)", fontSize: 11 }}>{inv.provider || "—"}</td>
+                            <td style={{ padding: "10px 12px", color: "#D4A853", fontSize: 11, fontWeight: 600 }}>{formatEuro(inv.amount_ttc)}</td>
+                            <td style={{ padding: "10px 12px", color: "rgba(255,255,255,0.4)", fontSize: 11 }}>{formatDate(inv.invoice_date)}</td>
+                            <td style={{ padding: "10px 12px" }}>
+                              <span style={{ padding: "2px 7px", borderRadius: 10, fontSize: 9, fontWeight: 600, background: inv.frequency === "mensuel" ? "rgba(91,163,199,0.12)" : "rgba(255,255,255,0.05)", color: inv.frequency === "mensuel" ? "#5BA3C7" : "rgba(255,255,255,0.4)" }}>
+                                {inv.frequency || "—"}
+                              </span>
+                            </td>
+                            <td style={{ padding: "10px 12px" }}>
+                              {inv.has_anomaly
+                                ? <span style={{ color: "#C75B4E", fontSize: 10, fontWeight: 600, display: "flex", alignItems: "center", gap: 3 }}><AlertTriangle size={11} /> Anomalie</span>
+                                : <span style={{ color: "rgba(91,199,138,0.6)", fontSize: 10 }}>✓ OK</span>
+                              }
+                            </td>
+                            <td style={{ padding: "10px 6px" }}><Eye size={12} color="rgba(255,255,255,0.2)" /></td>
+                          </tr>
+                        ))
+                    }
                   </tbody>
                 </table>
               </div>
@@ -808,9 +998,9 @@ if (page === "landing") return <LandingPage onLogin={handleLogin} onSignUp={hand
             budgetData[cat].count++;
             budgetData[cat].invoices.push(inv);
           });
-          const sortedCats = Object.entries(budgetData).sort(([,a], [,b]) => b.total - a.total);
-          const grandTotal = sortedCats.reduce((s, [,d]) => s + d.total, 0);
-          const grandYearly = sortedCats.reduce((s, [,d]) => s + d.yearly, 0);
+          const sortedCats = Object.entries(budgetData).sort(([, a], [, b]) => b.total - a.total);
+          const grandTotal = sortedCats.reduce((s, [, d]) => s + d.total, 0);
+          const grandYearly = sortedCats.reduce((s, [, d]) => s + d.yearly, 0);
 
           return (
             <>
@@ -913,7 +1103,6 @@ if (page === "landing") return <LandingPage onLogin={handleLogin} onSignUp={hand
           const recurring = invoices.filter(i => i.frequency === "mensuel");
           const recurringTotal = recurring.reduce((s, i) => s + (i.amount_ttc || 0), 0);
 
-          // Budget breakdown for current month
           const monthBudget = {};
           monthInvoices.forEach(inv => {
             const cat = getBudgetCategory(inv);
@@ -940,40 +1129,34 @@ if (page === "landing") return <LandingPage onLogin={handleLogin} onSignUp={hand
             </style></head><body>
             <h1>📊 Rapport mensuel — ${reportDate}</h1>
             <p style="color:#888">Généré le ${now.toLocaleDateString("fr-FR")} par Vigie-Factures</p>
-
             <div style="margin:20px 0">
               <div class="stat"><div class="value">${monthInvoices.length}</div><div class="label">Factures</div></div>
               <div class="stat"><div class="value">${formatEuro(monthTotal)}</div><div class="label">Total du mois</div></div>
               <div class="stat"><div class="value">${variation > 0 ? "+" : ""}${Math.round(variation)}%</div><div class="label">vs mois précédent</div></div>
               <div class="stat"><div class="value">${monthAnomalies.length}</div><div class="label">Anomalies</div></div>
             </div>
-
             <h2>Répartition budgétaire</h2>
             <table><tr><th>Catégorie</th><th>Montant</th><th>%</th></tr>
-            ${Object.entries(monthBudget).sort(([,a],[,b]) => b - a).map(([cat, total]) =>
+            ${Object.entries(monthBudget).sort(([, a], [, b]) => b - a).map(([cat, total]) =>
               `<tr><td>${cat}</td><td>${formatEuro(total)}</td><td>${monthTotal > 0 ? Math.round((total / monthTotal) * 100) : 0}%</td></tr>`
             ).join("")}
             <tr style="font-weight:bold;border-top:2px solid #B8860B"><td>Total</td><td>${formatEuro(monthTotal)}</td><td>100%</td></tr>
             </table>
-
             <h2>Détail des factures</h2>
             <table><tr><th>Fournisseur</th><th>Montant TTC</th><th>Date</th><th>Catégorie</th><th>Statut</th></tr>
             ${monthInvoices.map(i =>
               `<tr><td>${i.provider || "—"}</td><td>${formatEuro(i.amount_ttc)}</td><td>${formatDate(i.invoice_date)}</td><td>${getBudgetCategory(i)}</td><td class="${i.has_anomaly ? "anomaly" : "ok"}">${i.has_anomaly ? "⚠️ Anomalie" : "✅ OK"}</td></tr>`
             ).join("")}
             </table>
-
             ${monthAnomalies.length > 0 ? `<h2>⚠️ Anomalies détectées</h2>
             <table><tr><th>Fournisseur</th><th>Détail</th></tr>
             ${monthAnomalies.map(i => `<tr><td>${i.provider}</td><td>${i.anomaly_explanation || "Anomalie détectée"}</td></tr>`).join("")}
             </table>` : ""}
-
             <h2>Charges récurrentes</h2>
             <table><tr><th>Fournisseur</th><th>Montant/mois</th><th>Coût annuel</th></tr>
             ${recurring.map(i => `<tr><td>${i.provider || "—"}</td><td>${formatEuro(i.amount_ttc)}</td><td>${formatEuro(i.total_year)}</td></tr>`).join("")}
             <tr style="font-weight:bold;border-top:2px solid #B8860B"><td>Total récurrent</td><td>${formatEuro(recurringTotal)}/mois</td><td>${formatEuro(recurringTotal * 12)}/an</td></tr>
             </table>
-
             <div class="footer">Vigie-Factures © 2026 — Rapport généré automatiquement</div>
             </body></html>`);
             w.document.close();
@@ -987,7 +1170,10 @@ if (page === "landing") return <LandingPage onLogin={handleLogin} onSignUp={hand
                   <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 700, marginBottom: 3 }}>Rapport mensuel</h2>
                   <p style={{ color: "rgba(255,255,255,0.25)", fontSize: 11 }}>{reportDate} — {monthInvoices.length} facture{monthInvoices.length > 1 ? "s" : ""} ce mois</p>
                 </div>
-                <button onClick={printReport} style={{ background: "linear-gradient(135deg, #D4A853, #C78A5B)", color: "#0E0D0B", border: "none", borderRadius: 9, padding: "10px 18px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito Sans', sans-serif", display: "flex", alignItems: "center", gap: 6 }}>
+                <button
+                  onClick={printReport}
+                  style={{ background: "linear-gradient(135deg, #D4A853, #C78A5B)", color: "#0E0D0B", border: "none", borderRadius: 9, padding: "10px 18px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito Sans', sans-serif", display: "flex", alignItems: "center", gap: 6 }}
+                >
                   <Download size={13} /> Télécharger PDF
                 </button>
               </div>
@@ -1005,7 +1191,7 @@ if (page === "landing") return <LandingPage onLogin={handleLogin} onSignUp={hand
                 <h3 style={{ color: "rgba(255,255,255,0.4)", fontSize: 9, letterSpacing: 1.5, marginBottom: 14, fontWeight: 600, textTransform: "uppercase" }}>Répartition budgétaire du mois</h3>
                 {Object.entries(monthBudget).length > 0 ? (
                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                    {Object.entries(monthBudget).sort(([,a],[,b]) => b - a).map(([cat, total]) => {
+                    {Object.entries(monthBudget).sort(([, a], [, b]) => b - a).map(([cat, total]) => {
                       const pct = monthTotal > 0 ? Math.round((total / monthTotal) * 100) : 0;
                       const color = BUDGET_CATEGORIES[cat]?.color || "#888";
                       return (
@@ -1021,32 +1207,45 @@ if (page === "landing") return <LandingPage onLogin={handleLogin} onSignUp={hand
                       );
                     })}
                   </div>
-                ) : <div style={{ color: "rgba(255,255,255,0.15)", textAlign: "center", padding: 24, fontSize: 11 }}>Aucune facture ce mois</div>}
+                ) : (
+                  <div style={{ color: "rgba(255,255,255,0.15)", textAlign: "center", padding: 24, fontSize: 11 }}>Aucune facture ce mois</div>
+                )}
               </div>
 
               {/* Invoice list for the month */}
               <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, overflow: "hidden" }}>
                 <div style={{ overflowX: "auto" }}>
                   <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 500 }}>
-                    <thead><tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                      {["Fournisseur", "TTC", "Catégorie", "Statut"].map(h => (
-                        <th key={h} style={{ padding: "10px 12px", textAlign: "left", color: "rgba(255,255,255,0.3)", fontSize: 9, fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase" }}>{h}</th>
-                      ))}
-                    </tr></thead>
+                    <thead>
+                      <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                        {["Fournisseur", "TTC", "Catégorie", "Statut"].map(h => (
+                          <th key={h} style={{ padding: "10px 12px", textAlign: "left", color: "rgba(255,255,255,0.3)", fontSize: 9, fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase" }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
                     <tbody>
-                      {monthInvoices.length === 0 ? <tr><td colSpan={4} style={{ padding: 36, textAlign: "center", color: "rgba(255,255,255,0.15)", fontSize: 11 }}>Aucune facture ce mois</td></tr>
-                      : monthInvoices.map((inv, i) => {
-                        const cat = getBudgetCategory(inv);
-                        const catColor = BUDGET_CATEGORIES[cat]?.color || "#888";
-                        return (
-                          <tr key={i} style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
-                            <td style={{ padding: "10px 12px", color: "#EDE8DB", fontSize: 11, fontWeight: 500 }}>{inv.provider || "—"}</td>
-                            <td style={{ padding: "10px 12px", color: "#D4A853", fontSize: 11, fontWeight: 600 }}>{formatEuro(inv.amount_ttc)}</td>
-                            <td style={{ padding: "10px 12px" }}><span style={{ background: `${catColor}18`, color: catColor, padding: "2px 8px", borderRadius: 10, fontSize: 9, fontWeight: 600 }}>{cat}</span></td>
-                            <td style={{ padding: "10px 12px" }}>{inv.has_anomaly ? <span style={{ color: "#C75B4E", fontSize: 10, fontWeight: 600 }}>⚠️ Anomalie</span> : <span style={{ color: "rgba(91,199,138,0.6)", fontSize: 10 }}>✅ OK</span>}</td>
-                          </tr>
-                        );
-                      })}
+                      {monthInvoices.length === 0
+                        ? <tr><td colSpan={4} style={{ padding: 36, textAlign: "center", color: "rgba(255,255,255,0.15)", fontSize: 11 }}>Aucune facture ce mois</td></tr>
+                        : monthInvoices.map((inv, i) => {
+                          const cat = getBudgetCategory(inv);
+                          const catColor = BUDGET_CATEGORIES[cat]?.color || "#888";
+                          return (
+                            <tr key={i} style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
+                              <td style={{ padding: "10px 12px", color: "#EDE8DB", fontSize: 11, fontWeight: 500 }}>{inv.provider || "—"}</td>
+                              <td style={{ padding: "10px 12px", color: "#D4A853", fontSize: 11, fontWeight: 600 }}>{formatEuro(inv.amount_ttc)}</td>
+                              <td style={{ padding: "10px 12px" }}>
+                                <span style={{ background: `${catColor}18`, color: catColor, padding: "2px 8px", borderRadius: 10, fontSize: 9, fontWeight: 600 }}>{cat}</span>
+                              </td>
+                              <td style={{ padding: "10px 12px" }}>
+                                {inv.has_anomaly
+                                  ? <span style={{ color: "#C75B4E", fontSize: 10, fontWeight: 600 }}>⚠️ Anomalie</span>
+                                  : <span style={{ color: "rgba(91,199,138,0.6)", fontSize: 10 }}>✅ OK</span>
+                                }
+                              </td>
+                            </tr>
+                          );
+                        })
+                      }
                     </tbody>
                   </table>
                 </div>
