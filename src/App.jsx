@@ -56,18 +56,6 @@ async function fileToBase64(file) {
 }
 
 async function extractTextFromFile(file) {
-  if (file.type.startsWith("text/")) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target.result);
-      reader.onerror = reject;
-      reader.readAsText(file);
-    });
-  }
-  return null;
-}
-
-async function extractTextFromFile(file) {
   if (file.type === "application/pdf") return extractTextFromPDF(file);
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
