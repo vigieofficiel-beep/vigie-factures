@@ -42,36 +42,29 @@ function formatDate(d) {
   return new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-// ═══ PDF TEXT EXTRACTION ═══
-async function extractTextFromPDF(file) {
+// ═══ FILE TO BASE64 ═══
+async function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = async (e) => {
-      try {
-        const typedArray = new Uint8Array(e.target.result);
-        let text = "";
-        const decoder = new TextDecoder("utf-8", { fatal: false });
-        const raw = decoder.decode(typedArray);
-        const textBlocks = raw.match(/BT[\s\S]*?ET/g) || [];
-        for (const block of textBlocks) {
-          const strings = block.match(/\(([^)]*)\)/g) || [];
-          for (const s of strings) text += s.slice(1, -1) + " ";
-          const hexStrings = block.match(/<([0-9A-Fa-f]+)>/g) || [];
-          for (const h of hexStrings) {
-            const hex = h.slice(1, -1);
-            for (let i = 0; i < hex.length; i += 2) {
-              const c = parseInt(hex.substr(i, 2), 16);
-              if (c > 31) text += String.fromCharCode(c);
-            }
-          }
-        }
-        if (text.trim().length < 20) text = raw.replace(/[^\x20-\x7E\xA0-\xFF\n\r\t]/g, " ").replace(/\s{3,}/g, "\n");
-        resolve(text.trim() || "Impossible d'extraire le texte");
-      } catch (err) { reject(err); }
+    reader.onload = (e) => {
+      const base64 = e.target.result.split(',')[1];
+      resolve(base64);
     };
     reader.onerror = reject;
-    reader.readAsArrayBuffer(file);
+    reader.readAsDataURL(file);
   });
+}
+
+async function extractTextFromFile(file) {
+  if (file.type.startsWith("text/")) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = reject;
+      reader.readAsText(file);
+    });
+  }
+  return null;
 }
 
 async function extractTextFromFile(file) {
@@ -565,12 +558,18 @@ export default function VigieFactures() {
     for (const fileObj of pending) {
       setFiles(prev => prev.map(f => f.id === fileObj.id ? { ...f, status: "processing" } : f));
       try {
-        const text = await extractTextFromFile(fileObj.file);
-        const response = await fetch(ANALYZE_API, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text, user_id: user?.id }),
-        });
+        const file = fileObj.file;
+let body;
+if (file.type === "application/pdf" || file.type.startsWith("image/")) {
+  const fileBase64 = await fileToBase64(file);
+  body = JSON.stringify({ fileBase64, fileType: file.type, user_id: user?.id });
+} else {
+  const text = await extractTextFromFile(file);
+  body = JSON.stringify({ text, user_id: user?.id });
+}
+const response = await fetch(ANALYZE_API, {
+  method: "POST", headers: { "Content-Type": "application/json" }, body,
+});
         const data = await response.json();
         if (data.success && data.result) {
           setFiles(prev => prev.map(f => f.id === fileObj.id ? { ...f, status: "done", result: data.result } : f));
