@@ -1,40 +1,5 @@
-export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-
-  const CLAUDE_API_KEY = process.env.ANTHROPIC_API_KEY;
-  const SUPABASE_URL = process.env.SUPABASE_URL || 'https://qkvqujnctdyaxsenvwsm.supabase.co';
-  const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrdnF1am5jdGR5YXhzZW52d3NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5Nzc1MzcsImV4cCI6MjA4NjU1MzUzN30.XtzE94TOrI7KRh8Naj3cBxM80wGPDjZvI8nhUbxIvdA';
-
-  if (!CLAUDE_API_KEY) {
-    return res.status(500).json({ error: 'ANTHROPIC_API_KEY non configurée dans les variables d\'environnement Vercel.' });
-  }
-
-  try {
-    const { text, user_id } = req.body;
-    if (!text) return res.status(400).json({ error: 'No text provided' });
-
-    const shortText = text.substring(0, 4000);
-
-    // ═══ STEP 1: Analyse principale (extraction + classification + calendrier) ═══
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': CLAUDE_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 2048,
-        system: 'Tu es un expert en analyse de factures. Tu retournes UNIQUEMENT du JSON valide, sans texte, sans backticks.',
-        messages: [{
-          role: 'user',
-          content: `Analyse cette facture. Retourne UNIQUEMENT un JSON valide.
+// ═══ PROMPT PARTAGÉ ═══
+const PROMPT_TEXT = `Analyse cette facture. Retourne UNIQUEMENT un JSON valide.
 Regles: Montants=nombres. Dates=YYYY-MM-DD. Inconnu=null. due_date uniquement si ecrit explicitement. frequency=mensuel/trimestriel/annuel/ponctuel. total_year=amount_ttc x12 si mensuel, x4 si trimestriel, x1 sinon. next_payments=3 prochaines dates si mensuel, sinon []. current_price_monthly=amount_ttc si mensuel, sinon null.
 
 {
@@ -77,11 +42,84 @@ Regles: Montants=nombres. Dates=YYYY-MM-DD. Inconnu=null. due_date uniquement si
     "alternatives": [],
     "best_option": null
   }
-}
+}`;
 
-Texte:
-${shortText}`,
-        }],
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const CLAUDE_API_KEY = process.env.ANTHROPIC_API_KEY;
+  const SUPABASE_URL = process.env.SUPABASE_URL || 'https://qkvqujnctdyaxsenvwsm.supabase.co';
+  const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrdnF1am5jdGR5YXhzZW52d3NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5Nzc1MzcsImV4cCI6MjA4NjU1MzUzN30.XtzE94TOrI7KRh8Naj3cBxM80wGPDjZvI8nhUbxIvdA';
+
+  if (!CLAUDE_API_KEY) {
+    return res.status(500).json({ error: 'ANTHROPIC_API_KEY non configurée dans les variables d\'environnement Vercel.' });
+  }
+
+  try {
+    const { text, fileBase64, fileType, user_id } = req.body;
+
+    if (!text && !fileBase64) {
+      return res.status(400).json({ error: 'Aucun contenu fourni (text ou fileBase64 requis)' });
+    }
+
+    // ═══ Construction du message selon le type de fichier ═══
+    let messageContent;
+
+    if (fileBase64 && fileType === 'application/pdf') {
+      // PDF envoyé en base64 → Claude le lit nativement (même les PDFs scannés)
+      messageContent = [
+        {
+          type: 'document',
+          source: {
+            type: 'base64',
+            media_type: 'application/pdf',
+            data: fileBase64,
+          },
+        },
+        {
+          type: 'text',
+          text: PROMPT_TEXT,
+        },
+      ];
+    } else if (fileBase64 && fileType?.startsWith('image/')) {
+      // Image (JPG, PNG) envoyée en base64
+      messageContent = [
+        {
+          type: 'image',
+          source: {
+            type: 'base64',
+            media_type: fileType,
+            data: fileBase64,
+          },
+        },
+        {
+          type: 'text',
+          text: PROMPT_TEXT,
+        },
+      ];
+    } else {
+      // Texte brut (fallback)
+      messageContent = `${PROMPT_TEXT}\n\nTexte:\n${(text || '').substring(0, 4000)}`;
+    }
+
+    // ═══ STEP 1: Analyse principale ═══
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': CLAUDE_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 2048,
+        system: 'Tu es un expert en analyse de factures. Tu retournes UNIQUEMENT du JSON valide, sans texte, sans backticks, sans commentaires.',
+        messages: [{ role: 'user', content: messageContent }],
       }),
     });
 
@@ -102,7 +140,7 @@ ${shortText}`,
       return res.status(500).json({ error: 'JSON invalide retourné par Claude', raw: data.content[0].text });
     }
 
-    // ═══ STEP 2: Récupération de l'historique Supabase ═══
+    // ═══ STEP 2: Historique Supabase ═══
     let historical = [];
     if (result.extraction?.provider) {
       try {
@@ -150,7 +188,7 @@ ${shortText}`,
       } catch (_e) {}
     }
 
-    // ═══ STEP 3: Comparateur de prix (web search) — uniquement si mensuel ═══
+    // ═══ STEP 3: Comparateur de prix (mensuel uniquement) ═══
     if (result.classification?.frequency === 'mensuel' && result.extraction?.amount_ttc) {
       try {
         const compRes = await fetch('https://api.anthropic.com/v1/messages', {
@@ -191,7 +229,7 @@ Cherche 2-3 concurrents avec leurs prix. Retourne UNIQUEMENT un JSON:
       } catch (_e) {}
     }
 
-    // ═══ STEP 4: Sauvegarde dans Supabase ═══
+    // ═══ STEP 4: Sauvegarde Supabase ═══
     try {
       await fetch(`${SUPABASE_URL}/rest/v1/invoices`, {
         method: 'POST',
@@ -226,7 +264,7 @@ Cherche 2-3 concurrents avec leurs prix. Retourne UNIQUEMENT un JSON:
       });
     } catch (_e) {}
 
-    // ═══ STEP 5: Alerte email si anomalie détectée ═══
+    // ═══ STEP 5: Alerte email si anomalie ═══
     if (result.anomaly?.has_anomaly) {
       try {
         await fetch('https://vigie-factures.vercel.app/api/send-alert', {
@@ -245,7 +283,6 @@ Cherche 2-3 concurrents avec leurs prix. Retourne UNIQUEMENT un JSON:
       } catch (_e) {}
     }
 
-    // ═══ RETOUR ═══
     result.historical_invoices = historical;
     result.processing_date = new Date().toISOString();
 
