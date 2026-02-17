@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { FileText, AlertTriangle, TrendingUp, Calendar, Search, Filter, Eye, X, Bell, RefreshCw, Upload, CheckCircle, Clock, Trash2, ArrowUpRight, ArrowDownRight, Loader, Plus, LayoutDashboard, UploadCloud, Download, Menu, Home, Shield, Zap, BarChart3, Wallet, FileBarChart, LogOut } from "lucide-react";
+import { LegalModal } from './LegalPages.jsx';
 
 // ═══ SUPABASE AUTH CLIENT ═══
 import { createClient } from '@supabase/supabase-js';
@@ -174,8 +175,7 @@ function CustomTooltip({ active, payload }) {
 }
 
 // ═══ LANDING PAGE ═══
-function LandingPage({ onfunction LandingPage({ onLogin, onSignUp, authError }) {
-Start }) {
+function LandingPage({ onLogin, onSignUp, authError, onLegal }) {Start }) {
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState("login"); // "login" ou "signup"
 
@@ -317,14 +317,16 @@ Start }) {
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {[
                 { label: "Mentions légales", page: "legal" },
-                { label: "CGV", page: "cgv" },
-                { label: "Confidentialité", page: "privacy" },
-                { label: "Cookies", page: "cookies" }
-              ].map(link => (
-                <a key={link.page} href={`#${link.page}`} style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", textDecoration: "none" }}
-                  onMouseEnter={e => e.currentTarget.style.color = "#D4A853"}
-                  onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.35)"}>{link.label}</a>
-              ))}
+               {[
+  { label: "Mentions légales", page: "legal" },
+  { label: "CGV", page: "cgv" },
+  { label: "Confidentialité", page: "privacy" },
+  { label: "Cookies", page: "cookies" }
+].map(link => (
+  <a key={link.page} href="#" onClick={(e) => { e.preventDefault(); onLegal(link.page); }} style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", textDecoration: "none" }}
+    onMouseEnter={e => e.currentTarget.style.color = "#D4A853"}
+    onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.35)"}>{link.label}</a>
+))}
             </div>
           </div>
 
@@ -427,6 +429,7 @@ Start }) {
   const [mobileMenu, setMobileMenu] = useState(false);
   const fileInputRef = useRef(null);
   const nextId = useRef(0);
+  const [legalPage, setLegalPage] = useState(null);
 
   // ═══ AUTH STATE ═══
   const [user, setUser] = useState(null);
@@ -564,8 +567,7 @@ Start }) {
   // ═══ SI PAS CONNECTÉ → LANDING ═══
   if (authLoading) return <div style={{ minHeight: "100vh", background: "#0E0D0B", display: "flex", alignItems: "center", justifyContent: "center", color: "#D4A853" }}>Chargement...</div>;
   if (!user && page !== "landing") return <LandingPage onLogin={handleLogin} onSignUp={handleSignUp} authError={authError} />;
-  if (page === "landing") return <LandingPage onLogin={handleLogin} onSignUp={handleSignUp} authError={authError} />;
-
+if (page === "landing") return <LandingPage onLogin={handleLogin} onSignUp={handleSignUp} authError={authError} onLegal={setLegalPage} />;
   // ═══ APP LAYOUT ═══
   return (
     <div style={{ minHeight: "100vh", background: "#0E0D0B", color: "#EDE8DB", fontFamily: "'Nunito Sans', sans-serif" }}>
@@ -631,6 +633,7 @@ Start }) {
           <button onClick={handleLogout} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderRadius: 7, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)", color: "rgba(255,255,255,0.4)", fontSize: 11, cursor: "pointer", width: "100%", fontFamily: "'Nunito Sans', sans-serif" }}>
             <LogOut size={14} /> Déconnexion
           </button>
+          <LegalModal page={legalPage} onClose={() => setLegalPage(null)} />
         </div>
       </div>
 
