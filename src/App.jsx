@@ -415,7 +415,7 @@ function LandingPage({ onLogin, onSignUp, authError, onLegal }) {Start }) {
 // ═══════════════════════════════════════════
 // MAIN APP
 // ═══════════════════════════════════════════
-  export default function VigieFactures() {
+export default function VigieFactures() {
   const [page, setPage] = useState("landing");
   const [files, setFiles] = useState([]);
   const [invoices, setInvoices] = useState([]);
