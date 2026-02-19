@@ -1,7 +1,10 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 
 // Pages publiques
-import Home from './pages/Home';
+import HomeHub from './pages/HomeHub';
+import PersoSpace from './pages/PersoSpace';
+import ProSpace from './pages/ProSpace';
+import Home from './pages/Home'; // ancienne page gardée
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 
@@ -16,12 +19,19 @@ import Dashboard from './pages/app/Dashboard';
 import VigieFacturesApp from './VigieFactures';
 
 const router = createBrowserRouter([
-  // Pages publiques
-  { path: '/', element: <Home /> },
+  // ═══ Nouvelle structure ═══
+  { path: '/', element: <HomeHub /> },
+  { path: '/perso', element: <PersoSpace /> },
+  { path: '/pro', element: <ProSpace /> },
+  
+  // ═══ Ancienne page gardée ═══
+  { path: '/old-home', element: <Home /> },
+  
+  // ═══ Auth ═══
   { path: '/login', element: <Login /> },
   { path: '/signup', element: <Signup /> },
 
-  // Pages protégées /app
+  // ═══ Pages protégées /app ═══
   {
     path: '/app',
     element: (
@@ -41,7 +51,7 @@ const router = createBrowserRouter([
     ),
   },
 
-  // Redirect
+  // ═══ Redirect ═══
   { path: '*', element: <Navigate to="/" replace /> },
 ]);
 
