@@ -1,20 +1,69 @@
-import { Link } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { FileText, FileCheck, Heart, FolderOpen, ClipboardList, ArrowLeft, Plus } from 'lucide-react';
+
+// Configuration des modules Perso
+const PERSO_MODULES = [
+  {
+    id: 'factures-perso',
+    label: 'Factures',
+    icon: FileText,
+    color: '#D4A853',
+    bg: 'rgba(212,168,83,0.12)',
+    route: '/perso/factures',
+    status: 'active',
+    description: 'Factures personnelles',
+  },
+  {
+    id: 'demarches',
+    label: 'Démarches',
+    icon: ClipboardList,
+    color: '#5BA3C7',
+    bg: 'rgba(91,163,199,0.12)',
+    route: '/perso/demarches',
+    status: 'coming-soon',
+    description: 'Administratif & démarches',
+  },
+  {
+    id: 'sante',
+    label: 'Santé',
+    icon: Heart,
+    color: '#C75B4E',
+    bg: 'rgba(199,91,78,0.12)',
+    route: '/perso/sante',
+    status: 'coming-soon',
+    description: 'Suivi médical & remboursements',
+  },
+  {
+    id: 'documents',
+    label: 'Documents',
+    icon: FolderOpen,
+    color: '#A85BC7',
+    bg: 'rgba(168,91,199,0.12)',
+    route: '/perso/documents',
+    status: 'coming-soon',
+    description: 'Coffre-fort numérique',
+  },
+];
 
 export default function PersoSpace() {
+  const navigate = useNavigate();
+
+  const handleClick = (module) => {
+    if (module.status === 'active') {
+      navigate(module.route);
+    }
+  };
+
   return (
     <div style={{
       minHeight: '100vh',
       background: 'linear-gradient(135deg, #FAF8F3 0%, #F5F1E8 100%)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
       fontFamily: "'Nunito Sans', sans-serif",
       padding: '24px',
     }}>
-      <div style={{ maxWidth: 500, width: '100%', textAlign: 'center' }}>
-        
-        {/* Bouton retour */}
+      
+      {/* Header */}
+      <div style={{ maxWidth: 900, margin: '0 auto 40px' }}>
         <Link to="/" style={{
           display: 'inline-flex',
           alignItems: 'center',
@@ -32,35 +81,150 @@ export default function PersoSpace() {
 
         <h1 style={{
           fontFamily: "'Cormorant Garamond', serif",
-          fontSize: 42,
+          fontSize: 'clamp(32px, 5vw, 42px)',
           fontWeight: 700,
           color: '#2C2416',
-          marginBottom: 16,
+          marginBottom: 8,
         }}>
-          Vigie Perso
+          Vigie <span style={{ color: '#D4A853' }}>Perso</span>
         </h1>
-
-        <p style={{
-          fontSize: 15,
-          color: 'rgba(44,36,22,0.5)',
-          lineHeight: 1.7,
-          marginBottom: 32,
-        }}>
-          Votre espace personnel sera bientôt disponible.<br/>
-          Vous y retrouverez la gestion de vos factures, démarches et documents personnels.
+        <p style={{ color: 'rgba(44,36,22,0.5)', fontSize: 14 }}>
+          Vos outils de gestion personnelle
         </p>
+      </div>
 
+      {/* Grille de modules */}
+      <div style={{
+        maxWidth: 900,
+        margin: '0 auto',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+        gap: 20,
+      }}>
+        {PERSO_MODULES.map((module) => {
+          const Icon = module.icon;
+          const isActive = module.status === 'active';
+
+          return (
+            <button
+              key={module.id}
+              onClick={() => handleClick(module)}
+              disabled={!isActive}
+              style={{
+                background: 'white',
+                border: `2px solid ${isActive ? module.color + '40' : 'rgba(44,36,22,0.06)'}`,
+                borderRadius: 20,
+                padding: '32px 20px',
+                cursor: isActive ? 'pointer' : 'not-allowed',
+                opacity: isActive ? 1 : 0.5,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 16,
+                transition: 'all 0.2s ease',
+                position: 'relative',
+                boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+              }}
+              onMouseEnter={e => {
+                if (isActive) {
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = `0 8px 32px ${module.color}25`;
+                }
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.04)';
+              }}
+            >
+              {/* Badge "Bientôt" */}
+              {!isActive && (
+                <span style={{
+                  position: 'absolute',
+                  top: 12,
+                  right: 12,
+                  background: 'rgba(44,36,22,0.06)',
+                  borderRadius: 8,
+                  padding: '3px 8px',
+                  fontSize: 9,
+                  color: 'rgba(44,36,22,0.4)',
+                  fontWeight: 600,
+                  letterSpacing: 0.5,
+                }}>
+                  BIENTÔT
+                </span>
+              )}
+
+              {/* Icône */}
+              <div style={{
+                width: 64,
+                height: 64,
+                borderRadius: '50%',
+                background: module.bg,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <Icon size={28} color={module.color} strokeWidth={2.5} />
+              </div>
+
+              {/* Label */}
+              <div style={{ textAlign: 'center' }}>
+                <div style={{
+                  fontSize: 16,
+                  fontWeight: 700,
+                  color: isActive ? '#2C2416' : 'rgba(44,36,22,0.4)',
+                  marginBottom: 4,
+                  fontFamily: "'Cormorant Garamond', serif",
+                }}>
+                  {module.label}
+                </div>
+                <div style={{
+                  fontSize: 11,
+                  color: 'rgba(44,36,22,0.4)',
+                  lineHeight: 1.4,
+                }}>
+                  {module.description}
+                </div>
+              </div>
+            </button>
+          );
+        })}
+
+        {/* Carte "Autres modules" */}
         <div style={{
-          background: 'white',
-          borderRadius: 16,
-          padding: '24px',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+          background: 'transparent',
+          border: '2px dashed rgba(44,36,22,0.12)',
+          borderRadius: 20,
+          padding: '32px 20px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 16,
+          opacity: 0.4,
         }}>
-          <p style={{ fontSize: 13, color: 'rgba(44,36,22,0.4)', margin: 0 }}>
-            🚧 En construction
-          </p>
+          <div style={{
+            width: 64,
+            height: 64,
+            borderRadius: '50%',
+            background: 'rgba(44,36,22,0.04)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <Plus size={28} color="rgba(44,36,22,0.3)" strokeWidth={2} />
+          </div>
+          <div style={{
+            fontSize: 11,
+            color: 'rgba(44,36,22,0.3)',
+            textAlign: 'center',
+            lineHeight: 1.5,
+          }}>
+            D'autres modules arrivent bientôt
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
+export { PERSO_MODULES };

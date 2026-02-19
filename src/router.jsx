@@ -2,48 +2,54 @@ import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 
 // Pages publiques
 import HomeHub from './pages/HomeHub';
-import PersoSpace from './pages/PersoSpace';
-import ProSpace from './pages/ProSpace';
-import Home from './pages/Home'; // ancienne page gardée
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 
+// Espaces Perso/Pro
+import PersoSpace from './pages/PersoSpace';
+import ProSpace from './pages/ProSpace';
+
 // Layout protégé
 import ProtectedRoute from './components/ProtectedRoute';
-import AppLayout from './components/AppLayout';
 
-// Pages /app
-import Dashboard from './pages/app/Dashboard';
-
-// Vigie-Factures (votre app existante)
+// Vigie-Factures
 import VigieFacturesApp from './VigieFactures';
 
 const router = createBrowserRouter([
-  // ═══ Nouvelle structure ═══
+  // ═══ Pages publiques ═══
   { path: '/', element: <HomeHub /> },
-  { path: '/perso', element: <PersoSpace /> },
-  { path: '/pro', element: <ProSpace /> },
-  
-  // ═══ Ancienne page gardée ═══
-  { path: '/old-home', element: <Home /> },
-  
-  // ═══ Auth ═══
   { path: '/login', element: <Login /> },
   { path: '/signup', element: <Signup /> },
 
-  // ═══ Pages protégées /app ═══
+  // ═══ Espace Perso ═══
   {
-    path: '/app',
+    path: '/perso',
     element: (
       <ProtectedRoute>
-        <AppLayout>
-          <Dashboard />
-        </AppLayout>
+        <PersoSpace />
       </ProtectedRoute>
     ),
   },
   {
-    path: '/app/vigie-factures',
+    path: '/perso/factures',
+    element: (
+      <ProtectedRoute>
+        <VigieFacturesApp />
+      </ProtectedRoute>
+    ),
+  },
+
+  // ═══ Espace Pro ═══
+  {
+    path: '/pro',
+    element: (
+      <ProtectedRoute>
+        <ProSpace />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/pro/factures',
     element: (
       <ProtectedRoute>
         <VigieFacturesApp />
