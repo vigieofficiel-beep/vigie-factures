@@ -61,7 +61,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { text, fileBase64, fileType, user_id } = req.body;
+    // ═══ RÉCUPÉRATION DU CONTEXT ═══
+    const { text, fileBase64, fileType, user_id, context } = req.body;
 
     if (!text && !fileBase64) {
       return res.status(400).json({ error: 'Aucun contenu fourni (text ou fileBase64 requis)' });
@@ -71,7 +72,6 @@ export default async function handler(req, res) {
     let messageContent;
 
     if (fileBase64 && fileType === 'application/pdf') {
-      // PDF envoyé en base64 → Claude le lit nativement (même les PDFs scannés)
       messageContent = [
         {
           type: 'document',
@@ -87,7 +87,6 @@ export default async function handler(req, res) {
         },
       ];
     } else if (fileBase64 && fileType?.startsWith('image/')) {
-      // Image (JPG, PNG) envoyée en base64
       messageContent = [
         {
           type: 'image',
@@ -103,7 +102,6 @@ export default async function handler(req, res) {
         },
       ];
     } else {
-      // Texte brut (fallback)
       messageContent = `${PROMPT_TEXT}\n\nTexte:\n${(text || '').substring(0, 4000)}`;
     }
 
@@ -140,12 +138,12 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'JSON invalide retourné par Claude', raw: data.content[0].text });
     }
 
-    // ═══ STEP 2: Historique Supabase ═══
+    // ═══ STEP 2: Historique Supabase (filtré par context) ═══
     let historical = [];
     if (result.extraction?.provider) {
       try {
         const histRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/invoices?provider=eq.${encodeURIComponent(result.extraction.provider)}&order=invoice_date.desc&limit=6`,
+          `${SUPABASE_URL}/rest/v1/invoices?provider=eq.${encodeURIComponent(result.extraction.provider)}&context=eq.${context || 'perso'}&order=invoice_date.desc&limit=6`,
           {
             headers: {
               apikey: SUPABASE_KEY,
@@ -229,7 +227,7 @@ Cherche 2-3 concurrents avec leurs prix. Retourne UNIQUEMENT un JSON:
       } catch (_e) {}
     }
 
-    // ═══ STEP 4: Sauvegarde Supabase ═══
+    // ═══ STEP 4: Sauvegarde Supabase avec context ═══
     try {
       await fetch(`${SUPABASE_URL}/rest/v1/invoices`, {
         method: 'POST',
@@ -241,6 +239,7 @@ Cherche 2-3 concurrents avec leurs prix. Retourne UNIQUEMENT un JSON:
         },
         body: JSON.stringify({
           user_id: user_id || null,
+          context: context || 'perso',
           provider: result.extraction.provider,
           provider_siret: result.extraction.provider_siret,
           amount_ttc: result.extraction.amount_ttc,

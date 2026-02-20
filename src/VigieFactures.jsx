@@ -452,7 +452,7 @@ function LandingPage({ onLogin, onSignUp, authError, onLegal }) {
 // ═══════════════════════════════════════════
 // MAIN APP
 // ═══════════════════════════════════════════
-export default function VigieFactures() {
+export default function VigieFactures({ context = 'perso' }) {
   const [page, setPage] = useState("landing");
   const [files, setFiles] = useState([]);
   const [invoices, setInvoices] = useState([]);
@@ -515,11 +515,10 @@ export default function VigieFactures() {
     if (!user) return;
     setLoading(true);
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/invoices?user_id=eq.${user.id}&order=processed_at.desc&limit=100`, {
-        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/invoices?user_id=eq.${user.id}&context=eq.${context}&order=processed_at.desc&limit=100`, {
       });
       if (res.ok) setInvoices(await res.json());
-    } catch (e) {}
+    } catch (e) { }
     setLoading(false);
   }, [user]);
 
@@ -531,7 +530,7 @@ export default function VigieFactures() {
     const fileObjs = Array.from(newFiles)
       .filter(f => f.type === "application/pdf" || f.type.startsWith("text/") || f.type.startsWith("image/"))
       .map(f => ({
-        id: nextId.current++, file: f, name: f.name, status: "pending", result: null, errorMsg: null,
+        id: nextId.current++, file: f, name: f.name, status: "pending", result: null, errorMsg: null
       }));
     setFiles(prev => [...prev, ...fileObjs]);
   }, []);
@@ -547,17 +546,17 @@ export default function VigieFactures() {
       setFiles(prev => prev.map(f => f.id === fileObj.id ? { ...f, status: "processing" } : f));
       try {
         const file = fileObj.file;
-let body;
-if (file.type === "application/pdf" || file.type.startsWith("image/")) {
-  const fileBase64 = await fileToBase64(file);
-  body = JSON.stringify({ fileBase64, fileType: file.type, user_id: user?.id });
-} else {
-  const text = await extractTextFromFile(file);
-  body = JSON.stringify({ text, user_id: user?.id });
-}
-const response = await fetch(ANALYZE_API, {
-  method: "POST", headers: { "Content-Type": "application/json" }, body,
-});
+        let body;
+        if (file.type === "application/pdf" || file.type.startsWith("image/")) {
+          const fileBase64 = await fileToBase64(file);
+          body = JSON.stringify({ fileBase64, fileType: file.type, user_id: user?.id, context });
+        } else {
+          const text = await extractTextFromFile(file);
+          body = JSON.stringify({ text, user_id: user?.id, context });
+        }
+        const response = await fetch(ANALYZE_API, {
+          method: "POST", headers: { "Content-Type": "application/json" }, body,
+        });
         const data = await response.json();
         if (data.success && data.result) {
           setFiles(prev => prev.map(f => f.id === fileObj.id ? { ...f, status: "done", result: data.result } : f));
