@@ -520,7 +520,7 @@ export default function VigieFactures({ context = 'perso' }) {
       if (res.ok) setInvoices(await res.json());
     } catch (e) { }
     setLoading(false);
-  }, [user]);
+  }, [user, context]);
 
   useEffect(() => {
     if (user) fetchInvoices();
