@@ -4,10 +4,7 @@ import { FileText, AlertTriangle, TrendingUp, Calendar, Search, Filter, Eye, X, 
 import { LegalModal } from './LegalPages.jsx';
 
 // ═══ SUPABASE AUTH CLIENT ═══
-import { createClient } from '@supabase/supabase-js';
-const SUPABASE_URL = "https://qkvqujnctdyaxsenvwsm.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrdnF1am5jdGR5YXhzZW52d3NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5Nzc1MzcsImV4cCI6MjA4NjU1MzUzN30.XtzE94TOrI7KRh8Naj3cBxM80wGPDjZvI8nhUbxIvdA";
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+import { supabase } from "./lib/supabaseClient";
 const ANALYZE_API = "/api/analyze";
 const COLORS = ["#D4A853", "#C75B4E", "#5BA3C7", "#5BC78A", "#A85BC7", "#C78A5B", "#5BC7B8", "#C75BA8"];
 const MONTHS_FR = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
@@ -452,7 +449,7 @@ function LandingPage({ onLogin, onSignUp, authError, onLegal }) {
 // ═══════════════════════════════════════════
 // MAIN APP
 // ═══════════════════════════════════════════
-export default function VigieFactures({ context = 'perso' }) {
+export default function VigieFactures({ context = "perso" }) {
   const [page, setPage] = useState("landing");
   const [files, setFiles] = useState([]);
   const [invoices, setInvoices] = useState([]);
@@ -511,20 +508,31 @@ export default function VigieFactures({ context = 'perso' }) {
     setPage("landing");
   };
 
-  const fetchInvoices = useCallback(async () => {
-    if (!user) return;
-    setLoading(true);
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/invoices?user_id=eq.${user.id}&context=eq.${context}&order=processed_at.desc&limit=100`, {
-      });
-      if (res.ok) setInvoices(await res.json());
-    } catch (e) { }
-    setLoading(false);
-  }, [user, context]);
+ const fetchInvoices = useCallback(async () => {
+  if (!user) return;
+  setLoading(true);
 
-  useEffect(() => {
-    if (user) fetchInvoices();
-  }, [fetchInvoices, user]);
+  try {
+    const { data, error } = await supabase
+      .from("invoices")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("context", context)
+      .order("processed_at", { ascending: false })
+      .limit(100);
+
+    if (error) throw error;
+    setInvoices(data ?? []);
+  } catch (e) {
+    console.error("fetchInvoices error:", e);
+  } finally {
+    setLoading(false);
+  }
+}, [user, context]);
+
+useEffect(() => {
+  if (user) fetchInvoices();
+}, [user, fetchInvoices]);
 
   const addFiles = useCallback((newFiles) => {
     const fileObjs = Array.from(newFiles)
@@ -569,7 +577,7 @@ export default function VigieFactures({ context = 'perso' }) {
     }
     setIsProcessing(false);
     fetchInvoices();
-  }, [files, fetchInvoices, user]);
+  }, [files, fetchInvoices, user, context]);
 
   const handleDragOver = (e) => { e.preventDefault(); setDragOver(true); };
   const handleDragLeave = () => setDragOver(false);
