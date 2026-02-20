@@ -12,8 +12,8 @@ import ProSpace from './pages/ProSpace';
 // Layout protégé
 import ProtectedRoute from './components/ProtectedRoute';
 
-// Vigie-Factures
-import VigieFacturesApp from './VigieFactures';
+// Vigie-Factures avec wrapper contextuel
+import VigieFacturesWrapper from './pages/VigieFacturesWrapper';
 
 const router = createBrowserRouter([
   // ═══ Pages publiques ═══
@@ -34,7 +34,7 @@ const router = createBrowserRouter([
     path: '/perso/factures',
     element: (
       <ProtectedRoute>
-        <VigieFacturesApp />
+        <VigieFacturesWrapper />
       </ProtectedRoute>
     ),
   },
@@ -52,7 +52,7 @@ const router = createBrowserRouter([
     path: '/pro/factures',
     element: (
       <ProtectedRoute>
-        <VigieFacturesApp />
+        <VigieFacturesWrapper />
       </ProtectedRoute>
     ),
   },
