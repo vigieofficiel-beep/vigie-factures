@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import { Navigate, useLocation } from "react-router-dom";
-import { supabase } from "../lib/supabaseClient";
+import { useEffect, useState } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { supabasePro } from './lib/supabasePro';
 
-export default function ProtectedRoute({ children }) {
+export default function RequireAuthPro({ children }) {
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState(null);
   const location = useLocation();
@@ -10,13 +10,13 @@ export default function ProtectedRoute({ children }) {
   useEffect(() => {
     let mounted = true;
 
-    supabase.auth.getSession().then(({ data }) => {
+    supabasePro.auth.getSession().then(({ data }) => {
       if (!mounted) return;
       setSession(data.session ?? null);
       setLoading(false);
     });
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data: sub } = supabasePro.auth.onAuthStateChange((_event, newSession) => {
       if (!mounted) return;
       setSession(newSession ?? null);
       setLoading(false);
@@ -32,7 +32,7 @@ export default function ProtectedRoute({ children }) {
 
   if (!session) {
     const next = encodeURIComponent(location.pathname + location.search);
-    return <Navigate to={`/login?next=${next}`} replace />;
+    return <Navigate to={`/pro/login?next=${next}`} replace />;
   }
 
   return children;

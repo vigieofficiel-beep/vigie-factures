@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 
 export default function Login() {
@@ -8,7 +8,8 @@ export default function Login() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
+const [searchParams] = useSearchParams();
+const next = searchParams.get('next') || '/perso';
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -16,8 +17,7 @@ export default function Login() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) setError(error.message);
-    else navigate('/app');
-  };
+else navigate('/perso', { replace: true });  };
 
   return (
     <div style={{ minHeight: '100vh', background: '#0E0D0B', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, fontFamily: "'Nunito Sans', sans-serif" }}>

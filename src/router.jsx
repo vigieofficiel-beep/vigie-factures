@@ -1,60 +1,60 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 
 // Pages publiques
-import HomeHub from './pages/HomeHub';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
+import HomeHub    from './pages/HomeHub';
+import Login      from './pages/Login';
+import Signup     from './pages/Signup';
+import ProLogin   from './ProLogin';
+import ProSignup  from './pages/ProSignup';
 
-// Espaces Perso/Pro
-import PersoSpace from './pages/PersoSpace';
-import ProSpace from './pages/ProSpace';
+// Layouts avec sidebar
+import PersoLayout    from './pages/PersoLayout';
+import PersoDashboard from './pages/PersoDashboard';
+import ProLayout      from './pages/ProLayout';
 
-// Layout protégé
+// Guards
 import ProtectedRoute from './components/ProtectedRoute';
+import RequireAuthPro from './RequireAuthPro';
 
-// Vigie-Factures avec wrapper contextuel
+// Module Factures
 import VigieFacturesWrapper from './pages/VigieFacturesWrapper';
 
 const router = createBrowserRouter([
+
   // ═══ Pages publiques ═══
-  { path: '/', element: <HomeHub /> },
-  { path: '/login', element: <Login /> },
-  { path: '/signup', element: <Signup /> },
+  { path: '/',           element: <HomeHub /> },
+  { path: '/login',      element: <Login /> },
+  { path: '/signup',     element: <Signup /> },
+  { path: '/pro/login',  element: <ProLogin /> },
+  { path: '/pro/signup', element: <ProSignup /> },
 
   // ═══ Espace Perso ═══
   {
     path: '/perso',
     element: (
       <ProtectedRoute>
-        <PersoSpace />
+        <PersoLayout />
       </ProtectedRoute>
     ),
-  },
-  {
-    path: '/perso/factures',
-    element: (
-      <ProtectedRoute>
-        <VigieFacturesWrapper />
-      </ProtectedRoute>
-    ),
+    children: [
+      { index: true,      element: <PersoDashboard /> },       // /perso → dashboard
+      { path: 'factures', element: <VigieFacturesWrapper /> }, // /perso/factures
+    ],
   },
 
   // ═══ Espace Pro ═══
+  // /pro → directement Vigie Factures (pas de dashboard intermédiaire)
   {
     path: '/pro',
     element: (
-      <ProtectedRoute>
-        <ProSpace />
-      </ProtectedRoute>
+      <RequireAuthPro>
+        <ProLayout />
+      </RequireAuthPro>
     ),
-  },
-  {
-    path: '/pro/factures',
-    element: (
-      <ProtectedRoute>
-        <VigieFacturesWrapper />
-      </ProtectedRoute>
-    ),
+    children: [
+      { index: true,      element: <VigieFacturesWrapper /> }, // /pro → factures directement
+      { path: 'factures', element: <VigieFacturesWrapper /> }, // /pro/factures (compatibilité)
+    ],
   },
 
   // ═══ Redirect ═══
