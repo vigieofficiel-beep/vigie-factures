@@ -1,5 +1,4 @@
+import HomePage from './HomePage';
 export default function ProHome() {
-  return (
-    <div style={{ minHeight: '100vh', background: '#ffffff' }} />
-  );
+  return <HomePage mode="pro" />;
 }
