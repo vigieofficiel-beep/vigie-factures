@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { supabasePro } from './lib/supabasePro';
 
 export default function RequireAuthPro({ children }) {
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState(null);
-  const location = useLocation();
 
   useEffect(() => {
     let mounted = true;
@@ -29,11 +28,6 @@ export default function RequireAuthPro({ children }) {
   }, []);
 
   if (loading) return null;
-
-  if (!session) {
-    const next = encodeURIComponent(location.pathname + location.search);
-    return <Navigate to={`/pro/login?next=${next}`} replace />;
-  }
-
+  if (!session) return <Navigate to="/pro/login" replace />;
   return children;
 }

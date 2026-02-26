@@ -18,7 +18,7 @@ import RequireAuthPro from './RequireAuthPro';
 
 // Module Factures
 import VigieFacturesWrapper from './pages/VigieFacturesWrapper';
-
+import ProHome from './pages/ProHome';
 const router = createBrowserRouter([
 
   // ═══ Pages publiques ═══
@@ -52,7 +52,7 @@ const router = createBrowserRouter([
       </RequireAuthPro>
     ),
     children: [
-      { index: true,      element: <VigieFacturesWrapper /> }, // /pro → factures directement
+      { index: true,      element: <ProHome /> },
       { path: 'factures', element: <VigieFacturesWrapper /> }, // /pro/factures (compatibilité)
     ],
   },

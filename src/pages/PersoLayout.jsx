@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom';
 import {
-  FileText, ClipboardList, Heart, FolderOpen,
-  LogOut, Pin, PinOff, Menu, X, ChevronRight
+  FileText, ClipboardList, Heart, FolderOpen, Home, LogOut, Pin, PinOff, Menu, X, ChevronRight,
 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import Footer from '../components/Footer';
+import { ProfileAvatar } from '../components/ProfileAvatar';
 
 const MODULES = [
   { id: 'factures', label: 'Vigie Factures', icon: FileText, color: '#D4A853', route: '/perso/factures', active: true },
@@ -51,12 +51,9 @@ export default function PersoLayout() {
   const sidebarWidth = isOpen ? 240 : 64;
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/', { replace: true }); // ← vers Vigie Hub
-  };
-
-  const userInitial = user?.email?.[0]?.toUpperCase() ?? '?';
-  const userEmail = user?.email ?? '';
+  await supabase.auth.signOut();
+  window.location.href = '/';
+};
 
   return (
     <div style={{
@@ -104,53 +101,51 @@ export default function PersoLayout() {
       >
         <div style={{ width: 240, height: '100%', display: 'flex', flexDirection: 'column' }}>
 
-          {/* HEADER — logo clique → Vigie Hub */}
+          {/* HEADER */}
           <div style={{
-            padding: '24px 16px 16px',
+            padding: '20px 16px 16px',
             borderBottom: '1px solid rgba(255,255,255,0.05)',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            minHeight: 72,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
+            position: 'relative', minHeight: 72,
           }}>
-            <Link to="/" title="Retour au hub" style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              overflow: 'hidden', textDecoration: 'none', flex: 1,
-            }}>
+            <ProfileAvatar mode="perso" size={64} />
+
+            <Link to="/" title="Retour au hub" style={{ textDecoration: 'none' }}>
               <div style={{
-                width: 32, height: 32, borderRadius: 8, flexShrink: 0,
-                background: 'linear-gradient(135deg, #D4A853, #C78A5B)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: "'Cormorant Garamond', serif",
+                fontSize: 18, fontWeight: 700,
+                color: '#EDE8DB', whiteSpace: 'nowrap',
+                opacity: isOpen ? 1 : 0,
+                transition: 'opacity 150ms ease',
+                textAlign: 'center',
               }}>
-                <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 16, fontWeight: 700, color: '#0E0D0B' }}>V</span>
-              </div>
-              <div style={{ overflow: 'hidden', opacity: isOpen ? 1 : 0, transition: 'opacity 150ms ease' }}>
-                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, fontWeight: 700, color: '#EDE8DB', whiteSpace: 'nowrap' }}>
-                  Vigie <span style={{ color: '#D4A853' }}>Perso</span>
-                </div>
+                Vigie <span style={{ color: '#D4A853' }}>Perso</span>
               </div>
             </Link>
 
-            {!isMobile && (
-              <button onClick={() => setPinned(p => !p)} title={pinned ? 'Désépingler' : 'Épingler'}
-                style={{
-                  opacity: isOpen ? 1 : 0, pointerEvents: isOpen ? 'auto' : 'none',
-                  background: pinned ? 'rgba(212,168,83,0.15)' : 'transparent',
-                  border: `1px solid ${pinned ? 'rgba(212,168,83,0.4)' : 'transparent'}`,
-                  borderRadius: 6, padding: 4, cursor: 'pointer',
-                  color: pinned ? '#D4A853' : 'rgba(255,255,255,0.3)',
-                  display: 'flex', flexShrink: 0, transition: 'all 150ms ease',
+            <div style={{ position: 'absolute', top: 12, right: 8 }}>
+              {!isMobile && (
+                <button onClick={() => setPinned(p => !p)} title={pinned ? 'Désépingler' : 'Épingler'}
+                  style={{
+                    opacity: isOpen ? 1 : 0, pointerEvents: isOpen ? 'auto' : 'none',
+                    background: pinned ? 'rgba(212,168,83,0.15)' : 'transparent',
+                    border: `1px solid ${pinned ? 'rgba(212,168,83,0.4)' : 'transparent'}`,
+                    borderRadius: 6, padding: 4, cursor: 'pointer',
+                    color: pinned ? '#D4A853' : 'rgba(255,255,255,0.3)',
+                    display: 'flex', flexShrink: 0, transition: 'all 150ms ease',
+                  }}>
+                  {pinned ? <Pin size={14} /> : <PinOff size={14} />}
+                </button>
+              )}
+              {isMobile && (
+                <button onClick={() => setMobileOpen(false)} style={{
+                  background: 'transparent', border: 'none',
+                  color: 'rgba(255,255,255,0.4)', cursor: 'pointer', display: 'flex', padding: 4,
                 }}>
-                {pinned ? <Pin size={14} /> : <PinOff size={14} />}
-              </button>
-            )}
-
-            {isMobile && (
-              <button onClick={() => setMobileOpen(false)} style={{
-                background: 'transparent', border: 'none',
-                color: 'rgba(255,255,255,0.4)', cursor: 'pointer', display: 'flex', padding: 4,
-              }}>
-                <X size={16} />
-              </button>
-            )}
+                  <X size={16} />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* NAVIGATION */}
@@ -163,6 +158,40 @@ export default function PersoLayout() {
             }}>
               Modules
             </div>
+
+            {/* Accueil */}
+            <NavLink
+              to="/perso"
+              end
+              onClick={() => { if (isMobile) setMobileOpen(false); }}
+              style={({ isActive }) => ({
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '10px 8px', borderRadius: 10, marginBottom: 2,
+                textDecoration: 'none', cursor: 'pointer',
+                transition: 'background 150ms ease',
+                background: isActive ? 'rgba(212,168,83,0.12)' : 'transparent',
+                borderLeft: isActive ? '2px solid #D4A853' : '2px solid transparent',
+              })}
+            >
+              {({ isActive }) => (
+                <>
+                  <div style={{
+                    width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+                    background: isActive ? 'rgba(212,168,83,0.2)' : 'rgba(255,255,255,0.04)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <Home size={16} color={isActive ? '#D4A853' : 'rgba(255,255,255,0.45)'} strokeWidth={2} />
+                  </div>
+                  <span style={{
+                    fontSize: 13, fontWeight: isActive ? 700 : 500,
+                    color: isActive ? '#D4A853' : 'rgba(255,255,255,0.65)',
+                    opacity: isOpen ? 1 : 0, transition: 'opacity 150ms ease', whiteSpace: 'nowrap',
+                  }}>
+                    Accueil
+                  </span>
+                </>
+              )}
+            </NavLink>
 
             {MODULES.map((mod) => {
               const Icon = mod.icon;
@@ -218,24 +247,8 @@ export default function PersoLayout() {
             })}
           </nav>
 
-          {/* FOOTER USER */}
+          {/* FOOTER DECONNEXION */}
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '12px 8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 8px', borderRadius: 10, marginBottom: 4 }}>
-              <div style={{
-                width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
-                background: 'linear-gradient(135deg, rgba(212,168,83,0.3), rgba(199,138,91,0.2))',
-                border: '1px solid rgba(212,168,83,0.3)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#D4A853' }}>{userInitial}</span>
-              </div>
-              <div style={{ overflow: 'hidden', opacity: isOpen ? 1 : 0, transition: 'opacity 150ms ease' }}>
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140 }}>
-                  {userEmail}
-                </div>
-              </div>
-            </div>
-
             <button
               onClick={handleLogout}
               style={{

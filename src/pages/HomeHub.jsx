@@ -113,7 +113,7 @@ export default function HomeHub() {
       </div>
 
       {/* Footer light */}
-      <Footer variant="light" />
-    </div>
+<Footer />  
+  </div>
   );
 }

@@ -1,6 +1,18 @@
 import { useState } from 'react';
-import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
+
+function translateError(msg) {
+  if (!msg) return 'Une erreur est survenue.';
+  if (msg.includes('Invalid login credentials')) return 'Email ou mot de passe incorrect.';
+  if (msg.includes('Email not confirmed')) return 'Veuillez confirmer votre email avant de vous connecter.';
+  if (msg.includes('Too many requests')) return 'Trop de tentatives. Réessayez dans quelques minutes.';
+  if (msg.includes('User not found')) return 'Aucun compte trouvé avec cet email.';
+  if (msg.includes('Invalid email')) return 'Adresse email invalide.';
+  if (msg.includes('Password should be')) return 'Le mot de passe doit contenir au moins 6 caractères.';
+  if (msg.includes('network')) return 'Erreur réseau. Vérifiez votre connexion.';
+  return 'Une erreur est survenue. Veuillez réessayer.';
+}
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -8,16 +20,16 @@ export default function Login() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-const [searchParams] = useSearchParams();
-const next = searchParams.get('next') || '/perso';
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
-    if (error) setError(error.message);
-else navigate('/perso', { replace: true });  };
+    if (error) setError(translateError(error.message));
+    else navigate('/perso', { replace: true });
+  };
 
   return (
     <div style={{ minHeight: '100vh', background: '#0E0D0B', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, fontFamily: "'Nunito Sans', sans-serif" }}>
@@ -30,16 +42,23 @@ else navigate('/perso', { replace: true });  };
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
             <label style={{ display: 'block', fontSize: 11, color: 'rgba(255,255,255,0.5)', marginBottom: 6 }}>Email</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="votre@email.fr" required style={{ width: '100%', padding: '10px 14px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#EDE8DB', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="votre@email.fr" required
+              style={{ width: '100%', padding: '10px 14px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#EDE8DB', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
           </div>
           <div>
             <label style={{ display: 'block', fontSize: 11, color: 'rgba(255,255,255,0.5)', marginBottom: 6 }}>Mot de passe</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required style={{ width: '100%', padding: '10px 14px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#EDE8DB', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required
+              style={{ width: '100%', padding: '10px 14px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#EDE8DB', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
           </div>
 
-          {error && <div style={{ color: '#C75B4E', fontSize: 11, background: 'rgba(199,91,78,0.1)', padding: '8px 12px', borderRadius: 6 }}>{error}</div>}
+          {error && (
+            <div style={{ color: '#C75B4E', fontSize: 11, background: 'rgba(199,91,78,0.1)', padding: '8px 12px', borderRadius: 6 }}>
+              {error}
+            </div>
+          )}
 
-          <button type="submit" disabled={loading} style={{ width: '100%', padding: '12px', borderRadius: 10, border: 'none', background: loading ? 'rgba(212,168,83,0.3)' : 'linear-gradient(135deg, #D4A853, #C78A5B)', color: '#0E0D0B', fontSize: 14, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', marginTop: 8 }}>
+          <button type="submit" disabled={loading}
+            style={{ width: '100%', padding: '12px', borderRadius: 10, border: 'none', background: loading ? 'rgba(212,168,83,0.3)' : 'linear-gradient(135deg, #D4A853, #C78A5B)', color: '#0E0D0B', fontSize: 14, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', marginTop: 8 }}>
             {loading ? 'Connexion...' : 'Se connecter'}
           </button>
         </form>

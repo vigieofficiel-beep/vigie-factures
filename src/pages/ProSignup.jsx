@@ -1,7 +1,20 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabasePro } from '../lib/supabasePro';
+const FR_ERRORS = {
+  'User already registered': 'Un compte existe déjà avec cet email.',
+  'Password should be at least 6 characters': 'Le mot de passe doit contenir au moins 6 caractères.',
+  'Unable to validate email address: invalid format': "Format d'email invalide.",
+  'Email rate limit exceeded': 'Trop de tentatives, réessayez dans quelques minutes.',
+};
 
+const toFr = (msg) => {
+  if (!msg) return 'Une erreur est survenue.';
+  for (const [en, fr] of Object.entries(FR_ERRORS)) {
+    if (msg.includes(en)) return fr;
+  }
+  return msg;
+};
 export default function ProSignup() {
   const [form, setForm] = useState({
     firstName: '', lastName: '', birthDate: '', city: '', email: '', password: '',
@@ -19,8 +32,9 @@ export default function ProSignup() {
     const { error } = await supabasePro.auth.signUp({
       email: form.email,
       password: form.password,
-      options: {
-        data: {
+options: {
+  emailRedirectTo: `${window.location.origin}/perso`,
+  data: {
           full_name: `${form.firstName} ${form.lastName}`,
           first_name: form.firstName,
           last_name: form.lastName,
@@ -30,7 +44,7 @@ export default function ProSignup() {
       },
     });
     setLoading(false);
-    if (error) setError(error.message);
+if (error) setError(toFr(error.message));
     else setSuccess(true);
   };
 

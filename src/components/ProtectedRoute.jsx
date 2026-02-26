@@ -1,11 +1,10 @@
-import { useEffect, useState } from "react";
-import { Navigate, useLocation } from "react-router-dom";
-import { supabase } from "../lib/supabaseClient";
+import { useEffect, useState } from 'react';
+import { Navigate } from 'react-router-dom';
+import { supabase } from '../lib/supabaseClient';
 
 export default function ProtectedRoute({ children }) {
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState(null);
-  const location = useLocation();
 
   useEffect(() => {
     let mounted = true;
@@ -29,11 +28,6 @@ export default function ProtectedRoute({ children }) {
   }, []);
 
   if (loading) return null;
-
-  if (!session) {
-    const next = encodeURIComponent(location.pathname + location.search);
-    return <Navigate to={`/login?next=${next}`} replace />;
-  }
-
+  if (!session) return <Navigate to="/login" replace />;
   return children;
 }
