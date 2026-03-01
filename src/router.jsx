@@ -1,5 +1,5 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
-
+import DepensesPage from './pages/DepensesPage';
 // Pages publiques
 import HomeHub    from './pages/HomeHub';
 import Login      from './pages/Login';
@@ -54,6 +54,7 @@ const router = createBrowserRouter([
     children: [
       { index: true,      element: <ProHome /> },
       { path: 'factures', element: <VigieFacturesWrapper /> }, // /pro/factures (compatibilité)
+      { path: 'depenses', element: <DepensesPage /> },
     ],
   },
 
