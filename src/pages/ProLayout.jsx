@@ -47,7 +47,7 @@ const NAV = [
     color: '#D4A853',
     active: false,
     children: [
-      { id: 'contrats',   label: 'Contrats',   icon: FileCheck,  color: '#D4A853', route: '/pro/contrats',   active: false },
+      { id: 'contrats',   label: 'Contrats',   icon: FileCheck,  color: '#D4A853', route: '/pro/contrats',   active: true },
       { id: 'formalites', label: 'Formalités', icon: AlertCircle,color: '#D4A853', route: '/pro/formalites', active: false },
       { id: 'mail-agent', label: 'Mail Agent', icon: Mail,       color: '#D4A853', route: '/pro/mail-agent', active: false },
     ],

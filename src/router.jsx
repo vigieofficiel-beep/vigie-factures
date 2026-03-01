@@ -2,6 +2,8 @@ import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import DepensesPage from './pages/DepensesPage';
 import RecettesPage from './pages/RecettesPage';
 import BanquePage from './pages/BanquePage';
+import ContratsPage from './pages/ContratsPage';
+
 
 // Pages publiques
 import HomeHub    from './pages/HomeHub';
@@ -60,6 +62,7 @@ const router = createBrowserRouter([
       { path: 'depenses', element: <DepensesPage /> },
       { path: 'recettes', element: <RecettesPage /> },
       { path: 'banque', element: <BanquePage /> },
+      { path: 'contrats', element: <ContratsPage /> },
     ],
   },
 
