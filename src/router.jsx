@@ -1,6 +1,8 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import DepensesPage from './pages/DepensesPage';
 import RecettesPage from './pages/RecettesPage';
+import BanquePage from './pages/BanquePage';
+
 // Pages publiques
 import HomeHub    from './pages/HomeHub';
 import Login      from './pages/Login';
@@ -57,6 +59,7 @@ const router = createBrowserRouter([
       { path: 'factures', element: <VigieFacturesWrapper /> }, // /pro/factures (compatibilité)
       { path: 'depenses', element: <DepensesPage /> },
       { path: 'recettes', element: <RecettesPage /> },
+      { path: 'banque', element: <BanquePage /> },
     ],
   },
 
