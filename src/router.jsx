@@ -3,6 +3,7 @@ import DepensesPage from './pages/DepensesPage';
 import RecettesPage from './pages/RecettesPage';
 import BanquePage from './pages/BanquePage';
 import ContratsPage from './pages/ContratsPage';
+import FormalitesPage from './pages/FormalitesPage';
 
 
 // Pages publiques
@@ -63,6 +64,8 @@ const router = createBrowserRouter([
       { path: 'recettes', element: <RecettesPage /> },
       { path: 'banque', element: <BanquePage /> },
       { path: 'contrats', element: <ContratsPage /> },
+      { path: 'formalites', element: <FormalitesPage /> },
+
     ],
   },
 
