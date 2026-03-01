@@ -36,7 +36,7 @@ const NAV = [
     active: true,
     children: [
       { id: 'depenses', label: 'Dépenses', icon: Receipt,     color: '#5BC78A', route: '/pro/depenses',  active: true  },
-      { id: 'recettes', label: 'Recettes', icon: TrendingUp,  color: '#5BC78A', route: '/pro/recettes',  active: false },
+      { id: 'recettes', label: 'Recettes', icon: TrendingUp,  color: '#5BC78A', route: '/pro/recettes',  active: true },
       { id: 'banque',   label: 'Banque',   icon: Wallet,      color: '#5BC78A', route: '/pro/banque',    active: false },
     ],
   },
