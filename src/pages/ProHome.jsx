@@ -1,22 +1,26 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabasePro } from '../lib/supabasePro';
 import {
   AlertTriangle, CheckCircle, Clock, TrendingUp, TrendingDown,
   FileText, Bell, CreditCard, Users, ShoppingCart,
   FileCheck, Mail, BarChart2, ArrowRight, Wallet,
+  Upload, Receipt, Building2, Landmark, X, CheckCheck,
+  Zap, Shield, Brain,
 } from 'lucide-react';
 
-// ─── Couleurs piliers ─────────────────────────────────────────────────
+// ─── Couleurs ─────────────────────────────────────────────────────────
 const C = {
   blue:   '#5BA3C7',
   green:  '#5BC78A',
   gold:   '#D4A853',
   purple: '#A85BC7',
   red:    '#C75B4E',
-  dark:   '#1A1C20',
-  gray:   '#9AA0AE',
-  border: '#E8EAF0',
+  dark:   '#0F172A',
+  mid:    '#1E293B',
+  gray:   '#64748B',
+  light:  '#94A3B8',
+  border: '#E2E8F0',
   bg:     '#F8FAFC',
 };
 
@@ -24,59 +28,297 @@ const C = {
 const euro = (n) => n == null ? '—' : new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n);
 const fdate = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '—';
 const daysUntil = (d) => { if (!d) return null; return Math.ceil((new Date(d) - new Date()) / 86400000); };
-const moisCourant = () => { const n = new Date(); return { debut: `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-01`, fin: new Date(n.getFullYear(), n.getMonth()+1, 0).toISOString().split('T')[0] }; };
+const moisCourant = () => {
+  const n = new Date();
+  return {
+    debut: `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-01`,
+    fin: new Date(n.getFullYear(), n.getMonth()+1, 0).toISOString().split('T')[0],
+  };
+};
 
-// ─── StatCard ─────────────────────────────────────────────────────────
+// ─── Textes rotatifs dynamiques ───────────────────────────────────────
+const PHRASES = [
+  "Vos documents transformés en données exploitables en quelques secondes.",
+  "Chaque reçu uploadé, c'est une saisie manuelle évitée.",
+  "Importez. Vigie Pro classe, analyse et alerte automatiquement.",
+  "De la facture brute à l'écriture comptable, sans effort.",
+  "Votre pré-comptabilité se construit document par document.",
+];
+
+function RotatingText() {
+  const [idx, setIdx] = useState(0);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => {
+        setIdx(i => (i + 1) % PHRASES.length);
+        setVisible(true);
+      }, 400);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <p style={{
+      fontSize: 13, color: '#94A3B8', lineHeight: 1.7, margin: '0 0 20px',
+      minHeight: 44, transition: 'opacity 0.4s ease',
+      opacity: visible ? 1 : 0,
+    }}>
+      {PHRASES[idx]}
+    </p>
+  );
+}
+
+// ─── Zone Hero Upload ─────────────────────────────────────────────────
+function HeroUpload({ navigate }) {
+  const [dragging, setDragging]   = useState(false);
+  const [uploaded, setUploaded]   = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [done, setDone]           = useState(false);
+  const fileRef = useRef();
+
+  const DESTINATIONS = [
+    {
+      id: 'depense',
+      label: 'Justificatif de dépense',
+      icon: Receipt,
+      color: C.red,
+      route: '/pro/depenses',
+      ext: ['jpg','jpeg','png','pdf','webp'],
+      desc: 'Reçu, note de frais, ticket restaurant',
+    },
+    {
+      id: 'fournisseur',
+      label: 'Facture fournisseur',
+      icon: Building2,
+      color: C.purple,
+      route: '/pro/fournisseurs',
+      ext: ['pdf','jpg','jpeg','png'],
+      desc: 'Facture reçue d\'un prestataire ou fournisseur',
+    },
+    {
+      id: 'banque',
+      label: 'Relevé bancaire',
+      icon: Landmark,
+      color: C.blue,
+      route: '/pro/banque',
+      ext: ['csv','ofx','qif'],
+      desc: 'Export CSV depuis votre espace bancaire en ligne',
+    },
+  ];
+
+  const handleFile = (file) => {
+    if (!file) return;
+    const ext = file.name.split('.').pop().toLowerCase();
+    setUploaded({ file, ext, name: file.name, size: (file.size / 1024).toFixed(0) + ' Ko' });
+    setDone(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault(); setDragging(false);
+    handleFile(e.dataTransfer.files[0]);
+  };
+
+  const handleRedirect = async (dest) => {
+    setUploading(true);
+    await new Promise(r => setTimeout(r, 700));
+    setUploading(false);
+    setDone(true);
+    await new Promise(r => setTimeout(r, 700));
+    navigate(dest.route);
+  };
+
+  const reset = () => { setUploaded(null); setDone(false); };
+
+  return (
+    <div style={{
+      background: `linear-gradient(135deg, ${C.dark} 0%, ${C.mid} 55%, #162032 100%)`,
+      borderRadius: 22, padding: '40px 44px', marginBottom: 28,
+      position: 'relative', overflow: 'hidden',
+    }}>
+      {/* Déco fond */}
+      <div style={{ position: 'absolute', top: -80, right: -80, width: 380, height: 380, borderRadius: '50%', background: `${C.blue}07`, pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', bottom: -50, left: 180, width: 240, height: 240, borderRadius: '50%', background: `${C.green}05`, pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', top: 0, right: 0, width: '40%', height: '100%', background: 'linear-gradient(to left, rgba(91,163,199,0.04), transparent)', pointerEvents: 'none' }} />
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'center', position: 'relative', zIndex: 1 }}>
+
+        {/* ── Texte gauche ── */}
+        <div>
+          {/* Badge */}
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(91,163,199,0.12)', border: '1px solid rgba(91,163,199,0.25)', borderRadius: 20, padding: '5px 14px', marginBottom: 20 }}>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: C.green }} />
+            <span style={{ fontSize: 11, fontWeight: 700, color: C.blue, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Import intelligent</span>
+          </div>
+
+          {/* Titre */}
+          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 30, fontWeight: 700, color: '#F1F5F9', margin: '0 0 14px', lineHeight: 1.25 }}>
+            Déposez vos documents,<br />
+            <span style={{ color: C.blue, fontStyle: 'italic' }}>Vigie Pro fait le reste.</span>
+          </h2>
+
+          {/* Texte rotatif */}
+          <RotatingText />
+
+          {/* 3 bénéfices */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {[
+              { icon: Zap,    color: C.gold,   text: 'Classement automatique dans le bon module' },
+              { icon: Brain,  color: C.blue,   text: 'Extraction intelligente des données clés' },
+              { icon: Shield, color: C.green,  text: 'Stockage sécurisé et conforme RGPD' },
+            ].map(({ icon: Icon, color, text }) => (
+              <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 26, height: 26, borderRadius: 6, background: `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Icon size={13} color={color} strokeWidth={2} />
+                </div>
+                <span style={{ fontSize: 12, color: '#CBD5E1', lineHeight: 1.4 }}>{text}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Formats acceptés */}
+          <div style={{ marginTop: 20, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {['PDF', 'JPG', 'PNG', 'CSV', 'OFX'].map(f => (
+              <span key={f} style={{ fontSize: 10, fontWeight: 700, color: '#64748B', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, padding: '2px 7px', letterSpacing: '0.05em' }}>
+                {f}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Zone drop droite ── */}
+        <div>
+          {!uploaded ? (
+            /* Zone de dépôt vide */
+            <div
+              onDragOver={e => { e.preventDefault(); setDragging(true); }}
+              onDragLeave={() => setDragging(false)}
+              onDrop={handleDrop}
+              onClick={() => fileRef.current?.click()}
+              style={{
+                border: `2px dashed ${dragging ? C.blue : 'rgba(255,255,255,0.12)'}`,
+                borderRadius: 18, padding: '44px 28px',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14,
+                cursor: 'pointer', transition: 'all 0.25s ease',
+                background: dragging ? 'rgba(91,163,199,0.08)' : 'rgba(255,255,255,0.025)',
+              }}
+            >
+              <div style={{
+                width: 60, height: 60, borderRadius: 16,
+                background: dragging ? 'rgba(91,163,199,0.2)' : 'rgba(255,255,255,0.05)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'all 0.25s ease',
+                boxShadow: dragging ? `0 0 30px ${C.blue}30` : 'none',
+              }}>
+                <Upload size={24} color={dragging ? C.blue : '#475569'} strokeWidth={1.5} />
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ fontSize: 15, fontWeight: 700, color: dragging ? '#E2E8F0' : '#94A3B8', margin: '0 0 6px' }}>
+                  {dragging ? 'Relâchez pour importer' : 'Glissez un document ici'}
+                </p>
+                <p style={{ fontSize: 12, color: '#475569', margin: 0 }}>
+                  ou <span style={{ color: C.blue, fontWeight: 600 }}>cliquez pour parcourir</span>
+                </p>
+              </div>
+              <input ref={fileRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.csv,.ofx,.qif" style={{ display: 'none' }} onChange={e => handleFile(e.target.files[0])} />
+            </div>
+
+          ) : done ? (
+            /* État succès */
+            <div style={{ border: `2px solid ${C.green}40`, borderRadius: 18, padding: '44px 28px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, background: 'rgba(91,199,138,0.06)' }}>
+              <CheckCheck size={36} color={C.green} strokeWidth={1.5} />
+              <p style={{ fontSize: 14, fontWeight: 600, color: '#E2E8F0', margin: 0 }}>Redirection en cours…</p>
+            </div>
+
+          ) : (
+            /* Sélection de destination */
+            <div style={{ border: '1px solid rgba(255,255,255,0.10)', borderRadius: 18, padding: 22, background: 'rgba(255,255,255,0.03)' }}>
+
+              {/* Fichier sélectionné */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18, padding: '10px 14px', background: 'rgba(255,255,255,0.06)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)' }}>
+                <FileText size={15} color={C.blue} />
+                <div style={{ flex: 1, overflow: 'hidden' }}>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: '#E2E8F0', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{uploaded.name}</p>
+                  <p style={{ fontSize: 10, color: '#64748B', margin: '2px 0 0' }}>{uploaded.size} · .{uploaded.ext.toUpperCase()}</p>
+                </div>
+                <button onClick={reset} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#475569', padding: 2, display: 'flex' }}><X size={14} /></button>
+              </div>
+
+              <p style={{ fontSize: 10, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 12px' }}>
+                Où envoyer ce document ?
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {DESTINATIONS.map(dest => {
+                  const DIcon = dest.icon;
+                  const compatible = dest.ext.includes(uploaded.ext);
+                  return (
+                    <button
+                      key={dest.id}
+                      onClick={() => compatible && !uploading && handleRedirect(dest)}
+                      disabled={!compatible || uploading}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 12,
+                        padding: '12px 14px', borderRadius: 10, border: 'none',
+                        background: compatible ? `${dest.color}12` : 'rgba(255,255,255,0.02)',
+                        cursor: compatible ? 'pointer' : 'not-allowed',
+                        opacity: compatible ? 1 : 0.35,
+                        transition: 'all 0.15s ease', textAlign: 'left', width: '100%',
+                      }}
+                      onMouseEnter={e => { if (compatible) e.currentTarget.style.background = `${dest.color}22`; }}
+                      onMouseLeave={e => { if (compatible) e.currentTarget.style.background = `${dest.color}12`; }}
+                    >
+                      <div style={{ width: 34, height: 34, borderRadius: 9, background: `${dest.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <DIcon size={15} color={dest.color} strokeWidth={2} />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <p style={{ fontSize: 12, fontWeight: 700, color: '#E2E8F0', margin: 0 }}>{dest.label}</p>
+                        <p style={{ fontSize: 10, color: '#64748B', margin: '2px 0 0' }}>{dest.desc}</p>
+                      </div>
+                      {compatible && <ArrowRight size={13} color={dest.color} style={{ flexShrink: 0 }} />}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {uploading && (
+                <p style={{ marginTop: 12, fontSize: 11, color: C.blue, textAlign: 'center', fontWeight: 600 }}>
+                  Préparation du document…
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Composants UI ────────────────────────────────────────────────────
 function StatCard({ icon: Icon, label, value, sub, color, alert, onClick }) {
   const [hov, setHov] = useState(false);
   return (
-    <div
-      onClick={onClick}
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      style={{
-        background: '#fff',
-        border: `1px solid ${alert ? 'rgba(199,91,78,0.35)' : C.border}`,
-        borderRadius: 14, padding: '18px 20px',
-        display: 'flex', flexDirection: 'column', gap: 10,
-        boxShadow: hov ? '0 4px 16px rgba(0,0,0,0.10)' : alert ? '0 2px 12px rgba(199,91,78,0.08)' : '0 1px 4px rgba(0,0,0,0.06)',
-        cursor: onClick ? 'pointer' : 'default',
-        transition: 'box-shadow 0.2s, transform 0.15s',
-        transform: hov && onClick ? 'translateY(-2px)' : 'none',
-      }}
-    >
+    <div onClick={onClick} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)} style={{
+      background: '#fff', border: `1px solid ${alert ? 'rgba(199,91,78,0.35)' : C.border}`,
+      borderRadius: 14, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 10,
+      boxShadow: hov ? '0 4px 16px rgba(0,0,0,0.10)' : '0 1px 4px rgba(0,0,0,0.06)',
+      cursor: onClick ? 'pointer' : 'default', transition: 'all 0.2s ease',
+      transform: hov && onClick ? 'translateY(-2px)' : 'none',
+    }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: 11, fontWeight: 600, color: C.gray, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</span>
-        <div style={{ width: 32, height: 32, borderRadius: 8, background: `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Icon size={15} color={color} strokeWidth={2} />
+        <span style={{ fontSize: 10, fontWeight: 700, color: C.light, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</span>
+        <div style={{ width: 30, height: 30, borderRadius: 8, background: `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon size={14} color={color} strokeWidth={2} />
         </div>
       </div>
-      <div style={{ fontSize: 24, fontWeight: 800, color: alert ? C.red : C.dark, lineHeight: 1 }}>{value}</div>
-      {sub && <div style={{ fontSize: 11, color: C.gray }}>{sub}</div>}
+      <div style={{ fontSize: 22, fontWeight: 800, color: alert ? C.red : C.dark, lineHeight: 1 }}>{value}</div>
+      {sub && <div style={{ fontSize: 11, color: C.light }}>{sub}</div>}
     </div>
   );
 }
 
-// ─── Section titre ────────────────────────────────────────────────────
-function SectionTitle({ icon: Icon, label, color, route, navigate }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div style={{ width: 28, height: 28, borderRadius: 7, background: `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Icon size={13} color={color} strokeWidth={2} />
-        </div>
-        <h2 style={{ fontSize: 13, fontWeight: 700, color: C.dark, margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</h2>
-      </div>
-      {route && (
-        <button onClick={() => navigate(route)} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', color: color, fontSize: 11, fontWeight: 600 }}>
-          Voir tout <ArrowRight size={12} />
-        </button>
-      )}
-    </div>
-  );
-}
-
-// ─── Panel card ───────────────────────────────────────────────────────
 function Panel({ children, style = {} }) {
   return (
     <div style={{ background: '#fff', border: `1px solid ${C.border}`, borderRadius: 14, padding: '18px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', ...style }}>
@@ -85,32 +327,48 @@ function Panel({ children, style = {} }) {
   );
 }
 
-// ─── Alerte row ───────────────────────────────────────────────────────
+function SectionTitle({ icon: Icon, label, color, route, navigate: nav }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ width: 26, height: 26, borderRadius: 7, background: `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon size={12} color={color} strokeWidth={2} />
+        </div>
+        <h2 style={{ fontSize: 11, fontWeight: 700, color: C.dark, margin: 0, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</h2>
+      </div>
+      {route && (
+        <button onClick={() => nav(route)} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', color, fontSize: 11, fontWeight: 600 }}>
+          Voir <ArrowRight size={11} />
+        </button>
+      )}
+    </div>
+  );
+}
+
 function AlertRow({ message, type, date, onClick }) {
   const colors = { overdue: C.red, upcoming: C.gold, info: C.blue, contrat: C.gold, facture: C.red, formalite: C.purple };
   const c = colors[type] || C.gray;
   return (
-    <div onClick={onClick} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 0', borderBottom: `1px solid ${C.bg}`, cursor: onClick ? 'pointer' : 'default' }}>
-      <div style={{ width: 7, height: 7, borderRadius: '50%', background: c, flexShrink: 0, marginTop: 5 }} />
+    <div onClick={onClick} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '9px 0', borderBottom: `1px solid ${C.bg}`, cursor: onClick ? 'pointer' : 'default' }}>
+      <div style={{ width: 6, height: 6, borderRadius: '50%', background: c, flexShrink: 0, marginTop: 5 }} />
       <div style={{ flex: 1 }}>
         <p style={{ fontSize: 12, color: C.dark, margin: 0, fontWeight: 500, lineHeight: 1.4 }}>{message}</p>
-        {date && <p style={{ fontSize: 10, color: C.gray, margin: '2px 0 0' }}>{fdate(date)}</p>}
+        {date && <p style={{ fontSize: 10, color: C.light, margin: '2px 0 0' }}>{fdate(date)}</p>}
       </div>
     </div>
   );
 }
 
-// ─── Barre de progression ─────────────────────────────────────────────
 function ProgressBar({ label, value, max, color }) {
   const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
   return (
     <div style={{ marginBottom: 10 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
         <span style={{ fontSize: 11, color: C.dark, fontWeight: 500 }}>{label}</span>
-        <span style={{ fontSize: 11, color: C.gray }}>{euro(value)}</span>
+        <span style={{ fontSize: 11, color: C.light }}>{euro(value)}</span>
       </div>
-      <div style={{ height: 6, background: C.bg, borderRadius: 3, overflow: 'hidden' }}>
-        <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: 3, transition: 'width 0.6s ease' }} />
+      <div style={{ height: 5, background: C.bg, borderRadius: 3, overflow: 'hidden' }}>
+        <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: 3, transition: 'width 0.8s ease' }} />
       </div>
     </div>
   );
@@ -123,22 +381,12 @@ export default function ProHome() {
   const [firstName, setFirstName] = useState('');
   const [loading, setLoading]     = useState(true);
   const [data, setData]           = useState({
-    // Trésorerie
     recettesMois: 0, depensesMois: 0, soldeMois: 0,
-    facturesEnAttente: 0, montantEnAttente: 0,
-    facturesEnRetard: 0,
-    // Équipe
+    facturesEnAttente: 0, montantEnAttente: 0, facturesEnRetard: 0,
     nbActifs: 0, nbConges: 0, masseSalariale: 0,
-    // Fournisseurs
-    facturesFourn: 0, montantDuFourn: 0, fourniRetard: 0,
-    // Contrats
-    contratsExpirent: [],
-    // Formalités
-    formalitesEnRetard: 0, formalitesProchaines: 0,
-    // Alertes consolidées
-    alertes: [],
-    // Dépenses par catégorie
-    depensesParCat: [],
+    montantDuFourn: 0, fourniRetard: 0,
+    contratsExpirent: [], formalitesEnRetard: 0, formalitesProchaines: 0,
+    alertes: [], depensesParCat: [],
   });
   const navigate = useNavigate();
 
@@ -157,83 +405,63 @@ export default function ProHome() {
       const in30  = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
 
       const [
-        { data: recettes },
-        { data: depenses },
-        { data: invoices },
-        { data: equipe },
-        { data: factureFourn },
-        { data: contrats },
-        { data: formalites },
-        { data: reminders },
+        { data: recettes }, { data: depenses }, { data: invoices },
+        { data: equipe }, { data: factureFourn }, { data: contrats },
+        { data: formalites }, { data: reminders },
       ] = await Promise.all([
-        supabasePro.from('invoices').select('montant_ht, taux_tva, montant_ttc, statut, date, date_echeance').eq('user_id', uid).gte('date', debut).lte('date', fin),
-        supabasePro.from('expenses').select('montant_ht, taux_tva, categorie, date').eq('user_id', uid).gte('date', debut).lte('date', fin),
-        supabasePro.from('invoices').select('montant_ttc, statut, date_echeance').eq('user_id', uid).neq('statut', 'Payée'),
-        supabasePro.from('equipe').select('statut, salaire_brut').eq('user_id', uid),
-        supabasePro.from('factures_fournisseurs').select('montant_ttc, statut, date_echeance').eq('user_id', uid).neq('statut', 'Payée'),
-        supabasePro.from('contrats').select('titre, date_fin, statut').eq('user_id', uid).eq('statut', 'Actif').lte('date_fin', in30).gte('date_fin', today),
-        supabasePro.from('formalites').select('titre, date_echeance, statut').eq('user_id', uid).lte('date_echeance', in30),
+        supabasePro.from('invoices').select('montant_ht,taux_tva,montant_ttc,statut,date,date_echeance').eq('user_id', uid).gte('date', debut).lte('date', fin),
+        supabasePro.from('expenses').select('montant_ht,taux_tva,categorie,date').eq('user_id', uid).gte('date', debut).lte('date', fin),
+        supabasePro.from('invoices').select('montant_ttc,statut,date_echeance').eq('user_id', uid).neq('statut', 'Payée'),
+        supabasePro.from('equipe').select('statut,salaire_brut').eq('user_id', uid),
+        supabasePro.from('factures_fournisseurs').select('montant_ttc,statut,date_echeance').eq('user_id', uid).neq('statut', 'Payée'),
+        supabasePro.from('contrats').select('titre,date_fin,statut').eq('user_id', uid).eq('statut', 'Actif').lte('date_fin', in30).gte('date_fin', today),
+        supabasePro.from('formalites').select('titre,date_echeance,statut').eq('user_id', uid).lte('date_echeance', in30),
         supabasePro.from('reminders').select('*').eq('user_id', uid).order('sent_at', { ascending: false }).limit(5),
       ]);
 
-      // ── Trésorerie
       const totalRecettes  = (recettes || []).reduce((s, r) => s + Number(r.montant_ttc || r.montant_ht || 0), 0);
       const totalDepenses  = (depenses  || []).reduce((s, d) => s + Number(d.montant_ht || 0) * (1 + Number(d.taux_tva || 20) / 100), 0);
       const factAttente    = (invoices  || []).filter(i => i.statut === 'En attente' || i.statut === 'Envoyée');
       const factRetard     = (invoices  || []).filter(i => i.date_echeance && new Date(i.date_echeance) < new Date());
       const montantAttente = factAttente.reduce((s, i) => s + Number(i.montant_ttc || 0), 0);
 
-      // ── Dépenses par catégorie
       const catMap = {};
       (depenses || []).forEach(d => {
         const cat = d.categorie || 'Autre';
-        const ttc = Number(d.montant_ht || 0) * (1 + Number(d.taux_tva || 20) / 100);
-        catMap[cat] = (catMap[cat] || 0) + ttc;
+        catMap[cat] = (catMap[cat] || 0) + Number(d.montant_ht || 0) * (1 + Number(d.taux_tva || 20) / 100);
       });
       const depensesParCat = Object.entries(catMap).sort((a, b) => b[1] - a[1]).slice(0, 4);
 
-      // ── Équipe
       const actifs  = (equipe || []).filter(e => e.statut === 'Actif');
       const conges  = (equipe || []).filter(e => e.statut === 'Congé');
       const masse   = actifs.reduce((s, e) => s + Number(e.salaire_brut || 0), 0);
-
-      // ── Fournisseurs
       const fourniRetard   = (factureFourn || []).filter(f => f.date_echeance && new Date(f.date_echeance) < new Date());
       const montantDuFourn = (factureFourn || []).reduce((s, f) => s + Number(f.montant_ttc || 0), 0);
 
-      // ── Alertes consolidées
       const alertes = [];
       factRetard.slice(0, 3).forEach(f => alertes.push({ message: `Facture client en retard — ${euro(f.montant_ttc)}`, type: 'facture', date: f.date_echeance, route: '/pro/recettes' }));
       fourniRetard.slice(0, 2).forEach(f => alertes.push({ message: `Facture fournisseur en retard — ${euro(f.montant_ttc)}`, type: 'facture', date: f.date_echeance, route: '/pro/fournisseurs' }));
       (contrats || []).forEach(c => { const j = daysUntil(c.date_fin); alertes.push({ message: `Contrat "${c.titre}" expire dans ${j}j`, type: 'contrat', date: c.date_fin, route: '/pro/contrats' }); });
-      (formalites || []).filter(f => f.statut !== 'Terminé').forEach(f => { const j = daysUntil(f.date_echeance); if (j < 0) alertes.push({ message: `Formalité en retard : ${f.titre}`, type: 'formalite', date: f.date_echeance, route: '/pro/formalites' }); else alertes.push({ message: `Formalité dans ${j}j : ${f.titre}`, type: 'upcoming', date: f.date_echeance, route: '/pro/formalites' }); });
+      (formalites || []).filter(f => f.statut !== 'Terminé').forEach(f => {
+        const j = daysUntil(f.date_echeance);
+        alertes.push({ message: j < 0 ? `Formalité en retard : ${f.titre}` : `Formalité dans ${j}j : ${f.titre}`, type: j < 0 ? 'formalite' : 'upcoming', date: f.date_echeance, route: '/pro/formalites' });
+      });
       (reminders || []).forEach(r => alertes.push({ message: r.message, type: r.type || 'info', date: r.sent_at }));
 
       setData({
-        recettesMois: totalRecettes,
-        depensesMois: totalDepenses,
+        recettesMois: totalRecettes, depensesMois: totalDepenses,
         soldeMois: totalRecettes - totalDepenses,
-        facturesEnAttente: factAttente.length,
-        montantEnAttente: montantAttente,
+        facturesEnAttente: factAttente.length, montantEnAttente: montantAttente,
         facturesEnRetard: factRetard.length,
-        nbActifs: actifs.length,
-        nbConges: conges.length,
-        masseSalariale: masse,
-        facturesFourn: factureFourn?.length || 0,
-        montantDuFourn,
-        fourniRetard: fourniRetard.length,
+        nbActifs: actifs.length, nbConges: conges.length, masseSalariale: masse,
+        montantDuFourn, fourniRetard: fourniRetard.length,
         contratsExpirent: contrats || [],
         formalitesEnRetard: (formalites || []).filter(f => f.statut !== 'Terminé' && daysUntil(f.date_echeance) < 0).length,
         formalitesProchaines: (formalites || []).filter(f => f.statut !== 'Terminé' && daysUntil(f.date_echeance) >= 0).length,
-        alertes: alertes.slice(0, 8),
-        depensesParCat,
+        alertes: alertes.slice(0, 8), depensesParCat,
       });
-
-    } catch (e) {
-      console.error('Dashboard error:', e);
-    } finally {
-      setLoading(false);
-    }
+    } catch (e) { console.error('Dashboard error:', e); }
+    finally { setLoading(false); }
   };
 
   const hour = new Date().getHours();
@@ -246,18 +474,16 @@ export default function ProHome() {
     </div>
   );
 
-  const totalAlertes = data.alertes.length;
-
   return (
     <div style={{ fontFamily: "'Nunito Sans', sans-serif", padding: '32px 28px', maxWidth: 1140, margin: '0 auto' }}>
 
       {/* ── En-tête ── */}
-      <div style={{ marginBottom: 28, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+      <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
         <div>
           <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 28, fontWeight: 600, color: C.dark, margin: 0 }}>
-            {greeting}{firstName ? `, ` : ''}<span style={{ color: C.blue, fontStyle: 'italic' }}>{firstName}</span>
+            {greeting}{firstName ? ', ' : ''}<span style={{ color: C.blue, fontStyle: 'italic' }}>{firstName}</span>
           </h1>
-          <p style={{ fontSize: 13, color: C.gray, marginTop: 4 }}>
+          <p style={{ fontSize: 13, color: C.light, marginTop: 4 }}>
             {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
@@ -275,141 +501,118 @@ export default function ProHome() {
         </div>
       </div>
 
-      {/* ── KPIs Trésorerie du mois ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24 }}>
-        <StatCard icon={TrendingUp}   label={`Recettes ${moisLabel}`} value={euro(data.recettesMois)} color={C.green}  onClick={() => navigate('/pro/recettes')} />
-        <StatCard icon={TrendingDown} label={`Dépenses ${moisLabel}`} value={euro(data.depensesMois)} color={C.red}    onClick={() => navigate('/pro/depenses')} />
-        <StatCard icon={Wallet}       label="Solde du mois"           value={euro(data.soldeMois)}    color={data.soldeMois >= 0 ? C.blue : C.red} alert={data.soldeMois < 0} />
-        <StatCard icon={FileText}     label="En attente de paiement"  value={euro(data.montantEnAttente)} sub={`${data.facturesEnAttente} facture${data.facturesEnAttente > 1 ? 's' : ''}`} color={C.gold} alert={data.facturesEnRetard > 0} onClick={() => navigate('/pro/recettes')} />
+      {/* ── Hero Upload ── */}
+      <HeroUpload navigate={navigate} />
+
+      {/* ── KPIs ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 20 }}>
+        <StatCard icon={TrendingUp}   label={`Recettes ${moisLabel}`}   value={euro(data.recettesMois)}    color={C.green} onClick={() => navigate('/pro/recettes')} />
+        <StatCard icon={TrendingDown} label={`Dépenses ${moisLabel}`}   value={euro(data.depensesMois)}    color={C.red}   onClick={() => navigate('/pro/depenses')} />
+        <StatCard icon={Wallet}       label="Solde du mois"             value={euro(data.soldeMois)}       color={data.soldeMois >= 0 ? C.blue : C.red} alert={data.soldeMois < 0} />
+        <StatCard icon={FileText}     label="En attente de paiement"    value={euro(data.montantEnAttente)} sub={`${data.facturesEnAttente} facture${data.facturesEnAttente > 1 ? 's' : ''}`} color={C.gold} alert={data.facturesEnRetard > 0} onClick={() => navigate('/pro/recettes')} />
       </div>
 
-      {/* ── Grille principale ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 340px', gap: 16, marginBottom: 16 }}>
+      {/* ── Grille ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 300px', gap: 14, marginBottom: 14 }}>
 
         {/* Alertes */}
         <Panel>
           <SectionTitle icon={Bell} label="Alertes & Rappels" color={C.blue} />
-          {totalAlertes === 0 ? (
+          {data.alertes.length === 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '28px 0', gap: 8 }}>
-              <CheckCircle size={26} color={C.green} style={{ opacity: 0.6 }} />
-              <p style={{ fontSize: 13, color: C.gray, margin: 0 }}>Aucune alerte en cours</p>
+              <CheckCircle size={24} color={C.green} style={{ opacity: 0.6 }} />
+              <p style={{ fontSize: 12, color: C.light, margin: 0 }}>Aucune alerte en cours</p>
             </div>
-          ) : (
-            data.alertes.map((a, i) => (
-              <AlertRow key={i} message={a.message} type={a.type} date={a.date} onClick={a.route ? () => navigate(a.route) : null} />
-            ))
-          )}
+          ) : data.alertes.map((a, i) => (
+            <AlertRow key={i} message={a.message} type={a.type} date={a.date} onClick={a.route ? () => navigate(a.route) : null} />
+          ))}
         </Panel>
 
         {/* Dépenses par catégorie */}
         <Panel>
-          <SectionTitle icon={BarChart2} label={`Dépenses par catégorie — ${moisLabel}`} color={C.red} route="/pro/depenses" navigate={navigate} />
+          <SectionTitle icon={BarChart2} label={`Dépenses — ${moisLabel}`} color={C.red} route="/pro/depenses" navigate={navigate} />
           {data.depensesParCat.length === 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '28px 0', gap: 8 }}>
-              <CheckCircle size={26} color={C.green} style={{ opacity: 0.6 }} />
-              <p style={{ fontSize: 13, color: C.gray, margin: 0 }}>Aucune dépense ce mois</p>
+              <CheckCircle size={24} color={C.green} style={{ opacity: 0.6 }} />
+              <p style={{ fontSize: 12, color: C.light, margin: 0 }}>Aucune dépense ce mois</p>
             </div>
           ) : (
             <>
-              {data.depensesParCat.map(([cat, val]) => (
-                <ProgressBar key={cat} label={cat} value={val} max={data.depensesMois} color={C.red} />
-              ))}
-              <div style={{ borderTop: `1px solid ${C.bg}`, marginTop: 12, paddingTop: 10, display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 11, color: C.gray }}>Total dépenses</span>
+              {data.depensesParCat.map(([cat, val]) => <ProgressBar key={cat} label={cat} value={val} max={data.depensesMois} color={C.red} />)}
+              <div style={{ borderTop: `1px solid ${C.bg}`, marginTop: 10, paddingTop: 10, display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 11, color: C.light }}>Total</span>
                 <span style={{ fontSize: 13, fontWeight: 700, color: C.dark }}>{euro(data.depensesMois)}</span>
               </div>
             </>
           )}
         </Panel>
 
-        {/* Colonne droite : Équipe + Fournisseurs + Juridique */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-
-          {/* Équipe */}
+        {/* Colonne droite */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <Panel>
             <SectionTitle icon={Users} label="Équipe" color={C.purple} route="/pro/equipe" navigate={navigate} />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              {[
-                { label: 'Actifs', value: data.nbActifs, color: C.green },
-                { label: 'En congé', value: data.nbConges, color: C.gold },
-              ].map(k => (
+              {[{ label: 'Actifs', value: data.nbActifs, color: C.green }, { label: 'Congés', value: data.nbConges, color: C.gold }].map(k => (
                 <div key={k.label} style={{ background: C.bg, borderRadius: 8, padding: '10px 12px' }}>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: k.color }}>{k.value}</div>
-                  <div style={{ fontSize: 11, color: C.gray }}>{k.label}</div>
+                  <div style={{ fontSize: 20, fontWeight: 800, color: k.color }}>{k.value}</div>
+                  <div style={{ fontSize: 11, color: C.light }}>{k.label}</div>
                 </div>
               ))}
             </div>
             {data.masseSalariale > 0 && (
-              <div style={{ marginTop: 10, fontSize: 12, color: C.gray, display: 'flex', justifyContent: 'space-between' }}>
+              <div style={{ marginTop: 10, fontSize: 11, color: C.light, display: 'flex', justifyContent: 'space-between' }}>
                 <span>Masse salariale</span>
-                <span style={{ fontWeight: 700, color: C.dark }}>{euro(data.masseSalariale)}/mois</span>
+                <span style={{ fontWeight: 700, color: C.dark }}>{euro(data.masseSalariale)}</span>
               </div>
             )}
           </Panel>
 
-          {/* Fournisseurs */}
           <Panel>
             <SectionTitle icon={ShoppingCart} label="Fournisseurs" color={C.purple} route="/pro/fournisseurs" navigate={navigate} />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-                <span style={{ color: C.gray }}>Factures en attente</span>
-                <span style={{ fontWeight: 700, color: C.dark }}>{euro(data.montantDuFourn)}</span>
-              </div>
-              {data.fourniRetard > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#fef3c7', borderRadius: 6, padding: '6px 10px', fontSize: 11, fontWeight: 600, color: C.gold }}>
-                  <AlertTriangle size={12} /> {data.fourniRetard} facture{data.fourniRetard > 1 ? 's' : ''} en retard
-                </div>
-              )}
+            <div style={{ fontSize: 11, color: C.light, display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+              <span>Montant dû</span>
+              <span style={{ fontWeight: 700, color: C.dark }}>{euro(data.montantDuFourn)}</span>
             </div>
+            {data.fourniRetard > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#fef3c7', borderRadius: 6, padding: '5px 9px', fontSize: 11, fontWeight: 600, color: C.gold }}>
+                <AlertTriangle size={11} /> {data.fourniRetard} en retard
+              </div>
+            )}
           </Panel>
 
-          {/* Juridique */}
           <Panel>
             <SectionTitle icon={FileCheck} label="Juridique" color={C.gold} route="/pro/contrats" navigate={navigate} />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {data.contratsExpirent.length > 0 ? (
-                data.contratsExpirent.slice(0, 2).map((c, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12 }}>
-                    <span style={{ color: C.dark, fontWeight: 500, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.titre}</span>
+            {data.contratsExpirent.length > 0
+              ? data.contratsExpirent.slice(0, 2).map((c, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 5 }}>
+                    <span style={{ color: C.dark, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 140 }}>{c.titre}</span>
                     <span style={{ color: C.gold, fontWeight: 700, flexShrink: 0 }}>J-{daysUntil(c.date_fin)}</span>
                   </div>
                 ))
-              ) : (
-                <div style={{ fontSize: 12, color: C.gray }}>Aucun contrat expirant bientôt</div>
-              )}
-              {data.formalitesEnRetard > 0 && (
-                <div onClick={() => navigate('/pro/formalites')} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#fee2e2', borderRadius: 6, padding: '6px 10px', fontSize: 11, fontWeight: 600, color: C.red, cursor: 'pointer', marginTop: 4 }}>
-                  <AlertTriangle size={12} /> {data.formalitesEnRetard} formalité{data.formalitesEnRetard > 1 ? 's' : ''} en retard
-                </div>
-              )}
-              {data.formalitesProchaines > 0 && (
-                <div style={{ fontSize: 11, color: C.gray, marginTop: 2 }}>
-                  {data.formalitesProchaines} formalité{data.formalitesProchaines > 1 ? 's' : ''} dans les 30 prochains jours
-                </div>
-              )}
-            </div>
+              : <p style={{ fontSize: 11, color: C.light, margin: 0 }}>Aucun contrat expirant bientôt</p>
+            }
+            {data.formalitesEnRetard > 0 && (
+              <div onClick={() => navigate('/pro/formalites')} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#fee2e2', borderRadius: 6, padding: '5px 9px', fontSize: 11, fontWeight: 600, color: C.red, cursor: 'pointer', marginTop: 6 }}>
+                <AlertTriangle size={11} /> {data.formalitesEnRetard} formalité{data.formalitesEnRetard > 1 ? 's' : ''} en retard
+              </div>
+            )}
           </Panel>
-
         </div>
       </div>
 
-      {/* ── Raccourcis modules ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 10, marginTop: 8 }}>
+      {/* ── Raccourcis ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 10 }}>
         {[
-          { label: 'Dépenses',     icon: TrendingDown, color: C.red,    route: '/pro/depenses'    },
-          { label: 'Recettes',     icon: TrendingUp,   color: C.green,  route: '/pro/recettes'    },
-          { label: 'Banque',       icon: CreditCard,   color: C.blue,   route: '/pro/banque'      },
-          { label: 'Pointages',    icon: Clock,        color: C.purple, route: '/pro/pointages'   },
-          { label: 'Mail Agent',   icon: Mail,         color: C.blue,   route: '/pro/mail-agent'  },
-          { label: 'Export FEC',   icon: FileText,     color: C.gold,   route: '/pro/exports'     },
+          { label: 'Dépenses',   icon: TrendingDown, color: C.red,    route: '/pro/depenses'   },
+          { label: 'Recettes',   icon: TrendingUp,   color: C.green,  route: '/pro/recettes'   },
+          { label: 'Banque',     icon: CreditCard,   color: C.blue,   route: '/pro/banque'     },
+          { label: 'Pointages',  icon: Clock,        color: C.purple, route: '/pro/pointages'  },
+          { label: 'Mail Agent', icon: Mail,         color: C.blue,   route: '/pro/mail-agent' },
+          { label: 'Export FEC', icon: FileText,     color: C.gold,   route: '/pro/exports'    },
         ].map(s => {
           const SIcon = s.icon;
           return (
-            <div key={s.label} onClick={() => navigate(s.route)} style={{
-              background: '#fff', border: `1px solid ${C.border}`, borderRadius: 12,
-              padding: '14px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-              cursor: 'pointer', transition: 'all 0.15s ease',
-            }}
+            <div key={s.label} onClick={() => navigate(s.route)} style={{ background: '#fff', border: `1px solid ${C.border}`, borderRadius: 12, padding: '14px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, cursor: 'pointer', transition: 'all 0.15s ease' }}
               onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.10)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
               onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'none'; }}
             >
