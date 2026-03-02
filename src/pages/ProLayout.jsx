@@ -46,7 +46,7 @@ const NAV = [
     label: 'Juridique',
     icon: FileCheck,
     color: '#D4A853',
-    active: false,
+    active: true,
     children: [
       { id: 'contrats',   label: 'Contrats',   icon: FileCheck,  color: '#D4A853', route: '/pro/contrats',   active: true },
       { id: 'formalites', label: 'Formalités', icon: AlertCircle,color: '#D4A853', route: '/pro/formalites', active: true },
