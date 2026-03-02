@@ -4,6 +4,11 @@ import RecettesPage from './pages/RecettesPage';
 import BanquePage from './pages/BanquePage';
 import ContratsPage from './pages/ContratsPage';
 import FormalitesPage from './pages/FormalitesPage';
+import EquipePro       from "./pages/EquipePro";
+import PointagesPro    from "./pages/PointagesPro";
+import FournisseursPro from "./pages/FournisseursPro";
+import ExportsFEC from './pages/ExportsFEC';
+import MailAgent from './pages/MailAgent';
 
 
 // Pages publiques
@@ -65,6 +70,10 @@ const router = createBrowserRouter([
       { path: 'banque', element: <BanquePage /> },
       { path: 'contrats', element: <ContratsPage /> },
       { path: 'formalites', element: <FormalitesPage /> },
+      { path: 'equipe',     element: <EquipePro /> },
+      { path: 'pointages',  element: <PointagesPro /> },
+      { path: 'fournisseurs', element: <FournisseursPro /> },
+      { path: 'exports', element: <ExportsFEC /> }
 
     ],
   },

@@ -8,6 +8,7 @@ import {
   FileCheck, AlertCircle, Mail,
   // Opérations
   Users, ShoppingCart, Download,
+  Clock,
   // Vigie Factures (existant)
   FileText,
 } from 'lucide-react';
@@ -49,7 +50,7 @@ const NAV = [
     children: [
       { id: 'contrats',   label: 'Contrats',   icon: FileCheck,  color: '#D4A853', route: '/pro/contrats',   active: true },
       { id: 'formalites', label: 'Formalités', icon: AlertCircle,color: '#D4A853', route: '/pro/formalites', active: true },
-      { id: 'mail-agent', label: 'Mail Agent', icon: Mail,       color: '#D4A853', route: '/pro/mail-agent', active: false },
+      { id: 'mail-agent', label: 'Mail Agent', icon: Mail,       color: '#D4A853', route: '/pro/mail-agent', active: true },
     ],
   },
   {
@@ -57,11 +58,12 @@ const NAV = [
     label: 'Opérations',
     icon: Users,
     color: '#A85BC7',
-    active: false,
+    active: true,
     children: [
-      { id: 'equipe',      label: 'Équipe',      icon: Users,       color: '#A85BC7', route: '/pro/equipe',      active: false },
-      { id: 'fournisseurs',label: 'Fournisseurs',icon: ShoppingCart,color: '#A85BC7', route: '/pro/fournisseurs',active: false },
-      { id: 'exports',     label: 'Exports',     icon: Download,    color: '#A85BC7', route: '/pro/exports',     active: false },
+      { id: 'equipe',      label: 'Équipe',      icon: Users,       color: '#A85BC7', route: '/pro/equipe',      active: true },
+      { id: 'pointages',    label: 'Pointages',    icon: Clock,        color: '#A85BC7', route: '/pro/pointages',   active: true  },
+      { id: 'fournisseurs',label: 'Fournisseurs',icon: ShoppingCart,color: '#A85BC7', route: '/pro/fournisseurs',active: true },
+      { id: 'exports',     label: 'Exports',     icon: Download,    color: '#A85BC7', route: '/pro/exports',     active: true },
     ],
   },
 ];
