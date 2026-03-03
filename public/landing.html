@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vigie Pro — Gestion administrative & pré-comptabilité</title>
+  <meta name="description" content="Vigie Pro centralise votre gestion administrative, vos finances et votre comptabilité en un seul outil. Conçu pour les entrepreneurs, TPE et PME françaises." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:   #5BA3C7;
+      --green:  #5BC78A;
+      --gold:   #D4A853;
+      --purple: #A85BC7;
+      --red:    #C75B4E;
+      --dark:   #0A0F1E;
+      --mid:    #111827;
+      --card:   #141C2E;
+      --border: rgba(255,255,255,0.08);
+      --text:   #E2E8F0;
+      --muted:  #64748B;
+      --light:  #94A3B8;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--dark);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── NAVBAR ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 5%;
+      height: 68px;
+      background: rgba(10,15,30,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      transition: all 0.3s ease;
+    }
+
+    .nav-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px; font-weight: 700;
+      color: #fff; letter-spacing: 0.02em;
+    }
+    .nav-logo span { color: var(--blue); font-style: italic; }
+
+    .nav-links { display: flex; gap: 36px; list-style: none; }
+    .nav-links a {
+      font-size: 14px; font-weight: 500; color: var(--light);
+      text-decoration: none; transition: color 0.2s;
+    }
+    .nav-links a:hover { color: #fff; }
+
+    .nav-cta {
+      display: flex; align-items: center; gap: 12px;
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 22px; border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer; text-decoration: none;
+      transition: all 0.2s ease; border: none;
+    }
+    .btn-ghost {
+      background: transparent; color: var(--light);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { color: #fff; border-color: rgba(255,255,255,0.2); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--blue), #3d7fa8);
+      color: #fff; box-shadow: 0 4px 20px rgba(91,163,199,0.3);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 28px rgba(91,163,199,0.45);
+    }
+
+    .btn-white {
+      background: #fff; color: var(--dark);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    .btn-white:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(0,0,0,0.4); }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      display: flex; align-items: center;
+      padding: 120px 5% 80px;
+      position: relative; overflow: hidden;
+    }
+
+    .hero-bg {
+      position: absolute; inset: 0; pointer-events: none;
+    }
+    .hero-orb {
+      position: absolute; border-radius: 50%;
+      filter: blur(120px); opacity: 0.12;
+    }
+    .hero-orb-1 { width: 600px; height: 600px; background: var(--blue); top: -100px; right: -100px; }
+    .hero-orb-2 { width: 400px; height: 400px; background: var(--green); bottom: -50px; left: 10%; }
+    .hero-orb-3 { width: 300px; height: 300px; background: var(--purple); top: 40%; left: 40%; opacity: 0.07; }
+
+    .hero-grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
+    }
+
+    .hero-content {
+      max-width: 1200px; margin: 0 auto; width: 100%;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 80px; align-items: center;
+      position: relative; z-index: 1;
+    }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(91,163,199,0.1);
+      border: 1px solid rgba(91,163,199,0.25);
+      border-radius: 20px; padding: 6px 16px;
+      margin-bottom: 24px;
+      animation: fadeUp 0.6s ease both;
+    }
+    .hero-badge-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2s infinite;
+    }
+    .hero-badge span {
+      font-size: 12px; font-weight: 600; color: var(--blue);
+      letter-spacing: 0.08em; text-transform: uppercase;
+    }
+
+    .hero-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(42px, 5vw, 64px);
+      font-weight: 700; line-height: 1.1;
+      color: #F8FAFC; margin-bottom: 20px;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+    .hero-title em { color: var(--blue); font-style: italic; }
+
+    .hero-sub {
+      font-size: 16px; color: var(--light);
+      line-height: 1.8; margin-bottom: 36px;
+      animation: fadeUp 0.6s 0.2s ease both;
+      max-width: 480px;
+    }
+
+    .hero-actions {
+      display: flex; gap: 14px; flex-wrap: wrap;
+      animation: fadeUp 0.6s 0.3s ease both;
+    }
+
+    .hero-stats {
+      display: flex; gap: 32px; margin-top: 48px;
+      animation: fadeUp 0.6s 0.4s ease both;
+    }
+    .hero-stat-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 32px; font-weight: 700; color: #fff;
+    }
+    .hero-stat-label { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    /* Dashboard mockup */
+    .hero-visual {
+      animation: fadeUp 0.8s 0.2s ease both;
+    }
+
+    .mockup {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
+    }
+
+    .mockup-bar {
+      background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .mockup-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+    .mockup-body { padding: 20px; }
+
+    .mockup-kpis {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px;
+    }
+
+    .mockup-kpi {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px; padding: 12px;
+    }
+    .mockup-kpi-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+    .mockup-kpi-val { font-size: 18px; font-weight: 700; }
+
+    .mockup-chart {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 10px; padding: 14px; height: 90px;
+      display: flex; align-items: flex-end; gap: 6px;
+    }
+    .mockup-bar-chart {
+      flex: 1; border-radius: 4px 4px 0 0;
+      transition: height 0.3s ease;
+    }
+
+    /* ── SECTION COMMUNE ── */
+    section { padding: 100px 5%; }
+
+    .section-inner { max-width: 1200px; margin: 0 auto; }
+
+    .section-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--blue);
+      margin-bottom: 14px; display: block;
+    }
+
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(32px, 4vw, 48px); font-weight: 700;
+      color: #F8FAFC; line-height: 1.2; margin-bottom: 16px;
+    }
+    .section-title em { color: var(--blue); font-style: italic; }
+
+    .section-sub {
+      font-size: 16px; color: var(--light); max-width: 560px; line-height: 1.8;
+    }
+
+    .section-header { margin-bottom: 60px; }
+    .section-header.center { text-align: center; }
+    .section-header.center .section-sub { margin: 0 auto; }
+
+    /* ── FEATURES ── */
+    #features { background: rgba(255,255,255,0.01); }
+
+    .features-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
+      background: var(--border); border-radius: 16px; overflow: hidden;
+    }
+
+    .feature-card {
+      background: var(--card); padding: 36px 32px;
+      transition: background 0.2s ease;
+      cursor: default;
+    }
+    .feature-card:hover { background: rgba(20,28,46,0.8); }
+
+    .feature-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 20px; font-size: 22px;
+    }
+
+    .feature-title {
+      font-size: 17px; font-weight: 700; color: #fff;
+      margin-bottom: 10px;
+    }
+
+    .feature-desc { font-size: 14px; color: var(--light); line-height: 1.7; }
+
+    .feature-tag {
+      display: inline-block; margin-top: 14px;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+      padding: 3px 10px; border-radius: 20px;
+    }
+
+    /* ── PILIERS ── */
+    #piliers { background: var(--dark); }
+
+    .piliers-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+    }
+
+    .pilier-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 32px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      position: relative; overflow: hidden;
+    }
+    .pilier-card::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+    }
+    .pilier-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+    }
+
+    .pilier-header {
+      display: flex; align-items: center; gap: 14px; margin-bottom: 20px;
+    }
+    .pilier-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center; font-size: 20px;
+    }
+    .pilier-name {
+      font-size: 18px; font-weight: 700; color: #fff;
+    }
+    .pilier-plan {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+      padding: 2px 8px; border-radius: 20px; margin-left: auto;
+    }
+
+    .pilier-modules { display: flex; flex-direction: column; gap: 8px; }
+    .pilier-module {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13px; color: var(--light);
+    }
+    .pilier-module::before {
+      content: ''; width: 5px; height: 5px; border-radius: 50%;
+      background: var(--muted); flex-shrink: 0;
+    }
+
+    /* ── PRICING ── */
+    #pricing { background: rgba(255,255,255,0.01); }
+
+    .pricing-toggle {
+      display: flex; align-items: center; justify-content: center;
+      gap: 14px; margin-bottom: 48px;
+    }
+    .pricing-toggle span { font-size: 14px; font-weight: 500; }
+    .toggle-track {
+      width: 48px; height: 26px; background: rgba(255,255,255,0.1);
+      border-radius: 13px; position: relative; cursor: pointer;
+      transition: background 0.2s;
+      border: 1px solid var(--border);
+    }
+    .toggle-track.active { background: var(--blue); }
+    .toggle-thumb {
+      position: absolute; top: 3px; left: 3px;
+      width: 18px; height: 18px; background: #fff;
+      border-radius: 50%; transition: transform 0.2s;
+    }
+    .toggle-track.active .toggle-thumb { transform: translateX(22px); }
+    .badge-annuel {
+      background: rgba(91,199,138,0.15); color: var(--green);
+      border: 1px solid rgba(91,199,138,0.3);
+      font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+    }
+
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    }
+
+    .pricing-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 36px 32px;
+      position: relative; overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .pricing-card:hover { transform: translateY(-6px); box-shadow: 0 30px 60px rgba(0,0,0,0.4); }
+
+    .pricing-card.featured {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 1px var(--blue), 0 20px 60px rgba(91,163,199,0.15);
+    }
+    .pricing-card.featured::before {
+      content: 'Le plus populaire';
+      position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      background: var(--blue); color: #fff;
+      font-size: 11px; font-weight: 700; padding: 4px 16px;
+      border-radius: 0 0 8px 8px; white-space: nowrap;
+    }
+
+    .pricing-plan { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+    .pricing-desc { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+
+    .pricing-price {
+      display: flex; align-items: flex-end; gap: 4px; margin-bottom: 6px;
+    }
+    .pricing-amount {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 52px; font-weight: 700; color: #fff; line-height: 1;
+    }
+    .pricing-currency { font-size: 22px; color: var(--light); margin-bottom: 8px; }
+    .pricing-period { font-size: 14px; color: var(--muted); margin-bottom: 4px; }
+    .pricing-annual { font-size: 12px; color: var(--green); min-height: 18px; margin-bottom: 28px; }
+
+    .pricing-divider { height: 1px; background: var(--border); margin-bottom: 24px; }
+
+    .pricing-features { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+    .pricing-feature {
+      display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--light);
+    }
+    .pricing-check { color: var(--green); font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+
+    .btn-plan {
+      width: 100%; padding: 13px;
+      border-radius: 10px; font-size: 14px; font-weight: 700;
+      cursor: pointer; border: none; font-family: 'DM Sans', sans-serif;
+      transition: all 0.2s ease;
+    }
+    .btn-plan-outline {
+      background: transparent; color: var(--light);
+      border: 1px solid var(--border);
+    }
+    .btn-plan-outline:hover { background: rgba(255,255,255,0.05); color: #fff; }
+    .btn-plan-primary {
+      background: linear-gradient(135deg, var(--blue), #3d7fa8);
+      color: #fff; box-shadow: 0 4px 20px rgba(91,163,199,0.3);
+    }
+    .btn-plan-primary:hover { box-shadow: 0 6px 28px rgba(91,163,199,0.5); transform: translateY(-1px); }
+
+    /* ── FAQ ── */
+    #faq { background: var(--dark); }
+
+    .faq-list { display: flex; flex-direction: column; gap: 2px; max-width: 760px; margin: 0 auto; }
+
+    .faq-item {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+    }
+
+    .faq-q {
+      width: 100%; display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 24px; background: none; border: none; cursor: pointer;
+      font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600;
+      color: #fff; text-align: left; gap: 16px;
+    }
+    .faq-q:hover { background: rgba(255,255,255,0.02); }
+
+    .faq-chevron {
+      width: 20px; height: 20px; flex-shrink: 0;
+      transition: transform 0.25s ease;
+      color: var(--muted);
+    }
+    .faq-item.open .faq-chevron { transform: rotate(180deg); }
+
+    .faq-a {
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+      font-size: 14px; color: var(--light); line-height: 1.8;
+      padding: 0 24px;
+    }
+    .faq-item.open .faq-a { max-height: 300px; padding: 0 24px 20px; }
+
+    /* ── CONTACT ── */
+    #contact { background: rgba(255,255,255,0.01); }
+
+    .contact-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start;
+    }
+
+    .contact-info h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 36px; font-weight: 700; color: #fff; margin-bottom: 16px;
+    }
+    .contact-info p { font-size: 15px; color: var(--light); line-height: 1.8; margin-bottom: 32px; }
+
+    .contact-items { display: flex; flex-direction: column; gap: 16px; }
+    .contact-item { display: flex; align-items: center; gap: 14px; }
+    .contact-item-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: rgba(91,163,199,0.12); border: 1px solid rgba(91,163,199,0.2);
+      display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;
+    }
+    .contact-item-text { font-size: 14px; color: var(--light); }
+    .contact-item-text strong { display: block; color: #fff; font-size: 13px; margin-bottom: 2px; }
+
+    .contact-form {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 36px;
+    }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+
+    label { font-size: 12px; font-weight: 600; color: var(--light); letter-spacing: 0.04em; }
+
+    input, select, textarea {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 8px; padding: 11px 14px;
+      font-family: 'DM Sans', sans-serif; font-size: 14px;
+      color: #fff; width: 100%;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+    input::placeholder, textarea::placeholder { color: var(--muted); }
+    input:focus, select:focus, textarea:focus { border-color: var(--blue); }
+    select option { background: var(--mid); }
+    textarea { resize: vertical; min-height: 110px; }
+
+    .form-submit {
+      width: 100%; margin-top: 8px;
+      background: linear-gradient(135deg, var(--blue), #3d7fa8);
+      color: #fff; padding: 14px;
+      border-radius: 10px; border: none; cursor: pointer;
+      font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700;
+      box-shadow: 0 4px 20px rgba(91,163,199,0.3);
+      transition: all 0.2s ease;
+    }
+    .form-submit:hover { box-shadow: 0 6px 28px rgba(91,163,199,0.5); transform: translateY(-1px); }
+    .form-submit:active { transform: translateY(0); }
+
+    /* ── CTA FINAL ── */
+    #cta {
+      padding: 100px 5%;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(91,163,199,0.08) 0%, rgba(10,15,30,0) 60%);
+    }
+
+    .cta-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(36px, 5vw, 60px); font-weight: 700;
+      color: #F8FAFC; margin-bottom: 20px; line-height: 1.15;
+    }
+    .cta-title em { color: var(--blue); font-style: italic; }
+    .cta-sub { font-size: 16px; color: var(--light); max-width: 500px; margin: 0 auto 40px; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 5%;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .footer-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px; font-weight: 700; color: var(--light);
+    }
+    .footer-logo span { color: var(--blue); font-style: italic; }
+    .footer-links { display: flex; gap: 28px; }
+    .footer-links a { font-size: 13px; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--light); }
+    .footer-copy { font-size: 12px; color: var(--muted); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    .reveal {
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .hero-content, .contact-grid { grid-template-columns: 1fr; }
+      .hero-visual { display: none; }
+      .pricing-grid { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto; }
+      .features-grid { grid-template-columns: 1fr; }
+      .piliers-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+      footer { flex-direction: column; gap: 16px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════ NAVBAR ══════════════════ -->
+<nav id="navbar">
+  <div class="nav-logo">Vigie<span>Pro</span></div>
+  <ul class="nav-links">
+    <li><a href="#features">Fonctionnalités</a></li>
+    <li><a href="#piliers">Modules</a></li>
+    <li><a href="#pricing">Tarifs</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <div class="nav-cta">
+    <a href="/login" class="btn btn-ghost">Se connecter</a>
+    <a href="/login" class="btn btn-primary">Commencer →</a>
+  </div>
+</nav>
+
+<!-- ══════════════════ HERO ══════════════════ -->
+<section id="hero">
+  <div class="hero-bg">
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div class="hero-orb hero-orb-3"></div>
+    <div class="hero-grid"></div>
+  </div>
+
+  <div class="hero-content">
+    <div>
+      <div class="hero-badge">
+        <div class="hero-badge-dot"></div>
+        <span>Plateforme française de pré-comptabilité</span>
+      </div>
+
+      <h1 class="hero-title">
+        Gérez votre entreprise.<br />
+        <em>Sans la complexité.</em>
+      </h1>
+
+      <p class="hero-sub">
+        Vigie Pro centralise votre gestion administrative, vos finances et votre comptabilité en un seul outil pensé pour les entrepreneurs, TPE et PME françaises. Fini les tableurs, les dossiers épars et les oublis.
+      </p>
+
+      <div class="hero-actions">
+        <a href="/login" class="btn btn-primary" style="font-size:15px; padding: 13px 28px;">
+          Démarrer maintenant →
+        </a>
+        <a href="#features" class="btn btn-ghost" style="font-size:15px; padding: 13px 28px;">
+          Découvrir les modules
+        </a>
+      </div>
+
+      <div class="hero-stats">
+        <div>
+          <div class="hero-stat-num">4</div>
+          <div class="hero-stat-label">Piliers fonctionnels</div>
+        </div>
+        <div style="width:1px; background: rgba(255,255,255,0.08);"></div>
+        <div>
+          <div class="hero-stat-num">12+</div>
+          <div class="hero-stat-label">Modules intégrés</div>
+        </div>
+        <div style="width:1px; background: rgba(255,255,255,0.08);"></div>
+        <div>
+          <div class="hero-stat-num">100%</div>
+          <div class="hero-stat-label">Données en France</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard mockup -->
+    <div class="hero-visual">
+      <div class="mockup">
+        <div class="mockup-bar">
+          <div class="mockup-dot" style="background:#ff5f57;"></div>
+          <div class="mockup-dot" style="background:#febc2e;"></div>
+          <div class="mockup-dot" style="background:#28c840;"></div>
+          <div style="flex:1; background:rgba(255,255,255,0.04); border-radius:4px; height:18px; margin-left:8px;"></div>
+        </div>
+        <div class="mockup-body">
+          <div style="font-size:11px; color:#64748B; margin-bottom:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em;">Tableau de bord — Mars 2026</div>
+          <div class="mockup-kpis">
+            <div class="mockup-kpi">
+              <div class="mockup-kpi-label">Recettes du mois</div>
+              <div class="mockup-kpi-val" style="color:#5BC78A;">18 450 €</div>
+            </div>
+            <div class="mockup-kpi">
+              <div class="mockup-kpi-label">Dépenses</div>
+              <div class="mockup-kpi-val" style="color:#C75B4E;">6 230 €</div>
+            </div>
+            <div class="mockup-kpi">
+              <div class="mockup-kpi-label">Solde</div>
+              <div class="mockup-kpi-val" style="color:#5BA3C7;">12 220 €</div>
+            </div>
+            <div class="mockup-kpi">
+              <div class="mockup-kpi-label">En attente</div>
+              <div class="mockup-kpi-val" style="color:#D4A853;">3 800 €</div>
+            </div>
+          </div>
+          <div class="mockup-chart">
+            <div class="mockup-bar-chart" style="height:40%; background:rgba(91,163,199,0.3);"></div>
+            <div class="mockup-bar-chart" style="height:65%; background:rgba(91,163,199,0.4);"></div>
+            <div class="mockup-bar-chart" style="height:50%; background:rgba(91,163,199,0.3);"></div>
+            <div class="mockup-bar-chart" style="height:80%; background:rgba(91,163,199,0.5);"></div>
+            <div class="mockup-bar-chart" style="height:55%; background:rgba(91,163,199,0.3);"></div>
+            <div class="mockup-bar-chart" style="height:90%; background:#5BA3C7;"></div>
+            <div class="mockup-bar-chart" style="height:70%; background:rgba(91,163,199,0.4);"></div>
+            <div class="mockup-bar-chart" style="height:45%; background:rgba(91,163,199,0.3);"></div>
+          </div>
+          <div style="display:flex; gap:8px; margin-top:10px;">
+            <div style="flex:1; background:rgba(199,91,78,0.12); border-radius:6px; padding:8px 10px; border:1px solid rgba(199,91,78,0.2);">
+              <div style="font-size:9px; color:#C75B4E; font-weight:700; margin-bottom:2px;">⚠ 2 FACTURES EN RETARD</div>
+              <div style="font-size:10px; color:#64748B;">Action requise</div>
+            </div>
+            <div style="flex:1; background:rgba(91,199,138,0.08); border-radius:6px; padding:8px 10px; border:1px solid rgba(91,199,138,0.15);">
+              <div style="font-size:9px; color:#5BC78A; font-weight:700; margin-bottom:2px;">✓ CONTRATS À JOUR</div>
+              <div style="font-size:10px; color:#64748B;">0 expiration proche</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ FEATURES ══════════════════ -->
+<section id="features">
+  <div class="section-inner">
+    <div class="section-header center reveal">
+      <span class="section-label">Pourquoi Vigie Pro</span>
+      <h2 class="section-title">Tout ce dont vous avez besoin,<br /><em>enfin réuni</em></h2>
+      <p class="section-sub">Une plateforme unique qui remplace les tableurs, les dossiers papier et les outils épars — conçue pour la réalité des entrepreneurs français.</p>
+    </div>
+
+    <div class="features-grid reveal">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(91,199,138,0.12);">💰</div>
+        <h3 class="feature-title">Trésorerie en temps réel</h3>
+        <p class="feature-desc">Recettes, dépenses, relevés bancaires et rapprochement automatique. Votre solde du mois à portée de regard, sans attendre votre comptable.</p>
+        <span class="feature-tag" style="background:rgba(91,199,138,0.12); color:#5BC78A;">Trésorerie</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(212,168,83,0.12);">⚖️</div>
+        <h3 class="feature-title">Zéro oubli juridique</h3>
+        <p class="feature-desc">Contrats avec alertes de préavis, formalités administratives avec rappels automatiques. Vos obligations légales sous contrôle.</p>
+        <span class="feature-tag" style="background:rgba(212,168,83,0.12); color:#D4A853;">Juridique</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(168,91,199,0.12);">👥</div>
+        <h3 class="feature-title">RH & Opérations</h3>
+        <p class="feature-desc">Fiches collaborateurs, pointages quotidiens, fournisseurs et exports FEC pour votre expert-comptable. La gestion opérationnelle simplifiée.</p>
+        <span class="feature-tag" style="background:rgba(168,91,199,0.12); color:#A85BC7;">Opérations</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(91,163,199,0.12);">✉️</div>
+        <h3 class="feature-title">Mail Agent IA</h3>
+        <p class="feature-desc">Rédigez vos relances, devis et communications professionnelles en quelques secondes. L'intelligence artificielle s'occupe de la rédaction.</p>
+        <span class="feature-tag" style="background:rgba(91,163,199,0.12); color:#5BA3C7;">Mail Agent</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(91,163,199,0.12);">📤</div>
+        <h3 class="feature-title">Import intelligent</h3>
+        <p class="feature-desc">Déposez un document — reçu, facture, relevé bancaire — Vigie Pro le classe automatiquement dans le bon module et en extrait les données.</p>
+        <span class="feature-tag" style="background:rgba(91,163,199,0.12); color:#5BA3C7;">Import</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(199,91,78,0.12);">📊</div>
+        <h3 class="feature-title">Export FEC légal</h3>
+        <p class="feature-desc">Générez votre Fichier des Écritures Comptables au format officiel (art. L.47 A LPF) pour le remettre à votre expert-comptable ou en cas de contrôle fiscal.</p>
+        <span class="feature-tag" style="background:rgba(199,91,78,0.12); color:#C75B4E;">Comptabilité</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ PILIERS ══════════════════ -->
+<section id="piliers">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <span class="section-label">Les 4 piliers</span>
+      <h2 class="section-title">Une architecture pensée<br /><em>pour votre quotidien</em></h2>
+      <p class="section-sub">Chaque pilier regroupe des modules complémentaires, accessibles selon votre plan.</p>
+    </div>
+
+    <div class="piliers-grid reveal">
+      <div class="pilier-card" style="border-top-color:var(--green);">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--green);"></div>
+        <div class="pilier-header">
+          <div class="pilier-icon" style="background:rgba(91,199,138,0.12);">💰</div>
+          <div class="pilier-name">Trésorerie</div>
+          <span class="pilier-plan" style="background:rgba(91,199,138,0.12);color:#5BC78A;">Pro & Entreprise</span>
+        </div>
+        <div class="pilier-modules">
+          <div class="pilier-module">Dépenses & Frais professionnels</div>
+          <div class="pilier-module">Recettes, Devis & Facturation</div>
+          <div class="pilier-module">Banque & Rapprochement bancaire</div>
+          <div class="pilier-module">Import justificatifs & relevés CSV</div>
+        </div>
+      </div>
+
+      <div class="pilier-card">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--gold);"></div>
+        <div class="pilier-header">
+          <div class="pilier-icon" style="background:rgba(212,168,83,0.12);">⚖️</div>
+          <div class="pilier-name">Juridique</div>
+          <span class="pilier-plan" style="background:rgba(212,168,83,0.12);color:#D4A853;">Pro & Entreprise</span>
+        </div>
+        <div class="pilier-modules">
+          <div class="pilier-module">Contrats & Assurances avec alertes préavis</div>
+          <div class="pilier-module">Formalités administratives & rappels</div>
+          <div class="pilier-module">Mail Agent IA (relances, devis, communications)</div>
+          <div class="pilier-module">Historique complet des envois</div>
+        </div>
+      </div>
+
+      <div class="pilier-card">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--purple);"></div>
+        <div class="pilier-header">
+          <div class="pilier-icon" style="background:rgba(168,91,199,0.12);">👥</div>
+          <div class="pilier-name">Opérations</div>
+          <span class="pilier-plan" style="background:rgba(168,91,199,0.12);color:#A85BC7;">Entreprise</span>
+        </div>
+        <div class="pilier-modules">
+          <div class="pilier-module">Équipe & Gestion RH complète</div>
+          <div class="pilier-module">Pointages & Suivi des présences</div>
+          <div class="pilier-module">Fournisseurs & Factures reçues</div>
+          <div class="pilier-module">Exports FEC (format légal fiscal)</div>
+        </div>
+      </div>
+
+      <div class="pilier-card">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--blue);"></div>
+        <div class="pilier-header">
+          <div class="pilier-icon" style="background:rgba(91,163,199,0.12);">📊</div>
+          <div class="pilier-name">Dashboard Central</div>
+          <span class="pilier-plan" style="background:rgba(91,163,199,0.12);color:#5BA3C7;">Tous les plans</span>
+        </div>
+        <div class="pilier-modules">
+          <div class="pilier-module">Vue consolidée de tous vos indicateurs</div>
+          <div class="pilier-module">Alertes intelligentes & rappels automatiques</div>
+          <div class="pilier-module">Raccourcis vers tous les modules actifs</div>
+          <div class="pilier-module">Import rapide de documents depuis l'accueil</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ PRICING ══════════════════ -->
+<section id="pricing">
+  <div class="section-inner">
+    <div class="section-header center reveal">
+      <span class="section-label">Tarifs</span>
+      <h2 class="section-title">Simple, transparent,<br /><em>sans surprise</em></h2>
+      <p class="section-sub">Choisissez le plan adapté à votre structure. Évoluez à tout moment.</p>
+    </div>
+
+    <div class="pricing-toggle reveal">
+      <span style="color: var(--light);" id="label-mensuel">Mensuel</span>
+      <div class="toggle-track" id="billing-toggle" onclick="toggleBilling()">
+        <div class="toggle-thumb"></div>
+      </div>
+      <span style="color: var(--light);" id="label-annuel">Annuel</span>
+      <span class="badge-annuel">2 mois offerts</span>
+    </div>
+
+    <div class="pricing-grid reveal">
+
+      <!-- STARTER -->
+      <div class="pricing-card">
+        <div class="pricing-plan" style="color:#5BC78A;">Starter</div>
+        <div class="pricing-desc">Pour les auto-entrepreneurs qui démarrent</div>
+        <div class="pricing-price">
+          <span class="pricing-currency">€</span>
+          <span class="pricing-amount" id="price-starter">19</span>
+        </div>
+        <div class="pricing-period">/ mois HT</div>
+        <div class="pricing-annual" id="annual-starter"></div>
+        <div class="pricing-divider"></div>
+        <div class="pricing-features">
+          <div class="pricing-feature"><span class="pricing-check">✓</span> Dépenses & Frais professionnels</div>
+          <div class="pricing-feature"><span class="pricing-check">✓</span> Upload de justificatifs</div>
+          <div class="pricing-feature"><span class="pricing-check">✓</span> Dashboard central</div>
+          <div class="pricing-feature"><span class="pricing-check">✓</span> Export CSV des dépenses</div>
+          <div class="pricing-feature"><span class="pricing-check">✓</span> Support par email</div>
+        </div>
+        <button class="btn-plan btn-plan-outline" onclick="window.location.href='/login'">Commencer →</button>
+      </div>
+
+      <!-- PRO -->
+      <div class="pricing-card featured">
+        <div class="pricing-plan" style="color:#5BA3C7; margin-top:18px;">Pro</div>
+        <div class="pricing-desc">Pour les entrepreneurs et TPE actives</div>
+        <div class="pricing-price">
+          <span class="pricing-currency">€</span>
+          <span class="pricing-amount" id="price-pro">39</span>
+        </div>
+        <div class="pricing-period">/ mois HT</div>
+        <div class="pricing-annual" id="annual-pro"></div>
+        <div class="pricing-divider"></div>
+        <div class="pricing-features">
+          <div class="pricing-feature"><span class="pricing-check">✓</span> Tout le plan Starter</div>
+          <div class="pricing-feature"><span class="pricing-check">✓</span> Recettes, Devis & Facturation</div>
+          <div class="pricing-feature"><span class="pricing-check">✓</span> Banque & Rapprochement bancaire</div>
+          <div class="pricing-feature"><span class="pricing-check">✓</span> Contrats & Formalités juridiques</div>
+          <div class="pricing-feature"><span class="pricing-check">✓</span> Mail Agent IA</div>
+          <div class="pricing-feature"><span class="pricing-check">✓</span> Support prioritaire</div>
+        </div>
+        <button class="btn-plan btn-plan-primary" onclick="window.location.href='/login'">Choisir Pro →</button>
+      </div>
+
+      <!-- ENTREPRISE -->
+      <div class="pricing-card">
+        <div class="pricing-plan" style="color:#A85BC7;">Entreprise</div>
+        <div class="pricing-desc">Pour les PME avec équipe et fournisseurs</div>
+        <div class="pricing-price">
+          <span class="pricing-currency">€</span>
+          <span class="pricing-amount" id="price-entreprise">79</span>
+        </div>
+        <div class="pricing-period">/ mois HT</div>
+        <div class="pricing-annual" id="annual-entreprise"></div>
+        <div class="pricing-divider"></div>
+        <div class="pricing-features">
+          <div class="pricing-feature"><span class="pricing-check">✓</span> Tout le plan Pro</div>
+          <div class="pricing-feature"><span class="pricing-check">✓</span> Équipe & Gestion RH</div>
+          <div class="pricing-feature"><span class="pricing-check">✓</span> Pointages & Présences</div>
+          <div class="pricing-feature"><span class="pricing-check">✓</span> Fournisseurs & Factures reçues</div>
+          <div class="pricing-feature"><span class="pricing-check">✓</span> Export FEC légal</div>
+          <div class="pricing-feature"><span class="pricing-check">✓</span> Support dédié + onboarding</div>
+        </div>
+        <button class="btn-plan btn-plan-outline" onclick="window.location.href='/login'">Choisir Entreprise →</button>
+      </div>
+
+    </div>
+
+    <p style="text-align:center; margin-top:24px; font-size:13px; color:var(--muted);">
+      Tous les prix sont HT · TVA 20% applicable · Résiliation à tout moment · Paiement sécurisé par Stripe
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════ FAQ ══════════════════ -->
+<section id="faq">
+  <div class="section-inner">
+    <div class="section-header center reveal">
+      <span class="section-label">FAQ</span>
+      <h2 class="section-title">Questions <em>fréquentes</em></h2>
+    </div>
+
+    <div class="faq-list reveal">
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Vigie Pro remplace-t-il mon expert-comptable ?
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="faq-a">Non. Vigie Pro est un outil de pré-comptabilité qui prépare et facilite le travail de votre expert-comptable. Il centralise vos données, génère des exports normalisés (FEC) et automatise les tâches répétitives — mais ne remplace pas le conseil et la validation d'un professionnel comptable.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Mes données sont-elles sécurisées et hébergées en France ?
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="faq-a">Oui. Vigie Pro utilise Supabase avec des serveurs hébergés en Europe (Frankfurt). Toutes les données sont chiffrées en transit et au repos. Chaque utilisateur n'accède qu'à ses propres données grâce au Row Level Security. La plateforme est conforme au RGPD.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Puis-je changer de plan à tout moment ?
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="faq-a">Oui, vous pouvez upgrader ou downgrader votre plan à tout moment depuis votre espace. Les changements sont effectifs immédiatement et la facturation est ajustée au prorata. Aucun engagement de durée minimum sur les plans mensuels.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Comment fonctionne l'import de documents ?
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="faq-a">Depuis le tableau de bord, glissez ou sélectionnez un fichier (PDF, JPG, PNG, CSV). Vigie Pro détecte automatiquement le type de document et vous propose de le classer dans le bon module — dépenses, fournisseurs ou banque. Vous confirmez en un clic.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Le Mail Agent accède-t-il à mes emails entrants ?
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="faq-a">Non. Le Mail Agent fonctionne en mode sortant uniquement. Il ne lit jamais votre boîte de réception et ne stocke pas les communications de vos clients. Il sert uniquement à rédiger et envoyer des emails professionnels depuis Vigie Pro, ce qui garantit votre conformité RGPD.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Le FEC généré est-il conforme à la réglementation française ?
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="faq-a">Le fichier FEC respecte le format défini par l'article L.47 A du Livre des Procédures Fiscales (séparateur pipe |, colonnes obligatoires, format de dates YYYYMMDD, nom de fichier normalisé). Il doit néanmoins être validé par votre expert-comptable avant remise à l'administration fiscale.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Est-il possible d'essayer Vigie Pro avant de s'abonner ?
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="faq-a">Oui. Contactez-nous via le formulaire ci-dessous pour obtenir un accès démo personnalisé. Un membre de l'équipe vous guidera à travers les fonctionnalités adaptées à votre situation.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ CONTACT ══════════════════ -->
+<section id="contact">
+  <div class="section-inner">
+    <div class="contact-grid">
+      <div class="contact-info reveal">
+        <span class="section-label">Contact</span>
+        <h3>Une question ?<br />Parlons-en.</h3>
+        <p>Notre équipe est disponible pour répondre à vos questions, vous accompagner dans votre choix de plan ou organiser une démonstration personnalisée.</p>
+
+        <div class="contact-items">
+          <div class="contact-item">
+            <div class="contact-item-icon">✉️</div>
+            <div class="contact-item-text">
+              <strong>Email</strong>
+              contact@vigiepro.fr
+            </div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-item-icon">⏱️</div>
+            <div class="contact-item-text">
+              <strong>Délai de réponse</strong>
+              Sous 24h ouvrées
+            </div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-item-icon">🇫🇷</div>
+            <div class="contact-item-text">
+              <strong>Support</strong>
+              En français, par des humains
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="contact-form reveal" id="contact-form-wrapper">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Prénom</label>
+            <input type="text" placeholder="Jean" id="f-prenom" />
+          </div>
+          <div class="form-group">
+            <label>Nom</label>
+            <input type="text" placeholder="Dupont" id="f-nom" />
+          </div>
+          <div class="form-group full">
+            <label>Email professionnel</label>
+            <input type="email" placeholder="jean@masociete.fr" id="f-email" />
+          </div>
+          <div class="form-group full">
+            <label>Vous êtes</label>
+            <select id="f-type">
+              <option value="">Sélectionnez...</option>
+              <option>Auto-entrepreneur</option>
+              <option>Dirigeant de TPE</option>
+              <option>Dirigeant de PME</option>
+              <option>Expert-comptable</option>
+              <option>Autre</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label>Message</label>
+            <textarea placeholder="Décrivez votre besoin, votre activité, ou posez votre question..." id="f-message"></textarea>
+          </div>
+        </div>
+        <button class="form-submit" onclick="submitForm()">Envoyer le message →</button>
+        <div id="form-success" style="display:none; margin-top:16px; background:rgba(91,199,138,0.12); border:1px solid rgba(91,199,138,0.25); border-radius:8px; padding:14px; font-size:13px; color:#5BC78A; text-align:center;">
+          ✓ Message envoyé ! Nous vous répondrons sous 24h ouvrées.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ CTA FINAL ══════════════════ -->
+<section id="cta">
+  <div class="section-inner" style="text-align:center;">
+    <div class="reveal">
+      <h2 class="cta-title">Prêt à reprendre<br /><em>le contrôle de votre gestion ?</em></h2>
+      <p class="cta-sub">Rejoignez les entrepreneurs qui ont choisi de simplifier leur administratif avec Vigie Pro.</p>
+      <div style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap;">
+        <a href="/login" class="btn btn-primary" style="font-size:16px; padding:15px 36px;">Commencer maintenant →</a>
+        <a href="#contact" class="btn btn-ghost" style="font-size:16px; padding:15px 36px;">Demander une démo</a>
+      </div>
+      <p style="margin-top:20px; font-size:13px; color:var(--muted);">Sans engagement · Résiliation en 1 clic · Support français inclus</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ FOOTER ══════════════════ -->
+<footer>
+  <div class="footer-logo">Vigie<span>Pro</span></div>
+  <div class="footer-links">
+    <a href="#features">Fonctionnalités</a>
+    <a href="#pricing">Tarifs</a>
+    <a href="#faq">FAQ</a>
+    <a href="#contact">Contact</a>
+    <a href="/mentions-legales">Mentions légales</a>
+    <a href="/confidentialite">Confidentialité</a>
+  </div>
+  <div class="footer-copy">© 2026 Vigie Pro · Tous droits réservés</div>
+</footer>
+
+<script>
+  // ── Toggle billing ──
+  let isAnnual = false;
+  const prices = { starter: 19, pro: 39, entreprise: 79 };
+
+  function toggleBilling() {
+    isAnnual = !isAnnual;
+    const toggle = document.getElementById('billing-toggle');
+    toggle.classList.toggle('active', isAnnual);
+
+    ['starter', 'pro', 'entreprise'].forEach(plan => {
+      const monthly = prices[plan];
+      const annual  = Math.round(monthly * 10 / 12);
+      const el      = document.getElementById(`price-${plan}`);
+      const annEl   = document.getElementById(`annual-${plan}`);
+      if (isAnnual) {
+        el.textContent = annual;
+        annEl.textContent = `soit ${monthly * 10} € / an (2 mois offerts)`;
+      } else {
+        el.textContent = monthly;
+        annEl.textContent = '';
+      }
+    });
+  }
+
+  // ── FAQ accordion ──
+  function toggleFaq(btn) {
+    const item = btn.closest('.faq-item');
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+  }
+
+  // ── Reveal on scroll ──
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // ── Navbar scroll ──
+  window.addEventListener('scroll', () => {
+    const nav = document.getElementById('navbar');
+    nav.style.background = window.scrollY > 60 ? 'rgba(10,15,30,0.97)' : 'rgba(10,15,30,0.85)';
+  });
+
+  // ── Form submit ──
+  function submitForm() {
+    const prenom  = document.getElementById('f-prenom').value;
+    const email   = document.getElementById('f-email').value;
+    const message = document.getElementById('f-message').value;
+    if (!prenom || !email || !message) {
+      alert('Merci de remplir au minimum votre prénom, email et message.');
+      return;
+    }
+    // Ici tu connecteras à ton backend ou Supabase pour envoyer le message
+    document.getElementById('form-success').style.display = 'block';
+    document.querySelector('.form-submit').style.display  = 'none';
+  }
+</script>
+
+</body>
+</html>

@@ -9,8 +9,7 @@ import PointagesPro    from "./pages/PointagesPro";
 import FournisseursPro from "./pages/FournisseursPro";
 import ExportsFEC from './pages/ExportsFEC';
 import MailAgent from './pages/MailAgent';
-
-
+import LandingPage from './pages/LandingPage';
 // Pages publiques
 import HomeHub    from './pages/HomeHub';
 import Login      from './pages/Login';
@@ -38,7 +37,8 @@ const router = createBrowserRouter([
   { path: '/signup',     element: <Signup /> },
   { path: '/pro/login',  element: <ProLogin /> },
   { path: '/pro/signup', element: <ProSignup /> },
-
+  { path: '/tarifs', element: <LandingPage /> },
+  
   // ═══ Espace Perso ═══
   {
     path: '/perso',

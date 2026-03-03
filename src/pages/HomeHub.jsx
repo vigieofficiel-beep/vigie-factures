@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { User, Briefcase } from 'lucide-react';
+import { User, Briefcase, ArrowRight } from 'lucide-react';
 import Footer from '../components/Footer';
 
 export default function HomeHub() {
@@ -12,7 +12,6 @@ export default function HomeHub() {
       fontFamily: "'Nunito Sans', sans-serif",
     }}>
 
-      {/* Contenu centré */}
       <div style={{
         flex: 1,
         display: 'flex',
@@ -76,44 +75,71 @@ export default function HomeHub() {
             </Link>
 
             {/* Carte Pro */}
-            <Link to="/pro" style={{ textDecoration: 'none' }}>
-              <div style={{
-                background: 'white', borderRadius: 20, padding: '40px 24px',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.06)', transition: 'all 0.3s ease',
-                cursor: 'pointer', border: '2px solid transparent',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-6px)';
-                e.currentTarget.style.boxShadow = '0 12px 40px rgba(91,163,199,0.15)';
-                e.currentTarget.style.borderColor = '#5BA3C7';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.06)';
-                e.currentTarget.style.borderColor = 'transparent';
-              }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <Link to="/pro" style={{ textDecoration: 'none' }}>
                 <div style={{
-                  width: 64, height: 64, borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #C5E8FF, #9CD4FF)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  margin: '0 auto 20px',
+                  background: 'white', borderRadius: 20, padding: '40px 24px',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.06)', transition: 'all 0.3s ease',
+                  cursor: 'pointer', border: '2px solid transparent',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.transform = 'translateY(-6px)';
+                  e.currentTarget.style.boxShadow = '0 12px 40px rgba(91,163,199,0.15)';
+                  e.currentTarget.style.borderColor = '#5BA3C7';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.06)';
+                  e.currentTarget.style.borderColor = 'transparent';
                 }}>
-                  <Briefcase size={28} color="#5BA3C7" strokeWidth={2.5} />
+                  <div style={{
+                    width: 64, height: 64, borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #C5E8FF, #9CD4FF)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    margin: '0 auto 20px',
+                  }}>
+                    <Briefcase size={28} color="#5BA3C7" strokeWidth={2.5} />
+                  </div>
+                  <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: 700, color: '#2C2416', marginBottom: 8 }}>
+                    Vigie Pro
+                  </h2>
+                  <p style={{ fontSize: 13, color: 'rgba(44,36,22,0.5)', lineHeight: 1.6 }}>
+                    Gestion entreprise, automatisation, veille, conformité
+                  </p>
                 </div>
-                <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: 700, color: '#2C2416', marginBottom: 8 }}>
-                  Vigie Pro
-                </h2>
-                <p style={{ fontSize: 13, color: 'rgba(44,36,22,0.5)', lineHeight: 1.6 }}>
-                  Gestion entreprise, automatisation, veille, conformité
-                </p>
-              </div>
-            </Link>
+              </Link>
+
+              {/* Lien tarifs */}
+              <Link to="/tarifs" style={{ textDecoration: 'none' }}>
+                <div style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  padding: '10px 16px', borderRadius: 10,
+                  background: 'rgba(91,163,199,0.08)',
+                  border: '1px solid rgba(91,163,199,0.2)',
+                  transition: 'all 0.2s ease',
+                  cursor: 'pointer',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = 'rgba(91,163,199,0.15)';
+                  e.currentTarget.style.borderColor = 'rgba(91,163,199,0.4)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'rgba(91,163,199,0.08)';
+                  e.currentTarget.style.borderColor = 'rgba(91,163,199,0.2)';
+                }}>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: '#5BA3C7' }}>
+                    Voir les fonctionnalités & tarifs
+                  </span>
+                  <ArrowRight size={14} color="#5BA3C7" />
+                </div>
+              </Link>
+            </div>
+
           </div>
         </div>
       </div>
 
-      {/* Footer light */}
-<Footer />  
-  </div>
+      <Footer />
+    </div>
   );
 }
