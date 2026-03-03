@@ -334,7 +334,7 @@ export default function LandingPage() {
                     </div>
                   ))}
                 </div>
-                <button onClick={() => window.location.href = '/login'} style={{ width: '100%', padding: 13, borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', border: p.featured ? 'none' : `1px solid ${C.border}`, background: p.featured ? 'linear-gradient(135deg,#5BA3C7,#3d7fa8)' : 'transparent', color: p.featured ? '#fff' : C.light, boxShadow: p.featured ? '0 4px 20px rgba(91,163,199,0.3)' : 'none', transition: 'all 0.2s' }}
+                <button onClick={() => window.location.href = '/pro/login'} style={{ width: '100%', padding: 13, borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', border: p.featured ? 'none' : `1px solid ${C.border}`, background: p.featured ? 'linear-gradient(135deg,#5BA3C7,#3d7fa8)' : 'transparent', color: p.featured ? '#fff' : C.light, boxShadow: p.featured ? '0 4px 20px rgba(91,163,199,0.3)' : 'none', transition: 'all 0.2s' }}
                   onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; }}
                   onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
                 >
@@ -446,7 +446,7 @@ export default function LandingPage() {
           </h2>
           <p style={{ fontSize: 16, color: C.light, maxWidth: 460, margin: '0 auto 40px', lineHeight: 1.8 }}>Rejoignez les entrepreneurs qui ont choisi de simplifier leur administratif avec Vigie Pro.</p>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a href="/prologin" style={{ padding: '15px 36px', borderRadius: 8, background: 'linear-gradient(135deg,#5BA3C7,#3d7fa8)', color: '#fff', fontSize: 16, fontWeight: 700, textDecoration: 'none', boxShadow: '0 4px 24px rgba(91,163,199,0.35)' }}>Commencer maintenant →</a>
+            <a href="/pro/login" style={{ padding: '15px 36px', borderRadius: 8, background: 'linear-gradient(135deg,#5BA3C7,#3d7fa8)', color: '#fff', fontSize: 16, fontWeight: 700, textDecoration: 'none', boxShadow: '0 4px 24px rgba(91,163,199,0.35)' }}>Commencer maintenant →</a>
             <button onClick={() => scrollTo('contact')} style={{ padding: '15px 36px', borderRadius: 8, border: `1px solid ${C.border}`, background: 'transparent', color: C.light, fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Demander une démo</button>
           </div>
           <p style={{ marginTop: 20, fontSize: 13, color: C.muted }}>Sans engagement · Résiliation en 1 clic · Support français inclus</p>

@@ -39,9 +39,10 @@ export default function Footer() {
           </h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {[
-              { label: 'Accueil', to: '/' },
+              { label: 'Accueil',     to: '/'      },
               { label: 'Vigie Perso', to: '/perso' },
-              { label: 'Vigie Pro', to: '/pro' },
+              { label: 'Vigie Pro',   to: '/pro'   },
+              { label: 'Tarifs',      to: '/tarifs' },
             ].map(link => (
               <Link
                 key={link.to} to={link.to}
@@ -64,15 +65,19 @@ export default function Footer() {
             Légal
           </h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {['Mentions légales', 'Confidentialité', 'CGU'].map(item => (
-              <span
-                key={item}
-                style={{ fontSize: 14, color: '#BDBABB', cursor: 'default', transition: 'color 150ms ease' }}
-                onMouseEnter={e => e.currentTarget.style.color = '#D8D5CF'}
+            {[
+              { label: 'Mentions légales',  to: '/mentions-legales' },
+              { label: 'Confidentialité',   to: '/confidentialite'  },
+              { label: 'CGU',               to: '/mentions-legales' },
+            ].map(link => (
+              <Link
+                key={link.label} to={link.to}
+                style={{ fontSize: 14, color: '#BDBABB', textDecoration: 'none', transition: 'color 150ms ease' }}
+                onMouseEnter={e => e.currentTarget.style.color = '#D4A853'}
                 onMouseLeave={e => e.currentTarget.style.color = '#BDBABB'}
               >
-                {item}
-              </span>
+                {link.label}
+              </Link>
             ))}
           </div>
         </div>
@@ -86,8 +91,22 @@ export default function Footer() {
             Contact
           </h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <span style={{ fontSize: 14, color: '#BDBABB' }}>support@vigie.app</span>
-            <span style={{ fontSize: 14, color: '#BDBABB' }}>FAQ</span>
+            <a
+              href="mailto:contact@vigiepro.fr"
+              style={{ fontSize: 14, color: '#BDBABB', textDecoration: 'none', transition: 'color 150ms ease' }}
+              onMouseEnter={e => e.currentTarget.style.color = '#D4A853'}
+              onMouseLeave={e => e.currentTarget.style.color = '#BDBABB'}
+            >
+              contact@vigiepro.fr
+            </a>
+            <Link
+              to="/tarifs#faq"
+              style={{ fontSize: 14, color: '#BDBABB', textDecoration: 'none', transition: 'color 150ms ease' }}
+              onMouseEnter={e => e.currentTarget.style.color = '#D4A853'}
+              onMouseLeave={e => e.currentTarget.style.color = '#BDBABB'}
+            >
+              FAQ
+            </Link>
           </div>
         </div>
 

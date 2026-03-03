@@ -10,6 +10,9 @@ import FournisseursPro from "./pages/FournisseursPro";
 import ExportsFEC from './pages/ExportsFEC';
 import MailAgent from './pages/MailAgent';
 import LandingPage from './pages/LandingPage';
+import MentionsLegales from './pages/MentionsLegales';
+import Confidentialite from './pages/Confidentialite';
+
 // Pages publiques
 import HomeHub    from './pages/HomeHub';
 import Login      from './pages/Login';
@@ -38,6 +41,8 @@ const router = createBrowserRouter([
   { path: '/pro/login',  element: <ProLogin /> },
   { path: '/pro/signup', element: <ProSignup /> },
   { path: '/tarifs', element: <LandingPage /> },
+  { path: '/mentions-legales', element: <MentionsLegales /> },
+  { path: '/confidentialite',  element: <Confidentialite /> },
   
   // ═══ Espace Perso ═══
   {
