@@ -12,6 +12,7 @@ import MailAgent from './pages/MailAgent';
 import LandingPage from './pages/LandingPage';
 import MentionsLegales from './pages/MentionsLegales';
 import Confidentialite from './pages/Confidentialite';
+import NotFound from './pages/NotFound';
 
 // Pages publiques
 import HomeHub    from './pages/HomeHub';
@@ -79,6 +80,7 @@ const router = createBrowserRouter([
       { path: 'pointages',  element: <PointagesPro /> },
       { path: 'fournisseurs', element: <FournisseursPro /> },
       { path: 'exports', element: <ExportsFEC /> }
+      { path: '*', element: <NotFound /> }
 
     ],
   },
