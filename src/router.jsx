@@ -79,7 +79,7 @@ const router = createBrowserRouter([
       { path: 'equipe',     element: <EquipePro /> },
       { path: 'pointages',  element: <PointagesPro /> },
       { path: 'fournisseurs', element: <FournisseursPro /> },
-      { path: 'exports', element: <ExportsFEC /> }
+      { path: 'exports', element: <ExportsFEC /> },
       { path: '*', element: <NotFound /> }
 
     ],

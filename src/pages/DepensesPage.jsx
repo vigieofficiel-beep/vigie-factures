@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabasePro } from '../lib/supabasePro';
-import { Upload, Plus, Trash2, FileText, Car, Coffee, Hotel, Package, AlertTriangle, CheckCircle, Loader, Download } from 'lucide-react';
+import { Upload, Plus, Trash2, FileText, Car, Coffee, Hotel, Package, AlertTriangle, CheckCircle, Loader, Download, Scan } from 'lucide-react';
 
 const ACCENT = '#5BC78A';
 
@@ -13,7 +13,16 @@ const TYPES = [
   { id: 'autre',        label: 'Autre',          icon: FileText, color: '#9AA0AE' },
 ];
 
-const TAUX_KM = 0.529; // Barème 2024
+const TYPE_MAP = {
+  'Services': 'autre',
+  'Transport': 'transport',
+  'Alimentation': 'restauration',
+  'Logement': 'logement',
+  'Fournitures': 'fournitures',
+  'Autre': 'autre',
+};
+
+const TAUX_KM = 0.529;
 
 const formatEuro = (n) =>
   n == null ? '—' : new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n);
@@ -21,7 +30,6 @@ const formatEuro = (n) =>
 const formatDate = (d) =>
   d ? new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 
-/* ── Composant type badge ── */
 function TypeBadge({ type }) {
   const t = TYPES.find(x => x.id === type) || TYPES[4];
   const Icon = t.icon;
@@ -48,12 +56,70 @@ function AddExpenseForm({ onSave, onCancel }) {
     km: '',
     notes: '',
   });
-  const [file, setFile]       = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState('');
+  const [file, setFile]         = useState(null);
+  const [loading, setLoading]   = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const [ocrSuccess, setOcrSuccess] = useState(false);
+  const [error, setError]       = useState('');
   const fileRef = useRef();
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
+
+  /* ── OCR : scan de la facture ── */
+  const handleScan = async (selectedFile) => {
+    if (!selectedFile) return;
+    setScanning(true);
+    setOcrSuccess(false);
+    setError('');
+
+    try {
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(selectedFile);
+      });
+
+      const mimeType = selectedFile.type || 'application/pdf';
+
+      const res = await fetch('/api/ocr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileBase64: base64, mimeType }),
+      });
+
+      if (!res.ok) throw new Error('Erreur serveur OCR');
+      const data = await res.json();
+
+      // Remplissage automatique du formulaire
+      setForm(f => ({
+        ...f,
+        date: data.date
+          ? (() => {
+              const parts = data.date.split('/');
+              if (parts.length === 3) return `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+              return f.date;
+            })()
+          : f.date,
+        amount_ttc: data.montant_ttc ?? f.amount_ttc,
+        etablissement: data.fournisseur ?? f.etablissement,
+        notes: data.description ?? f.notes,
+        type: TYPE_MAP[data.categorie] ?? f.type,
+      }));
+
+      setOcrSuccess(true);
+    } catch (err) {
+      setError('Impossible de scanner la facture. Vérifiez votre connexion.');
+    } finally {
+      setScanning(false);
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const f = e.target.files[0] || null;
+    setFile(f);
+    if (f) handleScan(f);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -67,7 +133,6 @@ function AddExpenseForm({ onSave, onCancel }) {
       let file_url = null;
       let storage_path = null;
 
-      // Upload fichier si fourni
       if (file) {
         const ext  = file.name.split('.').pop();
         const path = `frais/${user.id}/${Date.now()}.${ext}`;
@@ -80,7 +145,6 @@ function AddExpenseForm({ onSave, onCancel }) {
         storage_path = path;
       }
 
-      // Calcul indemnité km
       const km = form.type === 'transport' && form.km ? parseFloat(form.km) : null;
       const indemnite_km = km ? parseFloat((km * TAUX_KM).toFixed(2)) : null;
 
@@ -121,6 +185,45 @@ function AddExpenseForm({ onSave, onCancel }) {
       <h3 style={{ fontSize: 15, fontWeight: 700, color: '#1A1C20', marginBottom: 20 }}>
         Ajouter un frais
       </h3>
+
+      {/* Zone upload + scan IA */}
+      <div style={{ marginBottom: 20 }}>
+        <label style={labelStyle}>Justificatif (photo ou PDF)</label>
+        <div
+          onClick={() => fileRef.current?.click()}
+          style={{
+            border: `2px dashed ${ocrSuccess ? ACCENT : file ? '#D4A853' : '#E8EAF0'}`,
+            borderRadius: 10, padding: '18px', textAlign: 'center', cursor: 'pointer',
+            background: ocrSuccess ? `${ACCENT}08` : file ? '#FFF9F0' : '#F8F9FB',
+            transition: 'all 200ms ease', position: 'relative',
+          }}
+        >
+          <input ref={fileRef} type="file" accept=".pdf,.png,.jpg,.jpeg" style={{ display: 'none' }}
+            onChange={handleFileChange} />
+
+          {scanning ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              <Loader size={16} color={ACCENT} style={{ animation: 'spin 1s linear infinite' }} />
+              <span style={{ fontSize: 13, color: ACCENT, fontWeight: 600 }}>Analyse IA en cours...</span>
+            </div>
+          ) : ocrSuccess ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              <CheckCircle size={16} color={ACCENT} />
+              <span style={{ fontSize: 13, color: ACCENT, fontWeight: 600 }}>✓ Formulaire rempli automatiquement — {file?.name}</span>
+            </div>
+          ) : file ? (
+            <span style={{ fontSize: 12, color: '#D4A853', fontWeight: 600 }}>📄 {file.name}</span>
+          ) : (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 4 }}>
+                <Scan size={16} color={ACCENT} />
+                <span style={{ fontSize: 13, color: ACCENT, fontWeight: 700 }}>Scanner avec l'IA</span>
+              </div>
+              <span style={{ fontSize: 11, color: '#9AA0AE' }}>Uploadez une facture PDF ou photo — les champs se rempliront automatiquement</span>
+            </div>
+          )}
+        </div>
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
         <div>
@@ -165,7 +268,6 @@ function AddExpenseForm({ onSave, onCancel }) {
         <input type="text" value={form.etablissement} onChange={set('etablissement')} placeholder="ex: Restaurant Le Bistrot" style={inputStyle} />
       </div>
 
-      {/* Champ km si transport */}
       {form.type === 'transport' && (
         <div style={{ marginBottom: 14, background: 'rgba(91,163,199,0.06)', border: '1px solid rgba(91,163,199,0.2)', borderRadius: 10, padding: '12px 14px' }}>
           <label style={{ ...labelStyle, color: '#5BA3C7' }}>Kilométrage (optionnel)</label>
@@ -179,29 +281,8 @@ function AddExpenseForm({ onSave, onCancel }) {
       )}
 
       <div style={{ marginBottom: 14 }}>
-        <label style={labelStyle}>Notes</label>
+        <label style={labelStyle}>Notes / Description</label>
         <input type="text" value={form.notes} onChange={set('notes')} placeholder="Commentaire optionnel" style={inputStyle} />
-      </div>
-
-      {/* Upload justificatif */}
-      <div style={{ marginBottom: 20 }}>
-        <label style={labelStyle}>Justificatif (photo ou PDF)</label>
-        <div
-          onClick={() => fileRef.current?.click()}
-          style={{
-            border: `2px dashed ${file ? ACCENT : '#E8EAF0'}`,
-            borderRadius: 10, padding: '16px', textAlign: 'center', cursor: 'pointer',
-            background: file ? `${ACCENT}08` : '#F8F9FB', transition: 'all 200ms ease',
-          }}
-        >
-          <input ref={fileRef} type="file" accept=".pdf,.png,.jpg,.jpeg" style={{ display: 'none' }}
-            onChange={e => setFile(e.target.files[0] || null)} />
-          {file ? (
-            <span style={{ fontSize: 12, color: ACCENT, fontWeight: 600 }}>✓ {file.name}</span>
-          ) : (
-            <span style={{ fontSize: 12, color: '#9AA0AE' }}>Cliquez pour ajouter un justificatif</span>
-          )}
-        </div>
       </div>
 
       {error && (
@@ -282,7 +363,6 @@ export default function DepensesPage() {
   return (
     <div style={{ fontFamily: "'Nunito Sans', sans-serif", padding: '32px 28px', maxWidth: 900, margin: '0 auto' }}>
 
-      {/* En-tête */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 600, color: '#1A1C20', margin: 0 }}>
@@ -310,7 +390,6 @@ export default function DepensesPage() {
         </div>
       </div>
 
-      {/* Formulaire */}
       {showForm && (
         <AddExpenseForm
           onSave={() => { setShowForm(false); fetchExpenses(); }}
@@ -318,7 +397,6 @@ export default function DepensesPage() {
         />
       )}
 
-      {/* Stats rapides */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14, marginBottom: 24 }}>
         {[
           { label: 'Total frais', value: formatEuro(totalFiltered), color: ACCENT },
@@ -332,7 +410,6 @@ export default function DepensesPage() {
         ))}
       </div>
 
-      {/* Filtres par type */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap' }}>
         {[{ id: 'tous', label: 'Tous' }, ...TYPES].map(t => (
           <button
@@ -350,7 +427,6 @@ export default function DepensesPage() {
         ))}
       </div>
 
-      {/* Liste des frais */}
       <div style={{ background: '#fff', border: '1px solid #E8EAF0', borderRadius: 14, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
         {loading ? (
           <div style={{ padding: 40, textAlign: 'center', color: '#9AA0AE', fontSize: 13 }}>Chargement...</div>
