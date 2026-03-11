@@ -85,7 +85,7 @@ function AddExpenseForm({ onSave, onCancel }) {
       const res = await fetch('/api/ocr', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileBase64: base64, mimeType }),
+    body: JSON.stringify({ fileBase64: base64, mimeType, fileName: selectedFile.name }),
       });
 
       if (!res.ok) throw new Error('Erreur serveur OCR');
