@@ -6,19 +6,16 @@ export default async function handler(req, res) {
   try {
     const { fileBase64, mimeType } = req.body;
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
     const isImage = mimeType.startsWith("image/");
 
     const content = isImage
       ? [
           { type: "image", source: { type: "base64", media_type: mimeType, data: fileBase64 } },
-          { type: "text", text: `Analyse cette facture et extrait en JSON uniquement sans texte autour :
-{"date":"JJ/MM/AAAA","numero_facture":"","fournisseur":"","montant_ht":0,"tva":0,"montant_ttc":0,"categorie":"Fournitures|Transport|Services|Alimentation|Logement|Autre","description":""}` }
+          { type: "text", text: `Analyse cette facture et extrait en JSON uniquement sans texte autour : {"date":"JJ/MM/AAAA","numero_facture":"","fournisseur":"","montant_ht":0,"tva":0,"montant_ttc":0,"categorie":"Fournitures|Transport|Services|Alimentation|Logement|Autre","description":""}` }
         ]
       : [
           { type: "document", source: { type: "base64", media_type: "application/pdf", data: fileBase64 } },
-          { type: "text", text: `Analyse cette facture et extrait en JSON uniquement sans texte autour :
-{"date":"JJ/MM/AAAA","numero_facture":"","fournisseur":"","montant_ht":0,"tva":0,"montant_ttc":0,"categorie":"Fournitures|Transport|Services|Alimentation|Logement|Autre","description":""}` }
+          { type: "text", text: `Analyse cette facture et extrait en JSON uniquement sans texte autour : {"date":"JJ/MM/AAAA","numero_facture":"","fournisseur":"","montant_ht":0,"tva":0,"montant_ttc":0,"categorie":"Fournitures|Transport|Services|Alimentation|Logement|Autre","description":""}` }
         ];
 
     const response = await client.messages.create({
