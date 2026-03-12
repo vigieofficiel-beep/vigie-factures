@@ -66,19 +66,76 @@ function AddExpenseForm({ onSave, onCancel }) {
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
   /* ── OCR : scan de la facture ── */
-  const handleScan = async (selectedFile) => {
-    if (!selectedFile) return;
-    setScanning(true);
-    setOcrSuccess(false);
-    setError('');
+ const handleScan = async (selectedFile) => {
+  if (!selectedFile) return;
+  setScanning(true);
+  setOcrSuccess(false);
+  setError('');
 
-    try {
-      const base64 = await new Promise((resolve, reject) => {
+  try {
+    let base64;
+    let mimeType;
+
+    if (selectedFile.type === 'application/pdf') {
+      // Convertir la 1ère page du PDF en image PNG via pdfjs-dist
+      const pdfjsLib = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs');
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs';
+
+      const arrayBuffer = await selectedFile.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const page = await pdf.getPage(1);
+      const viewport = page.getViewport({ scale: 2.0 });
+
+      const canvas = document.createElement('canvas');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+
+      base64 = canvas.toDataURL('image/png').split(',')[1];
+      mimeType = 'image/png';
+    } else {
+      // Image directe
+      base64 = await new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result.split(',')[1]);
         reader.onerror = reject;
         reader.readAsDataURL(selectedFile);
       });
+      mimeType = selectedFile.type;
+    }
+
+    const res = await fetch('/api/ocr', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fileBase64: base64, mimeType, fileName: selectedFile.name }),
+    });
+
+    if (!res.ok) throw new Error('Erreur serveur OCR');
+    const data = await res.json();
+
+    setForm(f => ({
+      ...f,
+      date: data.date
+        ? (() => {
+            const parts = data.date.split('/');
+            if (parts.length === 3) return `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+            return f.date;
+          })()
+        : f.date,
+      amount_ttc: data.montant_ttc ?? f.amount_ttc,
+      etablissement: data.fournisseur ?? f.etablissement,
+      notes: data.description ?? f.notes,
+      type: TYPE_MAP[data.categorie] ?? f.type,
+    }));
+
+    setOcrSuccess(true);
+  } catch (err) {
+    console.error(err);
+    setError('Impossible de scanner la facture. Vérifiez votre connexion.');
+  } finally {
+    setScanning(false);
+  }
+};
 
       const mimeType = selectedFile.type || 'application/pdf';
 
