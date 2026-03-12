@@ -6,10 +6,9 @@ import {
   FileText, Bell, CreditCard, Users, ShoppingCart,
   FileCheck, Mail, BarChart2, ArrowRight, Wallet,
   Upload, Receipt, Building2, Landmark, X, CheckCheck,
-  Zap, Shield, Brain,
+  Zap, Shield, Brain, AlertOctagon, ChevronDown, ChevronUp,
 } from 'lucide-react';
 
-// ─── Couleurs ─────────────────────────────────────────────────────────
 const C = {
   blue:   '#5BA3C7',
   green:  '#5BC78A',
@@ -24,7 +23,6 @@ const C = {
   bg:     '#F8FAFC',
 };
 
-// ─── Helpers ──────────────────────────────────────────────────────────
 const euro = (n) => n == null ? '—' : new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n);
 const fdate = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '—';
 const daysUntil = (d) => { if (!d) return null; return Math.ceil((new Date(d) - new Date()) / 86400000); };
@@ -36,7 +34,145 @@ const moisCourant = () => {
   };
 };
 
-// ─── Textes rotatifs dynamiques ───────────────────────────────────────
+// ── Détection d'anomalies (code pur, sans IA) ─────────────────────────
+function detecterAnomalies(expenses) {
+  const anomalies = [];
+  if (!expenses || expenses.length === 0) return anomalies;
+
+  // 1. Doublons (même montant + même fournisseur + même date)
+  const seen = {};
+  expenses.forEach((e, i) => {
+    const key = `${e.etablissement?.toLowerCase().trim()}_${e.amount_ttc}_${e.date}`;
+    if (e.etablissement && e.amount_ttc && e.date) {
+      if (seen[key] !== undefined) {
+        anomalies.push({
+          type: 'doublon',
+          severity: 'high',
+          message: `Doublon possible : ${e.etablissement} — ${euro(e.amount_ttc)} le ${fdate(e.date)}`,
+          route: '/pro/depenses',
+        });
+      } else {
+        seen[key] = i;
+      }
+    }
+  });
+
+  // 2. Montant inhabituel (> 3x la moyenne)
+  const montants = expenses.map(e => Number(e.amount_ttc || 0)).filter(m => m > 0);
+  if (montants.length >= 3) {
+    const moyenne = montants.reduce((s, m) => s + m, 0) / montants.length;
+    expenses.forEach(e => {
+      const m = Number(e.amount_ttc || 0);
+      if (m > moyenne * 3 && m > 100) {
+        anomalies.push({
+          type: 'montant',
+          severity: 'medium',
+          message: `Dépense inhabituelle : ${e.etablissement || 'Inconnu'} — ${euro(m)} (moyenne : ${euro(Math.round(moyenne))})`,
+          route: '/pro/depenses',
+        });
+      }
+    });
+  }
+
+  // 3. TVA incorrecte (taux non standard en France)
+  const tauxValides = [0, 2.1, 5.5, 10, 20];
+  expenses.forEach(e => {
+    const tva = Number(e.taux_tva);
+    if (e.taux_tva != null && !tauxValides.includes(tva)) {
+      anomalies.push({
+        type: 'tva',
+        severity: 'medium',
+        message: `TVA suspecte : ${tva}% chez ${e.etablissement || 'Inconnu'} — taux non standard`,
+        route: '/pro/depenses',
+      });
+    }
+  });
+
+  // 4. Fournisseur inconnu (fournisseur vide sur montant élevé)
+  expenses.forEach(e => {
+    const m = Number(e.amount_ttc || 0);
+    if ((!e.etablissement || e.etablissement.trim() === '') && m > 50) {
+      anomalies.push({
+        type: 'fournisseur',
+        severity: 'low',
+        message: `Fournisseur manquant pour une dépense de ${euro(m)} le ${fdate(e.date)}`,
+        route: '/pro/depenses',
+      });
+    }
+  });
+
+  // Dédoublonner et limiter à 5
+  const uniques = anomalies.filter((a, i, arr) => arr.findIndex(b => b.message === a.message) === i);
+  return uniques.slice(0, 5);
+}
+
+// ── Bandeau anomalies ─────────────────────────────────────────────────
+function AnomaliesPanel({ anomalies, navigate }) {
+  const [open, setOpen] = useState(true);
+  if (!anomalies || anomalies.length === 0) return null;
+
+  const severityColor = { high: C.red, medium: C.gold, low: C.blue };
+  const severityLabel = { high: 'Critique', medium: 'Attention', low: 'Info' };
+
+  return (
+    <div style={{
+      background: '#fff', border: `1.5px solid rgba(199,91,78,0.3)`,
+      borderRadius: 14, marginBottom: 20, overflow: 'hidden',
+      boxShadow: '0 2px 12px rgba(199,91,78,0.08)',
+    }}>
+      {/* Header */}
+      <div
+        onClick={() => setOpen(o => !o)}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '14px 18px', cursor: 'pointer',
+          background: 'rgba(199,91,78,0.04)',
+          borderBottom: open ? `1px solid rgba(199,91,78,0.15)` : 'none',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(199,91,78,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <AlertOctagon size={14} color={C.red} />
+          </div>
+          <span style={{ fontSize: 12, fontWeight: 700, color: C.dark, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            Anomalies détectées
+          </span>
+          <span style={{ fontSize: 11, fontWeight: 700, background: C.red, color: '#fff', borderRadius: 20, padding: '1px 8px' }}>
+            {anomalies.length}
+          </span>
+        </div>
+        {open ? <ChevronUp size={14} color={C.light} /> : <ChevronDown size={14} color={C.light} />}
+      </div>
+
+      {/* Liste */}
+      {open && (
+        <div style={{ padding: '12px 18px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {anomalies.map((a, i) => (
+            <div
+              key={i}
+              onClick={() => a.route && navigate(a.route)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '10px 12px', borderRadius: 9,
+                background: `${severityColor[a.severity]}08`,
+                border: `1px solid ${severityColor[a.severity]}25`,
+                cursor: a.route ? 'pointer' : 'default',
+              }}
+            >
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: severityColor[a.severity], flexShrink: 0 }} />
+              <span style={{ fontSize: 12, color: C.dark, flex: 1, lineHeight: 1.4 }}>{a.message}</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: severityColor[a.severity], background: `${severityColor[a.severity]}15`, borderRadius: 4, padding: '2px 7px', flexShrink: 0 }}>
+                {severityLabel[a.severity]}
+              </span>
+              {a.route && <ArrowRight size={12} color={C.light} />}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const PHRASES = [
   "Vos documents transformés en données exploitables en quelques secondes.",
   "Chaque reçu uploadé, c'est une saisie manuelle évitée.",
@@ -48,30 +184,20 @@ const PHRASES = [
 function RotatingText() {
   const [idx, setIdx] = useState(0);
   const [visible, setVisible] = useState(true);
-
   useEffect(() => {
     const interval = setInterval(() => {
       setVisible(false);
-      setTimeout(() => {
-        setIdx(i => (i + 1) % PHRASES.length);
-        setVisible(true);
-      }, 400);
+      setTimeout(() => { setIdx(i => (i + 1) % PHRASES.length); setVisible(true); }, 400);
     }, 3500);
     return () => clearInterval(interval);
   }, []);
-
   return (
-    <p style={{
-      fontSize: 13, color: '#94A3B8', lineHeight: 1.7, margin: '0 0 20px',
-      minHeight: 44, transition: 'opacity 0.4s ease',
-      opacity: visible ? 1 : 0,
-    }}>
+    <p style={{ fontSize: 13, color: '#94A3B8', lineHeight: 1.7, margin: '0 0 20px', minHeight: 44, transition: 'opacity 0.4s ease', opacity: visible ? 1 : 0 }}>
       {PHRASES[idx]}
     </p>
   );
 }
 
-// ─── Zone Hero Upload ─────────────────────────────────────────────────
 function HeroUpload({ navigate }) {
   const [dragging, setDragging]   = useState(false);
   const [uploaded, setUploaded]   = useState(null);
@@ -80,33 +206,9 @@ function HeroUpload({ navigate }) {
   const fileRef = useRef();
 
   const DESTINATIONS = [
-    {
-      id: 'depense',
-      label: 'Justificatif de dépense',
-      icon: Receipt,
-      color: C.red,
-      route: '/pro/depenses',
-      ext: ['jpg','jpeg','png','pdf','webp'],
-      desc: 'Reçu, note de frais, ticket restaurant',
-    },
-    {
-      id: 'fournisseur',
-      label: 'Facture fournisseur',
-      icon: Building2,
-      color: C.purple,
-      route: '/pro/fournisseurs',
-      ext: ['pdf','jpg','jpeg','png'],
-      desc: 'Facture reçue d\'un prestataire ou fournisseur',
-    },
-    {
-      id: 'banque',
-      label: 'Relevé bancaire',
-      icon: Landmark,
-      color: C.blue,
-      route: '/pro/banque',
-      ext: ['csv','ofx','qif'],
-      desc: 'Export CSV depuis votre espace bancaire en ligne',
-    },
+    { id: 'depense', label: 'Justificatif de dépense', icon: Receipt, color: C.red, route: '/pro/depenses', ext: ['jpg','jpeg','png','pdf','webp'], desc: 'Reçu, note de frais, ticket restaurant' },
+    { id: 'fournisseur', label: 'Facture fournisseur', icon: Building2, color: C.purple, route: '/pro/fournisseurs', ext: ['pdf','jpg','jpeg','png'], desc: "Facture reçue d'un prestataire ou fournisseur" },
+    { id: 'banque', label: 'Relevé bancaire', icon: Landmark, color: C.blue, route: '/pro/banque', ext: ['csv','ofx','qif'], desc: 'Export CSV depuis votre espace bancaire en ligne' },
   ];
 
   const handleFile = (file) => {
@@ -116,16 +218,12 @@ function HeroUpload({ navigate }) {
     setDone(false);
   };
 
-  const handleDrop = (e) => {
-    e.preventDefault(); setDragging(false);
-    handleFile(e.dataTransfer.files[0]);
-  };
+  const handleDrop = (e) => { e.preventDefault(); setDragging(false); handleFile(e.dataTransfer.files[0]); };
 
   const handleRedirect = async (dest) => {
     setUploading(true);
     await new Promise(r => setTimeout(r, 700));
-    setUploading(false);
-    setDone(true);
+    setUploading(false); setDone(true);
     await new Promise(r => setTimeout(r, 700));
     navigate(dest.route);
   };
@@ -133,41 +231,25 @@ function HeroUpload({ navigate }) {
   const reset = () => { setUploaded(null); setDone(false); };
 
   return (
-    <div style={{
-      background: `linear-gradient(135deg, ${C.dark} 0%, ${C.mid} 55%, #162032 100%)`,
-      borderRadius: 22, padding: '40px 44px', marginBottom: 28,
-      position: 'relative', overflow: 'hidden',
-    }}>
-      {/* Déco fond */}
+    <div style={{ background: `linear-gradient(135deg, ${C.dark} 0%, ${C.mid} 55%, #162032 100%)`, borderRadius: 22, padding: '40px 44px', marginBottom: 28, position: 'relative', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', top: -80, right: -80, width: 380, height: 380, borderRadius: '50%', background: `${C.blue}07`, pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', bottom: -50, left: 180, width: 240, height: 240, borderRadius: '50%', background: `${C.green}05`, pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', top: 0, right: 0, width: '40%', height: '100%', background: 'linear-gradient(to left, rgba(91,163,199,0.04), transparent)', pointerEvents: 'none' }} />
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'center', position: 'relative', zIndex: 1 }}>
-
-        {/* ── Texte gauche ── */}
         <div>
-          {/* Badge */}
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(91,163,199,0.12)', border: '1px solid rgba(91,163,199,0.25)', borderRadius: 20, padding: '5px 14px', marginBottom: 20 }}>
             <div style={{ width: 6, height: 6, borderRadius: '50%', background: C.green }} />
             <span style={{ fontSize: 11, fontWeight: 700, color: C.blue, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Import intelligent</span>
           </div>
-
-          {/* Titre */}
           <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 30, fontWeight: 700, color: '#F1F5F9', margin: '0 0 14px', lineHeight: 1.25 }}>
-            Déposez vos documents,<br />
-            <span style={{ color: C.blue, fontStyle: 'italic' }}>Vigie Pro fait le reste.</span>
+            Déposez vos documents,<br /><span style={{ color: C.blue, fontStyle: 'italic' }}>Vigie Pro fait le reste.</span>
           </h2>
-
-          {/* Texte rotatif */}
           <RotatingText />
-
-          {/* 3 bénéfices */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {[
-              { icon: Zap,    color: C.gold,   text: 'Classement automatique dans le bon module' },
-              { icon: Brain,  color: C.blue,   text: 'Extraction intelligente des données clés' },
-              { icon: Shield, color: C.green,  text: 'Stockage sécurisé et conforme RGPD' },
+              { icon: Zap,    color: C.gold,  text: 'Classement automatique dans le bon module' },
+              { icon: Brain,  color: C.blue,  text: 'Extraction intelligente des données clés' },
+              { icon: Shield, color: C.green, text: 'Stockage sécurisé et conforme RGPD' },
             ].map(({ icon: Icon, color, text }) => (
               <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{ width: 26, height: 26, borderRadius: 6, background: `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -177,66 +259,33 @@ function HeroUpload({ navigate }) {
               </div>
             ))}
           </div>
-
-          {/* Formats acceptés */}
           <div style={{ marginTop: 20, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {['PDF', 'JPG', 'PNG', 'CSV', 'OFX'].map(f => (
-              <span key={f} style={{ fontSize: 10, fontWeight: 700, color: '#64748B', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, padding: '2px 7px', letterSpacing: '0.05em' }}>
-                {f}
-              </span>
+              <span key={f} style={{ fontSize: 10, fontWeight: 700, color: '#64748B', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, padding: '2px 7px', letterSpacing: '0.05em' }}>{f}</span>
             ))}
           </div>
         </div>
 
-        {/* ── Zone drop droite ── */}
         <div>
           {!uploaded ? (
-            /* Zone de dépôt vide */
-            <div
-              onDragOver={e => { e.preventDefault(); setDragging(true); }}
-              onDragLeave={() => setDragging(false)}
-              onDrop={handleDrop}
-              onClick={() => fileRef.current?.click()}
-              style={{
-                border: `2px dashed ${dragging ? C.blue : 'rgba(255,255,255,0.12)'}`,
-                borderRadius: 18, padding: '44px 28px',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14,
-                cursor: 'pointer', transition: 'all 0.25s ease',
-                background: dragging ? 'rgba(91,163,199,0.08)' : 'rgba(255,255,255,0.025)',
-              }}
-            >
-              <div style={{
-                width: 60, height: 60, borderRadius: 16,
-                background: dragging ? 'rgba(91,163,199,0.2)' : 'rgba(255,255,255,0.05)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transition: 'all 0.25s ease',
-                boxShadow: dragging ? `0 0 30px ${C.blue}30` : 'none',
-              }}>
+            <div onDragOver={e => { e.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={handleDrop} onClick={() => fileRef.current?.click()}
+              style={{ border: `2px dashed ${dragging ? C.blue : 'rgba(255,255,255,0.12)'}`, borderRadius: 18, padding: '44px 28px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, cursor: 'pointer', transition: 'all 0.25s ease', background: dragging ? 'rgba(91,163,199,0.08)' : 'rgba(255,255,255,0.025)' }}>
+              <div style={{ width: 60, height: 60, borderRadius: 16, background: dragging ? 'rgba(91,163,199,0.2)' : 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.25s ease', boxShadow: dragging ? `0 0 30px ${C.blue}30` : 'none' }}>
                 <Upload size={24} color={dragging ? C.blue : '#475569'} strokeWidth={1.5} />
               </div>
               <div style={{ textAlign: 'center' }}>
-                <p style={{ fontSize: 15, fontWeight: 700, color: dragging ? '#E2E8F0' : '#94A3B8', margin: '0 0 6px' }}>
-                  {dragging ? 'Relâchez pour importer' : 'Glissez un document ici'}
-                </p>
-                <p style={{ fontSize: 12, color: '#475569', margin: 0 }}>
-                  ou <span style={{ color: C.blue, fontWeight: 600 }}>cliquez pour parcourir</span>
-                </p>
+                <p style={{ fontSize: 15, fontWeight: 700, color: dragging ? '#E2E8F0' : '#94A3B8', margin: '0 0 6px' }}>{dragging ? 'Relâchez pour importer' : 'Glissez un document ici'}</p>
+                <p style={{ fontSize: 12, color: '#475569', margin: 0 }}>ou <span style={{ color: C.blue, fontWeight: 600 }}>cliquez pour parcourir</span></p>
               </div>
               <input ref={fileRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.csv,.ofx,.qif" style={{ display: 'none' }} onChange={e => handleFile(e.target.files[0])} />
             </div>
-
           ) : done ? (
-            /* État succès */
             <div style={{ border: `2px solid ${C.green}40`, borderRadius: 18, padding: '44px 28px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, background: 'rgba(91,199,138,0.06)' }}>
               <CheckCheck size={36} color={C.green} strokeWidth={1.5} />
               <p style={{ fontSize: 14, fontWeight: 600, color: '#E2E8F0', margin: 0 }}>Redirection en cours…</p>
             </div>
-
           ) : (
-            /* Sélection de destination */
             <div style={{ border: '1px solid rgba(255,255,255,0.10)', borderRadius: 18, padding: 22, background: 'rgba(255,255,255,0.03)' }}>
-
-              {/* Fichier sélectionné */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18, padding: '10px 14px', background: 'rgba(255,255,255,0.06)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)' }}>
                 <FileText size={15} color={C.blue} />
                 <div style={{ flex: 1, overflow: 'hidden' }}>
@@ -245,28 +294,14 @@ function HeroUpload({ navigate }) {
                 </div>
                 <button onClick={reset} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#475569', padding: 2, display: 'flex' }}><X size={14} /></button>
               </div>
-
-              <p style={{ fontSize: 10, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 12px' }}>
-                Où envoyer ce document ?
-              </p>
-
+              <p style={{ fontSize: 10, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 12px' }}>Où envoyer ce document ?</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {DESTINATIONS.map(dest => {
                   const DIcon = dest.icon;
                   const compatible = dest.ext.includes(uploaded.ext);
                   return (
-                    <button
-                      key={dest.id}
-                      onClick={() => compatible && !uploading && handleRedirect(dest)}
-                      disabled={!compatible || uploading}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: 12,
-                        padding: '12px 14px', borderRadius: 10, border: 'none',
-                        background: compatible ? `${dest.color}12` : 'rgba(255,255,255,0.02)',
-                        cursor: compatible ? 'pointer' : 'not-allowed',
-                        opacity: compatible ? 1 : 0.35,
-                        transition: 'all 0.15s ease', textAlign: 'left', width: '100%',
-                      }}
+                    <button key={dest.id} onClick={() => compatible && !uploading && handleRedirect(dest)} disabled={!compatible || uploading}
+                      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 10, border: 'none', background: compatible ? `${dest.color}12` : 'rgba(255,255,255,0.02)', cursor: compatible ? 'pointer' : 'not-allowed', opacity: compatible ? 1 : 0.35, transition: 'all 0.15s ease', textAlign: 'left', width: '100%' }}
                       onMouseEnter={e => { if (compatible) e.currentTarget.style.background = `${dest.color}22`; }}
                       onMouseLeave={e => { if (compatible) e.currentTarget.style.background = `${dest.color}12`; }}
                     >
@@ -282,12 +317,7 @@ function HeroUpload({ navigate }) {
                   );
                 })}
               </div>
-
-              {uploading && (
-                <p style={{ marginTop: 12, fontSize: 11, color: C.blue, textAlign: 'center', fontWeight: 600 }}>
-                  Préparation du document…
-                </p>
-              )}
+              {uploading && <p style={{ marginTop: 12, fontSize: 11, color: C.blue, textAlign: 'center', fontWeight: 600 }}>Préparation du document…</p>}
             </div>
           )}
         </div>
@@ -296,17 +326,10 @@ function HeroUpload({ navigate }) {
   );
 }
 
-// ─── Composants UI ────────────────────────────────────────────────────
 function StatCard({ icon: Icon, label, value, sub, color, alert, onClick }) {
   const [hov, setHov] = useState(false);
   return (
-    <div onClick={onClick} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)} style={{
-      background: '#fff', border: `1px solid ${alert ? 'rgba(199,91,78,0.35)' : C.border}`,
-      borderRadius: 14, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 10,
-      boxShadow: hov ? '0 4px 16px rgba(0,0,0,0.10)' : '0 1px 4px rgba(0,0,0,0.06)',
-      cursor: onClick ? 'pointer' : 'default', transition: 'all 0.2s ease',
-      transform: hov && onClick ? 'translateY(-2px)' : 'none',
-    }}>
+    <div onClick={onClick} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)} style={{ background: '#fff', border: `1px solid ${alert ? 'rgba(199,91,78,0.35)' : C.border}`, borderRadius: 14, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 10, boxShadow: hov ? '0 4px 16px rgba(0,0,0,0.10)' : '0 1px 4px rgba(0,0,0,0.06)', cursor: onClick ? 'pointer' : 'default', transition: 'all 0.2s ease', transform: hov && onClick ? 'translateY(-2px)' : 'none' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span style={{ fontSize: 10, fontWeight: 700, color: C.light, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</span>
         <div style={{ width: 30, height: 30, borderRadius: 8, background: `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -320,11 +343,7 @@ function StatCard({ icon: Icon, label, value, sub, color, alert, onClick }) {
 }
 
 function Panel({ children, style = {} }) {
-  return (
-    <div style={{ background: '#fff', border: `1px solid ${C.border}`, borderRadius: 14, padding: '18px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', ...style }}>
-      {children}
-    </div>
-  );
+  return <div style={{ background: '#fff', border: `1px solid ${C.border}`, borderRadius: 14, padding: '18px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', ...style }}>{children}</div>;
 }
 
 function SectionTitle({ icon: Icon, label, color, route, navigate: nav }) {
@@ -336,11 +355,7 @@ function SectionTitle({ icon: Icon, label, color, route, navigate: nav }) {
         </div>
         <h2 style={{ fontSize: 11, fontWeight: 700, color: C.dark, margin: 0, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</h2>
       </div>
-      {route && (
-        <button onClick={() => nav(route)} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', color, fontSize: 11, fontWeight: 600 }}>
-          Voir <ArrowRight size={11} />
-        </button>
-      )}
+      {route && <button onClick={() => nav(route)} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', color, fontSize: 11, fontWeight: 600 }}>Voir <ArrowRight size={11} /></button>}
     </div>
   );
 }
@@ -374,12 +389,10 @@ function ProgressBar({ label, value, max, color }) {
   );
 }
 
-// ══════════════════════════════════════════
-// COMPOSANT PRINCIPAL
-// ══════════════════════════════════════════
 export default function ProHome() {
   const [firstName, setFirstName] = useState('');
   const [loading, setLoading]     = useState(true);
+  const [anomalies, setAnomalies] = useState([]);
   const [data, setData]           = useState({
     recettesMois: 0, depensesMois: 0, soldeMois: 0,
     facturesEnAttente: 0, montantEnAttente: 0, facturesEnRetard: 0,
@@ -407,7 +420,7 @@ export default function ProHome() {
       const [
         { data: recettes }, { data: depenses }, { data: invoices },
         { data: equipe }, { data: factureFourn }, { data: contrats },
-        { data: formalites }, { data: reminders },
+        { data: formalites }, { data: reminders }, { data: toutesDepenses },
       ] = await Promise.all([
         supabasePro.from('invoices').select('montant_ht,taux_tva,montant_ttc,statut,date,date_echeance').eq('user_id', uid).gte('date', debut).lte('date', fin),
         supabasePro.from('expenses').select('montant_ht,taux_tva,categorie,date').eq('user_id', uid).gte('date', debut).lte('date', fin),
@@ -417,7 +430,12 @@ export default function ProHome() {
         supabasePro.from('contrats').select('titre,date_fin,statut').eq('user_id', uid).eq('statut', 'Actif').lte('date_fin', in30).gte('date_fin', today),
         supabasePro.from('formalites').select('titre,date_echeance,statut').eq('user_id', uid).lte('date_echeance', in30),
         supabasePro.from('reminders').select('*').eq('user_id', uid).order('sent_at', { ascending: false }).limit(5),
+        // Toutes les dépenses du mois pour la détection d'anomalies
+        supabasePro.from('expenses').select('amount_ttc,taux_tva,etablissement,date,type').eq('user_id', uid).gte('date', debut).lte('date', fin),
       ]);
+
+      // Détection d'anomalies
+      setAnomalies(detecterAnomalies(toutesDepenses || []));
 
       const totalRecettes  = (recettes || []).reduce((s, r) => s + Number(r.montant_ttc || r.montant_ht || 0), 0);
       const totalDepenses  = (depenses  || []).reduce((s, d) => s + Number(d.montant_ht || 0) * (1 + Number(d.taux_tva || 20) / 100), 0);
@@ -477,7 +495,7 @@ export default function ProHome() {
   return (
     <div style={{ fontFamily: "'Nunito Sans', sans-serif", padding: '32px 28px', maxWidth: 1140, margin: '0 auto' }}>
 
-      {/* ── En-tête ── */}
+      {/* En-tête */}
       <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
         <div>
           <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 28, fontWeight: 600, color: C.dark, margin: 0 }}>
@@ -488,6 +506,11 @@ export default function ProHome() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
+          {anomalies.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 700, color: C.red }}>
+              <AlertOctagon size={13} /> {anomalies.length} anomalie{anomalies.length > 1 ? 's' : ''} détectée{anomalies.length > 1 ? 's' : ''}
+            </div>
+          )}
           {data.facturesEnRetard > 0 && (
             <div onClick={() => navigate('/pro/recettes')} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 8, padding: '6px 12px', cursor: 'pointer', fontSize: 12, fontWeight: 700, color: C.red }}>
               <AlertTriangle size={13} /> {data.facturesEnRetard} facture{data.facturesEnRetard > 1 ? 's' : ''} en retard
@@ -501,21 +524,22 @@ export default function ProHome() {
         </div>
       </div>
 
-      {/* ── Hero Upload ── */}
+      {/* Hero Upload */}
       <HeroUpload navigate={navigate} />
 
-      {/* ── KPIs ── */}
+      {/* Anomalies */}
+      <AnomaliesPanel anomalies={anomalies} navigate={navigate} />
+
+      {/* KPIs */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 20 }}>
-        <StatCard icon={TrendingUp}   label={`Recettes ${moisLabel}`}   value={euro(data.recettesMois)}    color={C.green} onClick={() => navigate('/pro/recettes')} />
-        <StatCard icon={TrendingDown} label={`Dépenses ${moisLabel}`}   value={euro(data.depensesMois)}    color={C.red}   onClick={() => navigate('/pro/depenses')} />
-        <StatCard icon={Wallet}       label="Solde du mois"             value={euro(data.soldeMois)}       color={data.soldeMois >= 0 ? C.blue : C.red} alert={data.soldeMois < 0} />
-        <StatCard icon={FileText}     label="En attente de paiement"    value={euro(data.montantEnAttente)} sub={`${data.facturesEnAttente} facture${data.facturesEnAttente > 1 ? 's' : ''}`} color={C.gold} alert={data.facturesEnRetard > 0} onClick={() => navigate('/pro/recettes')} />
+        <StatCard icon={TrendingUp}   label={`Recettes ${moisLabel}`}    value={euro(data.recettesMois)}    color={C.green} onClick={() => navigate('/pro/recettes')} />
+        <StatCard icon={TrendingDown} label={`Dépenses ${moisLabel}`}    value={euro(data.depensesMois)}    color={C.red}   onClick={() => navigate('/pro/depenses')} />
+        <StatCard icon={Wallet}       label="Solde du mois"              value={euro(data.soldeMois)}       color={data.soldeMois >= 0 ? C.blue : C.red} alert={data.soldeMois < 0} />
+        <StatCard icon={FileText}     label="En attente de paiement"     value={euro(data.montantEnAttente)} sub={`${data.facturesEnAttente} facture${data.facturesEnAttente > 1 ? 's' : ''}`} color={C.gold} alert={data.facturesEnRetard > 0} onClick={() => navigate('/pro/recettes')} />
       </div>
 
-      {/* ── Grille ── */}
+      {/* Grille */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 300px', gap: 14, marginBottom: 14 }}>
-
-        {/* Alertes */}
         <Panel>
           <SectionTitle icon={Bell} label="Alertes & Rappels" color={C.blue} />
           {data.alertes.length === 0 ? (
@@ -528,7 +552,6 @@ export default function ProHome() {
           ))}
         </Panel>
 
-        {/* Dépenses par catégorie */}
         <Panel>
           <SectionTitle icon={BarChart2} label={`Dépenses — ${moisLabel}`} color={C.red} route="/pro/depenses" navigate={navigate} />
           {data.depensesParCat.length === 0 ? (
@@ -547,7 +570,6 @@ export default function ProHome() {
           )}
         </Panel>
 
-        {/* Colonne droite */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <Panel>
             <SectionTitle icon={Users} label="Équipe" color={C.purple} route="/pro/equipe" navigate={navigate} />
@@ -600,7 +622,7 @@ export default function ProHome() {
         </div>
       </div>
 
-      {/* ── Raccourcis ── */}
+      {/* Raccourcis */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 10 }}>
         {[
           { label: 'Dépenses',   icon: TrendingDown, color: C.red,    route: '/pro/depenses'   },
@@ -624,7 +646,6 @@ export default function ProHome() {
           );
         })}
       </div>
-
     </div>
   );
 }
