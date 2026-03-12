@@ -1,16 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabasePro } from '../lib/supabasePro';
-import { Upload, Plus, Trash2, FileText, Car, Coffee, Hotel, Package, AlertTriangle, CheckCircle, Loader, Download, Scan } from 'lucide-react';
+import { Plus, Trash2, FileText, Car, Coffee, Hotel, Package, CheckCircle, Loader, Download, Scan } from 'lucide-react';
 
 const ACCENT = '#5BC78A';
 
-/* ── Types de frais ── */
 const TYPES = [
-  { id: 'restauration', label: 'Restauration',  icon: Coffee,   color: '#D4A853' },
-  { id: 'transport',    label: 'Transport',      icon: Car,      color: '#5BA3C7' },
-  { id: 'logement',     label: 'Logement',       icon: Hotel,    color: '#A85BC7' },
-  { id: 'fournitures',  label: 'Fournitures',    icon: Package,  color: '#5BC78A' },
-  { id: 'autre',        label: 'Autre',          icon: FileText, color: '#9AA0AE' },
+  { id: 'restauration', label: 'Restauration', icon: Coffee,   color: '#D4A853' },
+  { id: 'transport',    label: 'Transport',     icon: Car,      color: '#5BA3C7' },
+  { id: 'logement',     label: 'Logement',      icon: Hotel,    color: '#A85BC7' },
+  { id: 'fournitures',  label: 'Fournitures',   icon: Package,  color: '#5BC78A' },
+  { id: 'autre',        label: 'Autre',         icon: FileText, color: '#9AA0AE' },
 ];
 
 const TYPE_MAP = {
@@ -44,9 +43,6 @@ function TypeBadge({ type }) {
   );
 }
 
-/* ══════════════════════════════════════════
-   FORMULAIRE AJOUT FRAIS
-══════════════════════════════════════════ */
 function AddExpenseForm({ onSave, onCancel }) {
   const [form, setForm] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -56,99 +52,60 @@ function AddExpenseForm({ onSave, onCancel }) {
     km: '',
     notes: '',
   });
-  const [file, setFile]         = useState(null);
-  const [loading, setLoading]   = useState(false);
-  const [scanning, setScanning] = useState(false);
+  const [file, setFile]             = useState(null);
+  const [loading, setLoading]       = useState(false);
+  const [scanning, setScanning]     = useState(false);
   const [ocrSuccess, setOcrSuccess] = useState(false);
-  const [error, setError]       = useState('');
+  const [error, setError]           = useState('');
   const fileRef = useRef();
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
-  /* ── OCR : scan de la facture ── */
- const handleScan = async (selectedFile) => {
-  if (!selectedFile) return;
-  setScanning(true);
-  setOcrSuccess(false);
-  setError('');
+  const handleScan = async (selectedFile) => {
+    if (!selectedFile) return;
+    setScanning(true);
+    setOcrSuccess(false);
+    setError('');
 
-  try {
-    let base64;
-    let mimeType;
+    try {
+      let base64;
+      let mimeType;
 
-    if (selectedFile.type === 'application/pdf') {
-      // Convertir la 1ère page du PDF en image PNG via pdfjs-dist
-      const pdfjsLib = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs');
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs';
+      if (selectedFile.type === 'application/pdf') {
+        const pdfjsLib = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs');
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs';
 
-      const arrayBuffer = await selectedFile.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      const page = await pdf.getPage(1);
-      const viewport = page.getViewport({ scale: 2.0 });
+        const arrayBuffer = await selectedFile.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const page = await pdf.getPage(1);
+        const viewport = page.getViewport({ scale: 2.0 });
 
-      const canvas = document.createElement('canvas');
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
-      await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+        const canvas = document.createElement('canvas');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
 
-      base64 = canvas.toDataURL('image/png').split(',')[1];
-      mimeType = 'image/png';
-    } else {
-      // Image directe
-      base64 = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(selectedFile);
-      });
-      mimeType = selectedFile.type;
-    }
-
-    const res = await fetch('/api/ocr', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fileBase64: base64, mimeType, fileName: selectedFile.name }),
-    });
-
-    if (!res.ok) throw new Error('Erreur serveur OCR');
-    const data = await res.json();
-
-    setForm(f => ({
-      ...f,
-      date: data.date
-        ? (() => {
-            const parts = data.date.split('/');
-            if (parts.length === 3) return `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
-            return f.date;
-          })()
-        : f.date,
-      amount_ttc: data.montant_ttc ?? f.amount_ttc,
-      etablissement: data.fournisseur ?? f.etablissement,
-      notes: data.description ?? f.notes,
-      type: TYPE_MAP[data.categorie] ?? f.type,
-    }));
-
-    setOcrSuccess(true);
-  } catch (err) {
-    console.error(err);
-    setError('Impossible de scanner la facture. Vérifiez votre connexion.');
-  } finally {
-    setScanning(false);
-  }
-};
-
-      const mimeType = selectedFile.type || 'application/pdf';
+        base64 = canvas.toDataURL('image/png').split(',')[1];
+        mimeType = 'image/png';
+      } else {
+        base64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result.split(',')[1]);
+          reader.onerror = reject;
+          reader.readAsDataURL(selectedFile);
+        });
+        mimeType = selectedFile.type;
+      }
 
       const res = await fetch('/api/ocr', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ fileBase64: base64, mimeType, fileName: selectedFile.name }),
+        body: JSON.stringify({ fileBase64: base64, mimeType, fileName: selectedFile.name }),
       });
 
       if (!res.ok) throw new Error('Erreur serveur OCR');
       const data = await res.json();
 
-      // Remplissage automatique du formulaire
       setForm(f => ({
         ...f,
         date: data.date
@@ -166,6 +123,7 @@ function AddExpenseForm({ onSave, onCancel }) {
 
       setOcrSuccess(true);
     } catch (err) {
+      console.error(err);
       setError('Impossible de scanner la facture. Vérifiez votre connexion.');
     } finally {
       setScanning(false);
@@ -193,9 +151,7 @@ function AddExpenseForm({ onSave, onCancel }) {
       if (file) {
         const ext  = file.name.split('.').pop();
         const path = `frais/${user.id}/${Date.now()}.${ext}`;
-        const { error: upErr } = await supabasePro.storage
-          .from('invoices')
-          .upload(path, file);
+        const { error: upErr } = await supabasePro.storage.from('invoices').upload(path, file);
         if (upErr) throw upErr;
         const { data: urlData } = supabasePro.storage.from('invoices').getPublicUrl(path);
         file_url     = urlData.publicUrl;
@@ -221,7 +177,7 @@ function AddExpenseForm({ onSave, onCancel }) {
       if (insErr) throw insErr;
       onSave();
     } catch (err) {
-      setError(err.message || 'Erreur lors de l\'enregistrement');
+      setError(err.message || "Erreur lors de l'enregistrement");
     } finally {
       setLoading(false);
     }
@@ -243,7 +199,6 @@ function AddExpenseForm({ onSave, onCancel }) {
         Ajouter un frais
       </h3>
 
-      {/* Zone upload + scan IA */}
       <div style={{ marginBottom: 20 }}>
         <label style={labelStyle}>Justificatif (photo ou PDF)</label>
         <div
@@ -252,7 +207,7 @@ function AddExpenseForm({ onSave, onCancel }) {
             border: `2px dashed ${ocrSuccess ? ACCENT : file ? '#D4A853' : '#E8EAF0'}`,
             borderRadius: 10, padding: '18px', textAlign: 'center', cursor: 'pointer',
             background: ocrSuccess ? `${ACCENT}08` : file ? '#FFF9F0' : '#F8F9FB',
-            transition: 'all 200ms ease', position: 'relative',
+            transition: 'all 200ms ease',
           }}
         >
           <input ref={fileRef} type="file" accept=".pdf,.png,.jpg,.jpeg" style={{ display: 'none' }}
@@ -261,12 +216,12 @@ function AddExpenseForm({ onSave, onCancel }) {
           {scanning ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
               <Loader size={16} color={ACCENT} style={{ animation: 'spin 1s linear infinite' }} />
-              <span style={{ fontSize: 13, color: ACCENT, fontWeight: 600 }}>Analyse IA en cours...</span>
+              <span style={{ fontSize: 13, color: ACCENT, fontWeight: 600 }}>Analyse en cours...</span>
             </div>
           ) : ocrSuccess ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
               <CheckCircle size={16} color={ACCENT} />
-              <span style={{ fontSize: 13, color: ACCENT, fontWeight: 600 }}>✓ Formulaire rempli automatiquement — {file?.name}</span>
+              <span style={{ fontSize: 13, color: ACCENT, fontWeight: 600 }}>✓ Formulaire rempli — {file?.name}</span>
             </div>
           ) : file ? (
             <span style={{ fontSize: 12, color: '#D4A853', fontWeight: 600 }}>📄 {file.name}</span>
@@ -274,9 +229,9 @@ function AddExpenseForm({ onSave, onCancel }) {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 4 }}>
                 <Scan size={16} color={ACCENT} />
-                <span style={{ fontSize: 13, color: ACCENT, fontWeight: 700 }}>Scanner avec l'IA</span>
+                <span style={{ fontSize: 13, color: ACCENT, fontWeight: 700 }}>Analyser la facture</span>
               </div>
-              <span style={{ fontSize: 11, color: '#9AA0AE' }}>Uploadez une facture PDF ou photo — les champs se rempliront automatiquement</span>
+              <span style={{ fontSize: 11, color: '#9AA0AE' }}>PDF ou photo — les champs se rempliront automatiquement</span>
             </div>
           )}
         </div>
@@ -300,13 +255,11 @@ function AddExpenseForm({ onSave, onCancel }) {
             const Icon = t.icon;
             const selected = form.type === t.id;
             return (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setForm(f => ({ ...f, type: t.id }))}
+              <button key={t.id} type="button" onClick={() => setForm(f => ({ ...f, type: t.id }))}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '7px 13px', borderRadius: 20, border: `1px solid ${selected ? t.color : '#E8EAF0'}`,
+                  padding: '7px 13px', borderRadius: 20,
+                  border: `1px solid ${selected ? t.color : '#E8EAF0'}`,
                   background: selected ? `${t.color}15` : '#F8F9FB',
                   color: selected ? t.color : '#5A6070',
                   fontSize: 12, fontWeight: selected ? 700 : 500, cursor: 'pointer',
@@ -368,13 +321,10 @@ function AddExpenseForm({ onSave, onCancel }) {
   );
 }
 
-/* ══════════════════════════════════════════
-   PAGE PRINCIPALE
-══════════════════════════════════════════ */
 export default function DepensesPage() {
-  const [expenses, setExpenses] = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [showForm, setShowForm] = useState(false);
+  const [expenses, setExpenses]     = useState([]);
+  const [loading, setLoading]       = useState(true);
+  const [showForm, setShowForm]     = useState(false);
   const [filterType, setFilterType] = useState('tous');
 
   useEffect(() => { fetchExpenses(); }, []);
@@ -394,17 +344,13 @@ export default function DepensesPage() {
 
   const deleteExpense = async (id, storage_path) => {
     if (!confirm('Supprimer ce frais ?')) return;
-    if (storage_path) {
-      await supabasePro.storage.from('invoices').remove([storage_path]);
-    }
+    if (storage_path) await supabasePro.storage.from('invoices').remove([storage_path]);
     await supabasePro.from('expenses').delete().eq('id', id);
     fetchExpenses();
   };
 
   const exportCSV = () => {
-    const rows = filtered.map(e => [
-      e.date, e.type, e.etablissement, e.amount_ttc, e.km, e.indemnite_km, e.notes
-    ]);
+    const rows = filtered.map(e => [e.date, e.type, e.etablissement, e.amount_ttc, e.km, e.indemnite_km, e.notes]);
     const headers = ['Date', 'Type', 'Établissement', 'Montant TTC', 'Km', 'Indemnité Km', 'Notes'];
     const csv = [headers, ...rows].map(r => r.map(v => `"${v ?? ''}"`).join(';')).join('\n');
     const a = document.createElement('a');
@@ -425,9 +371,7 @@ export default function DepensesPage() {
           <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 600, color: '#1A1C20', margin: 0 }}>
             Dépenses & Frais
           </h1>
-          <p style={{ fontSize: 13, color: '#9AA0AE', marginTop: 4 }}>
-            Notes de frais et dépenses professionnelles
-          </p>
+          <p style={{ fontSize: 13, color: '#9AA0AE', marginTop: 4 }}>Notes de frais et dépenses professionnelles</p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={exportCSV} style={{
@@ -469,16 +413,13 @@ export default function DepensesPage() {
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap' }}>
         {[{ id: 'tous', label: 'Tous' }, ...TYPES].map(t => (
-          <button
-            key={t.id}
-            onClick={() => setFilterType(t.id)}
-            style={{
-              padding: '6px 14px', borderRadius: 20, border: `1px solid ${filterType === t.id ? (t.color || ACCENT) : '#E8EAF0'}`,
-              background: filterType === t.id ? `${t.color || ACCENT}15` : '#fff',
-              color: filterType === t.id ? (t.color || ACCENT) : '#5A6070',
-              fontSize: 12, fontWeight: filterType === t.id ? 700 : 500, cursor: 'pointer',
-            }}
-          >
+          <button key={t.id} onClick={() => setFilterType(t.id)} style={{
+            padding: '6px 14px', borderRadius: 20,
+            border: `1px solid ${filterType === t.id ? (t.color || ACCENT) : '#E8EAF0'}`,
+            background: filterType === t.id ? `${t.color || ACCENT}15` : '#fff',
+            color: filterType === t.id ? (t.color || ACCENT) : '#5A6070',
+            fontSize: 12, fontWeight: filterType === t.id ? 700 : 500, cursor: 'pointer',
+          }}>
             {t.label}
           </button>
         ))}
@@ -505,8 +446,7 @@ export default function DepensesPage() {
             </thead>
             <tbody>
               {filtered.map((e, i) => (
-                <tr key={e.id || i}
-                  style={{ borderBottom: '1px solid #F8F9FB' }}
+                <tr key={e.id || i} style={{ borderBottom: '1px solid #F8F9FB' }}
                   onMouseEnter={ev => ev.currentTarget.style.background = '#FAFBFC'}
                   onMouseLeave={ev => ev.currentTarget.style.background = 'transparent'}
                 >
@@ -518,16 +458,12 @@ export default function DepensesPage() {
                     {e.indemnite_km ? `${formatEuro(e.indemnite_km)} (${e.km} km)` : '—'}
                   </td>
                   <td style={{ padding: '11px 14px' }}>
-                    {e.file_url ? (
-                      <a href={e.file_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: '#5BA3C7', textDecoration: 'none', fontWeight: 600 }}>
-                        Voir ↗
-                      </a>
-                    ) : <span style={{ fontSize: 11, color: '#D0D4DC' }}>—</span>}
+                    {e.file_url
+                      ? <a href={e.file_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: '#5BA3C7', textDecoration: 'none', fontWeight: 600 }}>Voir ↗</a>
+                      : <span style={{ fontSize: 11, color: '#D0D4DC' }}>—</span>}
                   </td>
                   <td style={{ padding: '11px 14px' }}>
-                    <button onClick={() => deleteExpense(e.id, e.storage_path)} style={{
-                      background: 'transparent', border: 'none', cursor: 'pointer', padding: 4, color: '#D0D4DC',
-                    }}
+                    <button onClick={() => deleteExpense(e.id, e.storage_path)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 4, color: '#D0D4DC' }}
                       onMouseEnter={ev => ev.currentTarget.style.color = '#C75B4E'}
                       onMouseLeave={ev => ev.currentTarget.style.color = '#D0D4DC'}
                     >
