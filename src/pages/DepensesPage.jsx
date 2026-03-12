@@ -124,7 +124,7 @@ function AddExpenseForm({ onSave, onCancel }) {
       setOcrSuccess(true);
     } catch (err) {
       console.error(err);
-      setError('Impossible de scanner la facture. Vérifiez votre connexion.');
+      setError('Impossible d\'analyser la facture. Vérifiez votre connexion.');
     } finally {
       setScanning(false);
     }
@@ -142,8 +142,14 @@ function AddExpenseForm({ onSave, onCancel }) {
     setLoading(true);
 
     try {
-      const { data: { user } } = await supabasePro.auth.getUser();
-      if (!user) throw new Error('Non connecté');
+      // Récupération robuste de la session avec refresh automatique
+      let { data: { session } } = await supabasePro.auth.getSession();
+      if (!session) {
+        const { data: refreshed } = await supabasePro.auth.refreshSession();
+        session = refreshed.session;
+      }
+      if (!session?.user) throw new Error('Session expirée — veuillez vous reconnecter.');
+      const user = session.user;
 
       let file_url = null;
       let storage_path = null;
@@ -196,7 +202,7 @@ function AddExpenseForm({ onSave, onCancel }) {
       padding: '24px', marginBottom: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
     }}>
       <h3 style={{ fontSize: 15, fontWeight: 700, color: '#1A1C20', marginBottom: 20 }}>
-        Ajouter un frais
+        Nouvelle dépense
       </h3>
 
       <div style={{ marginBottom: 20 }}>
@@ -221,7 +227,7 @@ function AddExpenseForm({ onSave, onCancel }) {
           ) : ocrSuccess ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
               <CheckCircle size={16} color={ACCENT} />
-              <span style={{ fontSize: 13, color: ACCENT, fontWeight: 600 }}>✓ Formulaire rempli — {file?.name}</span>
+              <span style={{ fontSize: 13, color: ACCENT, fontWeight: 600 }}>✓ Formulaire complété automatiquement — {file?.name}</span>
             </div>
           ) : file ? (
             <span style={{ fontSize: 12, color: '#D4A853', fontWeight: 600 }}>📄 {file.name}</span>
@@ -229,9 +235,9 @@ function AddExpenseForm({ onSave, onCancel }) {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 4 }}>
                 <Scan size={16} color={ACCENT} />
-                <span style={{ fontSize: 13, color: ACCENT, fontWeight: 700 }}>Analyser la facture</span>
+                <span style={{ fontSize: 13, color: ACCENT, fontWeight: 700 }}>Déposer une facture</span>
               </div>
-              <span style={{ fontSize: 11, color: '#9AA0AE' }}>PDF ou photo — les champs se rempliront automatiquement</span>
+              <span style={{ fontSize: 11, color: '#9AA0AE' }}>PDF ou photo — le formulaire se complète automatiquement</span>
             </div>
           )}
         </div>
@@ -244,12 +250,12 @@ function AddExpenseForm({ onSave, onCancel }) {
         </div>
         <div>
           <label style={labelStyle}>Montant TTC (€) *</label>
-          <input type="number" step="0.01" min="0" value={form.amount_ttc} onChange={set('amount_ttc')} placeholder="0.00" required style={inputStyle} />
+          <input type="number" step="0.01" min="0" value={form.amount_ttc} onChange={set('amount_ttc')} placeholder="0,00" required style={inputStyle} />
         </div>
       </div>
 
       <div style={{ marginBottom: 14 }}>
-        <label style={labelStyle}>Type de frais *</label>
+        <label style={labelStyle}>Catégorie *</label>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {TYPES.map(t => {
             const Icon = t.icon;
@@ -274,15 +280,15 @@ function AddExpenseForm({ onSave, onCancel }) {
       </div>
 
       <div style={{ marginBottom: 14 }}>
-        <label style={labelStyle}>Établissement / Fournisseur</label>
-        <input type="text" value={form.etablissement} onChange={set('etablissement')} placeholder="ex: Restaurant Le Bistrot" style={inputStyle} />
+        <label style={labelStyle}>Fournisseur</label>
+        <input type="text" value={form.etablissement} onChange={set('etablissement')} placeholder="ex : EDF, Amazon, Restaurant..." style={inputStyle} />
       </div>
 
       {form.type === 'transport' && (
         <div style={{ marginBottom: 14, background: 'rgba(91,163,199,0.06)', border: '1px solid rgba(91,163,199,0.2)', borderRadius: 10, padding: '12px 14px' }}>
-          <label style={{ ...labelStyle, color: '#5BA3C7' }}>Kilométrage (optionnel)</label>
+          <label style={{ ...labelStyle, color: '#5BA3C7' }}>Kilométrage (facultatif)</label>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <input type="number" min="0" value={form.km} onChange={set('km')} placeholder="ex: 150" style={{ ...inputStyle, maxWidth: 140 }} />
+            <input type="number" min="0" value={form.km} onChange={set('km')} placeholder="ex : 150" style={{ ...inputStyle, maxWidth: 140 }} />
             <span style={{ fontSize: 12, color: '#5BA3C7', fontWeight: 500 }}>
               {form.km ? `= ${(parseFloat(form.km) * TAUX_KM).toFixed(2)} € (barème 2024)` : 'km × 0,529 €/km'}
             </span>
@@ -291,8 +297,8 @@ function AddExpenseForm({ onSave, onCancel }) {
       )}
 
       <div style={{ marginBottom: 14 }}>
-        <label style={labelStyle}>Notes / Description</label>
-        <input type="text" value={form.notes} onChange={set('notes')} placeholder="Commentaire optionnel" style={inputStyle} />
+        <label style={labelStyle}>Remarques</label>
+        <input type="text" value={form.notes} onChange={set('notes')} placeholder="Informations complémentaires..." style={inputStyle} />
       </div>
 
       {error && (
@@ -308,7 +314,7 @@ function AddExpenseForm({ onSave, onCancel }) {
           color: '#fff', fontSize: 13, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
         }}>
-          {loading ? <><Loader size={13} style={{ animation: 'spin 1s linear infinite' }} /> Enregistrement...</> : '✓ Enregistrer le frais'}
+          {loading ? <><Loader size={13} style={{ animation: 'spin 1s linear infinite' }} /> Enregistrement...</> : '✓ Enregistrer'}
         </button>
         <button type="button" onClick={onCancel} style={{
           padding: '11px 18px', borderRadius: 9, border: '1px solid #E8EAF0',
@@ -331,19 +337,19 @@ export default function DepensesPage() {
 
   const fetchExpenses = async () => {
     setLoading(true);
-    const { data: { user } } = await supabasePro.auth.getUser();
-    if (!user) return;
+    const { data: { session } } = await supabasePro.auth.getSession();
+    if (!session?.user) return;
     const { data } = await supabasePro
       .from('expenses')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', session.user.id)
       .order('date', { ascending: false });
     setExpenses(data || []);
     setLoading(false);
   };
 
   const deleteExpense = async (id, storage_path) => {
-    if (!confirm('Supprimer ce frais ?')) return;
+    if (!confirm('Supprimer cette dépense ?')) return;
     if (storage_path) await supabasePro.storage.from('invoices').remove([storage_path]);
     await supabasePro.from('expenses').delete().eq('id', id);
     fetchExpenses();
@@ -351,11 +357,11 @@ export default function DepensesPage() {
 
   const exportCSV = () => {
     const rows = filtered.map(e => [e.date, e.type, e.etablissement, e.amount_ttc, e.km, e.indemnite_km, e.notes]);
-    const headers = ['Date', 'Type', 'Établissement', 'Montant TTC', 'Km', 'Indemnité Km', 'Notes'];
+    const headers = ['Date', 'Catégorie', 'Fournisseur', 'Montant TTC', 'Km', 'Indemnité Km', 'Remarques'];
     const csv = [headers, ...rows].map(r => r.map(v => `"${v ?? ''}"`).join(';')).join('\n');
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' }));
-    a.download = `frais-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `depenses-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
   };
 
@@ -369,9 +375,9 @@ export default function DepensesPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 600, color: '#1A1C20', margin: 0 }}>
-            Dépenses & Frais
+            Dépenses & Notes de frais
           </h1>
-          <p style={{ fontSize: 13, color: '#9AA0AE', marginTop: 4 }}>Notes de frais et dépenses professionnelles</p>
+          <p style={{ fontSize: 13, color: '#9AA0AE', marginTop: 4 }}>Suivez vos dépenses professionnelles</p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={exportCSV} style={{
@@ -386,7 +392,7 @@ export default function DepensesPage() {
             padding: '9px 16px', borderRadius: 9, border: 'none',
             background: ACCENT, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
           }}>
-            <Plus size={13} /> Ajouter un frais
+            <Plus size={13} /> Nouvelle dépense
           </button>
         </div>
       </div>
@@ -400,9 +406,9 @@ export default function DepensesPage() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14, marginBottom: 24 }}>
         {[
-          { label: 'Total frais', value: formatEuro(totalFiltered), color: ACCENT },
+          { label: 'Total dépenses', value: formatEuro(totalFiltered), color: ACCENT },
           { label: 'Indemnités km', value: formatEuro(totalKm), color: '#5BA3C7' },
-          { label: 'Nombre de frais', value: filtered.length, color: '#D4A853' },
+          { label: 'Nombre de dépenses', value: filtered.length, color: '#D4A853' },
         ].map(s => (
           <div key={s.label} style={{ background: '#fff', border: '1px solid #E8EAF0', borderRadius: 12, padding: '16px 18px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
             <p style={{ fontSize: 11, color: '#9AA0AE', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>{s.label}</p>
@@ -412,7 +418,7 @@ export default function DepensesPage() {
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap' }}>
-        {[{ id: 'tous', label: 'Tous' }, ...TYPES].map(t => (
+        {[{ id: 'tous', label: 'Toutes' }, ...TYPES].map(t => (
           <button key={t.id} onClick={() => setFilterType(t.id)} style={{
             padding: '6px 14px', borderRadius: 20,
             border: `1px solid ${filterType === t.id ? (t.color || ACCENT) : '#E8EAF0'}`,
@@ -432,14 +438,14 @@ export default function DepensesPage() {
           <div style={{ padding: 48, textAlign: 'center' }}>
             <CheckCircle size={32} color="#E8EAF0" style={{ marginBottom: 12 }} />
             <p style={{ color: '#9AA0AE', fontSize: 13, margin: 0 }}>
-              {expenses.length === 0 ? 'Aucun frais enregistré — cliquez sur "Ajouter un frais"' : 'Aucun frais pour ce filtre'}
+              {expenses.length === 0 ? 'Aucune dépense enregistrée — cliquez sur "Nouvelle dépense"' : 'Aucune dépense pour cette catégorie'}
             </p>
           </div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #F0F2F5' }}>
-                {['Date', 'Type', 'Établissement', 'Montant TTC', 'Indemnité km', 'Justificatif', ''].map(h => (
+                {['Date', 'Catégorie', 'Fournisseur', 'Montant TTC', 'Indemnité km', 'Justificatif', ''].map(h => (
                   <th key={h} style={{ padding: '11px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: '#9AA0AE', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</th>
                 ))}
               </tr>
