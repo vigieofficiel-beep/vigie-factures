@@ -15,7 +15,7 @@ import {
 import { supabasePro } from '../lib/supabasePro';
 import Footer from '../components/Footer';
 import { ProfileAvatar } from '../components/ProfileAvatar';
-
+import Vigil from './Vigil';
 /* ══════════════════════════════════════════
    STRUCTURE DE NAVIGATION
 ══════════════════════════════════════════ */
@@ -411,6 +411,9 @@ export default function ProLayout() {
         </main>
         <Footer />
       </div>
+
+      {/* VIGIL — Assistant flottant */}
+      <Vigil />
 
       <style>{`nav::-webkit-scrollbar { display: none; }`}</style>
     </div>
