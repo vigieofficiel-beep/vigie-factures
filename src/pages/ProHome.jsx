@@ -101,7 +101,6 @@ function detecterAnomalies(expenses) {
     }
   });
 
-  // Dédoublonner et limiter à 5
   const uniques = anomalies.filter((a, i, arr) => arr.findIndex(b => b.message === a.message) === i);
   return uniques.slice(0, 5);
 }
@@ -120,7 +119,6 @@ function AnomaliesPanel({ anomalies, navigate }) {
       borderRadius: 14, marginBottom: 20, overflow: 'hidden',
       boxShadow: '0 2px 12px rgba(199,91,78,0.08)',
     }}>
-      {/* Header */}
       <div
         onClick={() => setOpen(o => !o)}
         style={{
@@ -144,7 +142,6 @@ function AnomaliesPanel({ anomalies, navigate }) {
         {open ? <ChevronUp size={14} color={C.light} /> : <ChevronDown size={14} color={C.light} />}
       </div>
 
-      {/* Liste */}
       {open && (
         <div style={{ padding: '12px 18px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           {anomalies.map((a, i) => (
@@ -423,7 +420,8 @@ export default function ProHome() {
         { data: formalites }, { data: reminders }, { data: toutesDepenses },
       ] = await Promise.all([
         supabasePro.from('invoices').select('montant_ht,taux_tva,montant_ttc,statut,date,date_echeance').eq('user_id', uid).gte('date', debut).lte('date', fin),
-        supabasePro.from('expenses').select('montant_ht,taux_tva,categorie,date').eq('user_id', uid).gte('date', debut).lte('date', fin),
+        // ✅ FIX : colonnes réelles de la table expenses
+        supabasePro.from('expenses').select('amount_ttc,type,etablissement,date,notes').eq('user_id', uid).gte('date', debut).lte('date', fin),
         supabasePro.from('invoices').select('montant_ttc,statut,date_echeance').eq('user_id', uid).neq('statut', 'Payée'),
         supabasePro.from('equipe').select('statut,salaire_brut').eq('user_id', uid),
         supabasePro.from('factures_fournisseurs').select('montant_ttc,statut,date_echeance').eq('user_id', uid).neq('statut', 'Payée'),
@@ -431,22 +429,25 @@ export default function ProHome() {
         supabasePro.from('formalites').select('titre,date_echeance,statut').eq('user_id', uid).lte('date_echeance', in30),
         supabasePro.from('reminders').select('*').eq('user_id', uid).order('sent_at', { ascending: false }).limit(5),
         // Toutes les dépenses du mois pour la détection d'anomalies
-        supabasePro.from('expenses').select('amount_ttc,taux_tva,etablissement,date,type').eq('user_id', uid).gte('date', debut).lte('date', fin),
+        supabasePro.from('expenses').select('amount_ttc,etablissement,date,type').eq('user_id', uid).gte('date', debut).lte('date', fin),
       ]);
 
       // Détection d'anomalies
       setAnomalies(detecterAnomalies(toutesDepenses || []));
 
-      const totalRecettes  = (recettes || []).reduce((s, r) => s + Number(r.montant_ttc || r.montant_ht || 0), 0);
-      const totalDepenses  = (depenses  || []).reduce((s, d) => s + Number(d.montant_ht || 0) * (1 + Number(d.taux_tva || 20) / 100), 0);
-      const factAttente    = (invoices  || []).filter(i => i.statut === 'En attente' || i.statut === 'Envoyée');
-      const factRetard     = (invoices  || []).filter(i => i.date_echeance && new Date(i.date_echeance) < new Date());
+      const totalRecettes = (recettes || []).reduce((s, r) => s + Number(r.montant_ttc || r.montant_ht || 0), 0);
+      // ✅ FIX : calcul dépenses avec amount_ttc directement (déjà TTC)
+      const totalDepenses = (depenses || []).reduce((s, d) => s + Number(d.amount_ttc || 0), 0);
+
+      const factAttente    = (invoices || []).filter(i => i.statut === 'En attente' || i.statut === 'Envoyée');
+      const factRetard     = (invoices || []).filter(i => i.date_echeance && new Date(i.date_echeance) < new Date());
       const montantAttente = factAttente.reduce((s, i) => s + Number(i.montant_ttc || 0), 0);
 
+      // ✅ FIX : regroupement par type (au lieu de categorie)
       const catMap = {};
       (depenses || []).forEach(d => {
-        const cat = d.categorie || 'Autre';
-        catMap[cat] = (catMap[cat] || 0) + Number(d.montant_ht || 0) * (1 + Number(d.taux_tva || 20) / 100);
+        const cat = d.type || 'Autre';
+        catMap[cat] = (catMap[cat] || 0) + Number(d.amount_ttc || 0);
       });
       const depensesParCat = Object.entries(catMap).sort((a, b) => b[1] - a[1]).slice(0, 4);
 
