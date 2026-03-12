@@ -64,6 +64,8 @@ const NAV = [
       { id: 'pointages',    label: 'Pointages',    icon: Clock,        color: '#A85BC7', route: '/pro/pointages',   active: true  },
       { id: 'fournisseurs',label: 'Fournisseurs',icon: ShoppingCart,color: '#A85BC7', route: '/pro/fournisseurs',active: true },
       { id: 'exports',     label: 'Exports',     icon: Download,    color: '#A85BC7', route: '/pro/exports',     active: true },
+      { id: 'profil',   label: 'Mon profil', icon: Users,    color: '#A85BC7', route: '/pro/profil',  active: true },
+
     ],
   },
 ];
