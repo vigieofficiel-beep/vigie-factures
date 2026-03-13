@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { User, Briefcase, ArrowRight } from 'lucide-react';
+import { User, Briefcase, ArrowRight, Lock } from 'lucide-react';
 import Footer from '../components/Footer';
 
 export default function HomeHub() {
@@ -21,7 +21,6 @@ export default function HomeHub() {
       }}>
         <div style={{ maxWidth: 600, width: '100%', textAlign: 'center' }}>
 
-          {/* Titre */}
           <h1 style={{
             fontFamily: "'Cormorant Garamond', serif",
             fontSize: 'clamp(36px, 6vw, 54px)',
@@ -32,31 +31,33 @@ export default function HomeHub() {
             Vigie Hub
           </h1>
 
-          {/* Sous-texte */}
           <p style={{ fontSize: 16, color: 'rgba(44,36,22,0.5)', marginBottom: 60 }}>
             Choisissez votre espace Vigie
           </p>
 
-          {/* Cartes */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 24 }}>
 
-            {/* Carte Perso */}
-            <Link to="/perso" style={{ textDecoration: 'none' }}>
+            {/* Carte Perso — EN CONSTRUCTION */}
+            <div style={{ position: 'relative' }}>
               <div style={{
                 background: 'white', borderRadius: 20, padding: '40px 24px',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.06)', transition: 'all 0.3s ease',
-                cursor: 'pointer', border: '2px solid transparent',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-6px)';
-                e.currentTarget.style.boxShadow = '0 12px 40px rgba(212,168,83,0.15)';
-                e.currentTarget.style.borderColor = '#D4A853';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.06)';
-                e.currentTarget.style.borderColor = 'transparent';
+                boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+                border: '2px solid rgba(212,168,83,0.15)',
+                opacity: 0.6,
+                cursor: 'not-allowed',
+                userSelect: 'none',
               }}>
+                {/* Badge */}
+                <div style={{
+                  position: 'absolute', top: 14, right: 14,
+                  display: 'flex', alignItems: 'center', gap: 4,
+                  background: 'rgba(212,168,83,0.12)', border: '1px solid rgba(212,168,83,0.3)',
+                  borderRadius: 20, padding: '3px 10px',
+                }}>
+                  <Lock size={10} color="#D4A853" />
+                  <span style={{ fontSize: 10, fontWeight: 700, color: '#D4A853' }}>Bientôt</span>
+                </div>
+
                 <div style={{
                   width: 64, height: 64, borderRadius: '50%',
                   background: 'linear-gradient(135deg, #FFE8C5, #FFD49C)',
@@ -68,11 +69,14 @@ export default function HomeHub() {
                 <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: 700, color: '#2C2416', marginBottom: 8 }}>
                   Vigie Perso
                 </h2>
-                <p style={{ fontSize: 13, color: 'rgba(44,36,22,0.5)', lineHeight: 1.6 }}>
+                <p style={{ fontSize: 13, color: 'rgba(44,36,22,0.5)', lineHeight: 1.6, marginBottom: 16 }}>
                   Gestion personnelle, factures, démarches, foyer
                 </p>
+                <span style={{ fontSize: 12, color: 'rgba(44,36,22,0.35)', fontStyle: 'italic' }}>
+                  🚧 En cours de développement
+                </span>
               </div>
-            </Link>
+            </div>
 
             {/* Carte Pro */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -109,15 +113,13 @@ export default function HomeHub() {
                 </div>
               </Link>
 
-              {/* Lien tarifs */}
               <Link to="/tarifs" style={{ textDecoration: 'none' }}>
                 <div style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                   padding: '10px 16px', borderRadius: 10,
                   background: 'rgba(91,163,199,0.08)',
                   border: '1px solid rgba(91,163,199,0.2)',
-                  transition: 'all 0.2s ease',
-                  cursor: 'pointer',
+                  transition: 'all 0.2s ease', cursor: 'pointer',
                 }}
                 onMouseEnter={e => {
                   e.currentTarget.style.background = 'rgba(91,163,199,0.15)';
