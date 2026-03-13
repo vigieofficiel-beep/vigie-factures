@@ -19,7 +19,6 @@ import SimulateurCharges from './pages/SimulateurCharges';
 import ConvertisseurDevises from './pages/ConvertisseurDevises';
 import RentabiliteClients from './pages/RentabiliteClients';
 import GraphiqueCA from './pages/GraphiqueCA';
-import GenerateurMotDePasse from './pages/GenerateurMotDePasse';
 
 // Pages publiques
 import HomeHub    from './pages/HomeHub';
@@ -96,7 +95,6 @@ const router = createBrowserRouter([
       { path: 'devises', element: <ConvertisseurDevises /> },
       { path: 'rentabilite', element: <RentabiliteClients /> },
       { path: 'graphiques', element: <GraphiqueCA /> },
-      { path: 'mdp', element: <GenerateurMotDePasse /> },
 
     ],
   },
