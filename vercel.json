@@ -14,3 +14,25 @@
     }
   ]
 }
+{
+  "buildCommand": "vite build",
+  "devCommand": "vite --port $PORT",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/send-alerts",
+      "schedule": "0 7 * * *"
+    }
+  ]
+}
