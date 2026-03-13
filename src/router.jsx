@@ -14,6 +14,7 @@ import MentionsLegales from './pages/MentionsLegales';
 import Confidentialite from './pages/Confidentialite';
 import NotFound from './pages/NotFound';
 import ProfilPro from './pages/ProfilPro';
+import CalculateurTVA from './pages/CalculateurTVA';
 
 // Pages publiques
 import HomeHub    from './pages/HomeHub';
@@ -34,6 +35,7 @@ import RequireAuthPro from './RequireAuthPro';
 // Module Factures
 import VigieFacturesWrapper from './pages/VigieFacturesWrapper';
 import ProHome from './pages/ProHome';
+
 const router = createBrowserRouter([
 
   // ═══ Pages publiques ═══
@@ -45,7 +47,7 @@ const router = createBrowserRouter([
   { path: '/tarifs', element: <LandingPage /> },
   { path: '/mentions-legales', element: <MentionsLegales /> },
   { path: '/confidentialite',  element: <Confidentialite /> },
-  
+
   // ═══ Espace Perso ═══
   {
     path: '/perso',
@@ -55,13 +57,12 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: [
-      { index: true,      element: <PersoDashboard /> },       // /perso → dashboard
-      { path: 'factures', element: <VigieFacturesWrapper /> }, // /perso/factures
+      { index: true,      element: <PersoDashboard /> },
+      { path: 'factures', element: <VigieFacturesWrapper /> },
     ],
   },
 
   // ═══ Espace Pro ═══
-  // /pro → directement Vigie Factures (pas de dashboard intermédiaire)
   {
     path: '/pro',
     element: (
@@ -70,20 +71,20 @@ const router = createBrowserRouter([
       </RequireAuthPro>
     ),
     children: [
-      { index: true,      element: <ProHome /> },
-      { path: 'factures', element: <VigieFacturesWrapper /> }, // /pro/factures (compatibilité)
-      { path: 'depenses', element: <DepensesPage /> },
-      { path: 'recettes', element: <RecettesPage /> },
-      { path: 'banque', element: <BanquePage /> },
-      { path: 'contrats', element: <ContratsPage /> },
+      { index: true,        element: <ProHome /> },
+      { path: 'factures',   element: <VigieFacturesWrapper /> },
+      { path: 'depenses',   element: <DepensesPage /> },
+      { path: 'recettes',   element: <RecettesPage /> },
+      { path: 'banque',     element: <BanquePage /> },
+      { path: 'contrats',   element: <ContratsPage /> },
       { path: 'formalites', element: <FormalitesPage /> },
       { path: 'equipe',     element: <EquipePro /> },
       { path: 'pointages',  element: <PointagesPro /> },
       { path: 'fournisseurs', element: <FournisseursPro /> },
-      { path: 'exports', element: <ExportsFEC /> },
-      { path: 'profil',  element: <ProfilPro /> },
-      { path: '*', element: <NotFound /> }
-
+      { path: 'exports',    element: <ExportsFEC /> },
+      { path: 'profil',     element: <ProfilPro /> },
+      { path: 'tva',        element: <CalculateurTVA /> },
+      { path: '*',          element: <NotFound /> },
     ],
   },
 
