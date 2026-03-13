@@ -160,8 +160,7 @@ export default function ProLayout() {
           </div>
 
           {/* NAVIGATION */}
-          <nav style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding:'12px 8px', scrollbarWidth:'none' }}>
-            {NAV.map((item) => {
+<nav style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding:'12px 4px 12px 8px' }}>            {NAV.map((item) => {
               const Icon = item.icon;
 
               if (!item.children) {
@@ -245,7 +244,11 @@ export default function ProLayout() {
       </div>
 
       <Vigil />
-      <style>{`nav::-webkit-scrollbar { display: none; }`}</style>
-    </div>
+      <style>{`
+  nav::-webkit-scrollbar { width: 4px; }
+  nav::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); border-radius: 2px; }
+  nav::-webkit-scrollbar-thumb { background: rgba(91,163,199,0.35); border-radius: 2px; }
+  nav::-webkit-scrollbar-thumb:hover { background: rgba(91,163,199,0.6); }
+`}</style>    </div>
   );
 }
