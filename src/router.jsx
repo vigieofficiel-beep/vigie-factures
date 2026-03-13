@@ -15,6 +15,10 @@ import Confidentialite from './pages/Confidentialite';
 import NotFound from './pages/NotFound';
 import ProfilPro from './pages/ProfilPro';
 import CalculateurTVA from './pages/CalculateurTVA';
+import SimulateurCharges from './pages/SimulateurCharges';
+import ConvertisseurDevises from './pages/ConvertisseurDevises';
+import RentabiliteClients from './pages/RentabiliteClients';
+import GraphiqueCA from './pages/GraphiqueCA';
 
 // Pages publiques
 import HomeHub    from './pages/HomeHub';
@@ -47,6 +51,9 @@ const router = createBrowserRouter([
   { path: '/tarifs', element: <LandingPage /> },
   { path: '/mentions-legales', element: <MentionsLegales /> },
   { path: '/confidentialite',  element: <Confidentialite /> },
+  { path: 'rentabilite', element: <RentabiliteClients /> },
+  { path: 'graphiques', element: <GraphiqueCA /> },
+
 
   // ═══ Espace Perso ═══
   {
@@ -85,6 +92,9 @@ const router = createBrowserRouter([
       { path: 'profil',     element: <ProfilPro /> },
       { path: 'tva',        element: <CalculateurTVA /> },
       { path: '*',          element: <NotFound /> },
+      { path: 'charges', element: <SimulateurCharges /> },
+      { path: 'devises', element: <ConvertisseurDevises /> },
+
     ],
   },
 

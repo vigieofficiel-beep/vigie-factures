@@ -54,7 +54,12 @@ const NAV = [
     active: true,
     children: [
       { id: 'tva', label: 'Calculateur TVA', icon: Calculator, color: '#5BA3C7', route: '/pro/tva', active: true },
-    ],
+    { id: 'charges', label: 'Charges sociales', icon: Calculator, color: '#5BA3C7', route: '/pro/charges', active: true },
+    { id:'devises', label:'Convertisseur devises', icon:Calculator, color:'#5BA3C7', route:'/pro/devises', active:true },
+    { id:'rentabilite', label:'Rentabilité clients', icon:Calculator, color:'#5BA3C7', route:'/pro/rentabilite', active:true },
+{ id:'graphiques', label:'Graphiques', icon:Calculator, color:'#5BA3C7', route:'/pro/graphiques', active:true },
+
+  ],
   },
   {
     id: 'operations',

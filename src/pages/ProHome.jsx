@@ -7,6 +7,7 @@ import {
   Percent, FileText, ClipboardCheck, AlertCircle,
 } from 'lucide-react';
 import { analyserTout, URGENCE } from '../agents/AlertesAgent';
+import GraphiqueCA from './GraphiqueCA';
 
 const formatEuro = (n) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n ?? 0);
@@ -233,6 +234,7 @@ export default function ProHome() {
       </div>
 
       {/* ── Agent 5 : Bandeau alertes ── */}
+      <GraphiqueCA compact={true} />
       {alertes.length > 0 && (
         <BandeauAlertes alertes={alertes} onDismiss={() => setAlertes([])} />
       )}
