@@ -15,7 +15,7 @@ import Vigil from './Vigil';
 const NAV = [
   {
     id: 'accueil',
-    label: 'Accueil',
+    label: 'Bureau',
     icon: Home,
     color: '#5BA3C7',
     route: '/pro',
@@ -57,7 +57,8 @@ const NAV = [
     { id: 'charges', label: 'Charges sociales', icon: Calculator, color: '#5BA3C7', route: '/pro/charges', active: true },
     { id:'devises', label:'Convertisseur devises', icon:Calculator, color:'#5BA3C7', route:'/pro/devises', active:true },
     { id:'rentabilite', label:'Rentabilité clients', icon:Calculator, color:'#5BA3C7', route:'/pro/rentabilite', active:true },
-{ id:'graphiques', label:'Graphiques', icon:Calculator, color:'#5BA3C7', route:'/pro/graphiques', active:true },
+    { id:'graphiques', label:'Graphiques', icon:Calculator, color:'#5BA3C7', route:'/pro/graphiques', active:true },
+    { id:'mdp', label:'Mots de passe', icon:Calculator, color:'#5BA3C7', route:'/pro/mdp', active:true },
 
   ],
   },
