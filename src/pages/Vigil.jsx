@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, X, Send, Bot, ChevronDown, AlertCircle } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, ChevronDown } from 'lucide-react';
 
 const C = {
   blue:   '#5BA3C7',
@@ -18,65 +18,28 @@ const DISCLAIMER = "ℹ️ Ces informations sont indicatives et ne remplacent pa
 const SUGGESTIONS = [
   "Comment ajouter une dépense ?",
   "Quels sont les taux de TVA en France ?",
-  "Comment enregistrer une facture client ?",
+  "Comment créer un devis ?",
   "Où trouver mes contrats ?",
 ];
 
-const SYSTEM_PROMPT = `Tu es Vigil, l'assistant intégré à Vigie Pro, une application de pré-comptabilité française.
-
-TON RÔLE :
-- Guider les utilisateurs dans la navigation de l'application Vigie Pro
-- Répondre aux questions générales de comptabilité et fiscalité françaises
-- Expliquer les concepts (TVA, charges, catégories de dépenses, etc.)
-- Orienter vers les bonnes pages de l'application
-
-PAGES DISPONIBLES DANS VIGIE PRO :
-- /pro → Tableau de bord principal
-- /pro/depenses → Gestion des dépenses et notes de frais
-- /pro/recettes → Factures clients et recettes
-- /pro/banque → Relevés bancaires et rapprochement
-- /pro/contrats → Contrats et assurances
-- /pro/formalites → Obligations légales et formalités
-- /pro/mail-agent → Agent mail automatique
-- /pro/equipe → Gestion de l'équipe
-- /pro/pointages → Pointages et temps de travail
-- /pro/fournisseurs → Factures fournisseurs
-- /pro/exports → Export FEC et comptable
-
-RÈGLES ABSOLUES :
-1. Tu ne donnes JAMAIS de conseil personnalisé engageant une responsabilité juridique ou fiscale
-2. Pour toute décision importante, tu recommandes toujours de consulter un expert-comptable
-3. Tu restes dans le périmètre de la pré-comptabilité et de la navigation dans l'app
-4. Tes réponses sont courtes, claires, en français
-5. Tu n'inventes jamais de chiffres ou de règles fiscales — si tu n'es pas sûr, tu le dis
-6. Tu es sympathique, professionnel, jamais condescendant
-
-FORMAT :
-- Réponses courtes (3-5 phrases max sauf si explication nécessaire)
-- Utilise des listes à puces si tu listes plusieurs éléments
-- Si la question concerne une page spécifique, indique le chemin (ex: "Rendez-vous dans Dépenses")`;
-
 export default function Vigil() {
-  const [open, setOpen]       = useState(false);
+  const [open,     setOpen]     = useState(false);
   const [messages, setMessages] = useState([
     {
-      role: 'assistant',
+      role   : 'assistant',
       content: "Bonjour ! Je suis **Vigil**, votre assistant Vigie Pro 👋\n\nJe peux vous aider à naviguer dans l'application et répondre à vos questions de pré-comptabilité.\n\nComment puis-je vous aider ?",
-      ts: Date.now(),
+      ts     : Date.now(),
     }
   ]);
-  const [input, setInput]     = useState('');
+  const [input,   setInput]   = useState('');
   const [loading, setLoading] = useState(false);
-  const [unread, setUnread]   = useState(0);
+  const [unread,  setUnread]  = useState(0);
   const bottomRef             = useRef();
   const inputRef              = useRef();
   const navigate              = useNavigate();
 
   useEffect(() => {
-    if (open) {
-      setUnread(0);
-      setTimeout(() => inputRef.current?.focus(), 100);
-    }
+    if (open) { setUnread(0); setTimeout(() => inputRef.current?.focus(), 100); }
   }, [open]);
 
   useEffect(() => {
@@ -84,76 +47,70 @@ export default function Vigil() {
   }, [messages, loading]);
 
   const sendMessage = async (text) => {
-    const userText = text || input.trim();
+    const userText = (text || input).trim();
     if (!userText || loading) return;
     setInput('');
 
-    const userMsg = { role: 'user', content: userText, ts: Date.now() };
+    const userMsg    = { role: 'user', content: userText, ts: Date.now() };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setLoading(true);
 
     try {
+      // Historique sans les champs internes (ts, route)
       const history = newMessages.map(m => ({ role: m.role, content: m.content }));
 
-const response = await fetch('https://api.openai.com/v1/chat/completions', {        method: 'POST',
-        headers: {
-  'Content-Type': 'application/json',
-'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,},
-        body: JSON.stringify({
-  model: 'gpt-4o-mini',
-  max_tokens: 600,
-  messages: [
-    { role: 'system', content: SYSTEM_PROMPT },
-    ...history,
-  ],
-}),
+      const response = await fetch('/api/vigil-chat', {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body   : JSON.stringify({ messages: history }),
       });
 
-      const data = await response.json();
-const reply = data.choices?.[0]?.message?.content || "Je n'ai pas pu répondre, réessayez.";
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-      // Détecte si la réponse contient une route navigable
+      const data  = await response.json();
+      const reply = data.reply || "Je n'ai pas pu répondre, réessayez.";
+
+      // Détecte route navigable dans la réponse
       const routeMatch = reply.match(/\/pro\/[a-z\-]+/);
 
+      // Disclaimer si question fiscale
       const needsDisclaimer = /tva|charge|fiscal|impôt|cotisation|urssaf|bilan|comptab/i.test(userText);
 
       setMessages(prev => [...prev, {
-        role: 'assistant',
+        role   : 'assistant',
         content: reply + (needsDisclaimer ? `\n\n*${DISCLAIMER}*` : ''),
-        ts: Date.now(),
-        route: routeMatch ? routeMatch[0] : null,
+        ts     : Date.now(),
+        route  : routeMatch ? routeMatch[0] : null,
       }]);
 
       if (!open) setUnread(u => u + 1);
+
     } catch (e) {
+      console.error('[Vigil]', e);
       setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: "Une erreur est survenue. Veuillez réessayer.",
-        ts: Date.now(),
+        role   : 'assistant',
+        content: "Une erreur est survenue. Vérifiez votre connexion et réessayez.",
+        ts     : Date.now(),
       }]);
     }
+
     setLoading(false);
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   };
 
-  const renderContent = (content) => {
-    return content
+  const renderContent = (content) =>
+    content
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em style="font-size:11px;color:#94A3B8">$1</em>')
       .replace(/\n/g, '<br/>')
       .replace(/^- (.+)/gm, '<span style="display:block;padding-left:12px">• $1</span>');
-  };
 
   return (
     <>
-      {/* Bulle flottante */}
       <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 1000 }}>
 
         {/* Fenêtre chat */}
@@ -161,12 +118,10 @@ const reply = data.choices?.[0]?.message?.content || "Je n'ai pas pu répondre, 
           <div style={{
             position: 'absolute', bottom: 68, right: 0,
             width: 360, height: 520,
-            background: '#fff',
-            borderRadius: 20,
+            background: '#fff', borderRadius: 20,
             boxShadow: '0 20px 60px rgba(15,23,42,0.18), 0 4px 16px rgba(15,23,42,0.10)',
             border: `1px solid ${C.border}`,
-            display: 'flex', flexDirection: 'column',
-            overflow: 'hidden',
+            display: 'flex', flexDirection: 'column', overflow: 'hidden',
             animation: 'vigilOpen 0.2s ease',
           }}>
 
@@ -179,8 +134,7 @@ const reply = data.choices?.[0]?.message?.content || "Je n'ai pas pu répondre, 
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{
                   width: 36, height: 36, borderRadius: 10,
-                  background: `${C.blue}25`,
-                  border: `1px solid ${C.blue}40`,
+                  background: `${C.blue}25`, border: `1px solid ${C.blue}40`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
                   <Bot size={18} color={C.blue} />
@@ -209,22 +163,15 @@ const reply = data.choices?.[0]?.message?.content || "Je n'ai pas pu répondre, 
               scrollbarWidth: 'thin', scrollbarColor: '#E2E8F0 transparent',
             }}>
               {messages.map((msg, i) => (
-                <div key={i} style={{
-                  display: 'flex',
-                  justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                }}>
+                <div key={i} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
                   <div style={{
-                    maxWidth: '82%',
-                    padding: '10px 13px',
-                    borderRadius: msg.role === 'user'
-                      ? '14px 14px 4px 14px'
-                      : '14px 14px 14px 4px',
+                    maxWidth: '82%', padding: '10px 13px',
+                    borderRadius: msg.role === 'user' ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
                     background: msg.role === 'user'
                       ? `linear-gradient(135deg, ${C.blue} 0%, #4a8fb5 100%)`
                       : C.bg,
                     border: msg.role === 'user' ? 'none' : `1px solid ${C.border}`,
-                    fontSize: 12.5,
-                    color: msg.role === 'user' ? '#fff' : C.dark,
+                    fontSize: 12.5, color: msg.role === 'user' ? '#fff' : C.dark,
                     lineHeight: 1.55,
                   }}
                     dangerouslySetInnerHTML={{ __html: renderContent(msg.content) }}
@@ -256,10 +203,9 @@ const reply = data.choices?.[0]?.message?.content || "Je n'ai pas pu répondre, 
                     background: C.bg, border: `1px solid ${C.border}`,
                     display: 'flex', gap: 4, alignItems: 'center',
                   }}>
-                    {[0, 1, 2].map(i => (
+                    {[0,1,2].map(i => (
                       <div key={i} style={{
-                        width: 6, height: 6, borderRadius: '50%',
-                        background: C.light,
+                        width: 6, height: 6, borderRadius: '50%', background: C.light,
                         animation: `vigilDot 1.2s ease ${i * 0.2}s infinite`,
                       }} />
                     ))}
@@ -285,8 +231,7 @@ const reply = data.choices?.[0]?.message?.content || "Je n'ai pas pu répondre, 
 
             {/* Input */}
             <div style={{
-              padding: '10px 12px',
-              borderTop: `1px solid ${C.border}`,
+              padding: '10px 12px', borderTop: `1px solid ${C.border}`,
               display: 'flex', gap: 8, alignItems: 'flex-end',
             }}>
               <textarea
@@ -319,7 +264,6 @@ const reply = data.choices?.[0]?.message?.content || "Je n'ai pas pu répondre, 
                 <Send size={14} color={input.trim() && !loading ? '#fff' : C.light} />
               </button>
             </div>
-
           </div>
         )}
 
@@ -328,21 +272,14 @@ const reply = data.choices?.[0]?.message?.content || "Je n'ai pas pu répondre, 
           onClick={() => setOpen(o => !o)}
           style={{
             width: 52, height: 52, borderRadius: 16,
-            background: open
-              ? C.mid
-              : `linear-gradient(135deg, ${C.blue} 0%, #4a8fb5 100%)`,
+            background: open ? C.mid : `linear-gradient(135deg, ${C.blue} 0%, #4a8fb5 100%)`,
             border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 4px 20px rgba(91,163,199,0.4)',
-            transition: 'all 0.2s ease',
-            position: 'relative',
+            transition: 'all 0.2s ease', position: 'relative',
           }}
         >
-          {open
-            ? <X size={20} color="#fff" />
-            : <MessageCircle size={22} color="#fff" />
-          }
-          {/* Badge non-lu */}
+          {open ? <X size={20} color="#fff" /> : <MessageCircle size={22} color="#fff" />}
           {!open && unread > 0 && (
             <div style={{
               position: 'absolute', top: -4, right: -4,
@@ -358,7 +295,7 @@ const reply = data.choices?.[0]?.message?.content || "Je n'ai pas pu répondre, 
       <style>{`
         @keyframes vigilOpen {
           from { opacity: 0; transform: translateY(10px) scale(0.97); }
-          to   { opacity: 1; transform: translateY(0)    scale(1);    }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
         }
         @keyframes vigilDot {
           0%, 80%, 100% { transform: scale(0.7); opacity: 0.4; }
