@@ -119,7 +119,7 @@ function OngletRediger({ config, onEmailEnvoye }) {
 
   const envoyer = async () => {
     if (!form.destinataire || !email) return;
-    if (!config?.email_expediteur) { setError("Configurez votre email d'expédition dans les Paramètres."); return; }
+    if (!config?.email_expediteur) { setError("Configurez votre courriel d'expédition dans les Paramètres."); return; }
     setSending(true); setError("");
     try {
       await envoyerEmail({ ...form, sujet: email.sujet, corps: email.corps, config });
@@ -133,7 +133,7 @@ function OngletRediger({ config, onEmailEnvoye }) {
         type: form.type,
         statut: "envoyé",
       }]);
-      setSuccess(`Email envoyé avec succès à ${form.destinataire} !`);
+      setSuccess(`Courriel envoyé avec succès à ${form.destinataire} !`);
       setEmail(null);
       setForm({ destinataire: "", type: "Autre", ton: "Professionnel", contexte: "", numeroFacture: "", montant: "" });
       onEmailEnvoye?.();
@@ -208,7 +208,7 @@ function OngletRediger({ config, onEmailEnvoye }) {
               color: generating ? "#9ca3af" : "#fff",
             }}>
               <Icon.Sparkle />
-              {generating ? "Génération IA en cours..." : "Générer avec l'IA"}
+              {generating ? "Génération en cours..." : "Générer"}
             </button>
           </div>
         </div>
@@ -230,7 +230,7 @@ function OngletRediger({ config, onEmailEnvoye }) {
         {!email ? (
           <div style={{ ...card, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 300, color: "#9ca3af", textAlign: "center" }}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>✉️</div>
-            <p style={{ margin: 0, fontSize: 14 }}>L'email généré par l'IA apparaîtra ici</p>
+            <p style={{ margin: 0, fontSize: 14 }}>Le courriel généré apparaîtra ici</p>
             <p style={{ margin: "8px 0 0", fontSize: 12 }}>Remplissez le formulaire et cliquez sur "Générer"</p>
           </div>
         ) : (
@@ -275,7 +275,7 @@ function OngletRediger({ config, onEmailEnvoye }) {
 
             {!config?.email_expediteur && (
               <div style={{ marginTop: 8, fontSize: 12, color: "#f59e0b", textAlign: "center" }}>
-                ⚠️ Configurez votre email d'expédition dans les Paramètres avant d'envoyer.
+                ⚠️ Configurez votre courriel d'expédition dans les Paramètres avant d'envoyer.
               </div>
             )}
           </div>
@@ -333,7 +333,7 @@ function OngletRelances({ config, onEmailEnvoye }) {
     const emailData = generated[facture.id];
     const destinataire = facture.clients?.email;
     if (!destinataire || !emailData) return;
-    if (!config?.email_expediteur) { alert("Configurez votre email d'expédition dans les Paramètres."); return; }
+    if (!config?.email_expediteur) { alert("Configurez votre courriel d'expédition dans les Paramètres."); return; }
     setSending(s => ({ ...s, [facture.id]: "sending" }));
     try {
       await envoyerEmail({ destinataire, sujet: emailData.sujet, corps: emailData.corps, type: "Relance facture", config });
@@ -374,7 +374,7 @@ function OngletRelances({ config, onEmailEnvoye }) {
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div style={{ background: "#fef3c7", border: "1px solid #fde68a", borderRadius: 10, padding: "10px 16px", fontSize: 13, color: "#92400e", display: "flex", gap: 8 }}>
         <Icon.Alert />
-        <span><b>{factures.length} facture{factures.length > 1 ? "s" : ""}</b> en retard de paiement détectée{factures.length > 1 ? "s" : ""}. L'IA peut générer les emails de relance automatiquement.</span>
+        <span><b>{factures.length} facture{factures.length > 1 ? "s" : ""}</b> en retard de paiement détectée{factures.length > 1 ? "s" : ""}. Les courriels de relance peuvent être générés automatiquement.</span>
       </div>
 
       {factures.map(f => {
@@ -410,7 +410,7 @@ function OngletRelances({ config, onEmailEnvoye }) {
               </div>
             ) : emailGenere ? (
               <div style={{ background: "#f8fafc", border: "1px solid #e5e7eb", borderRadius: 8, padding: 14 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: "#6b7280", marginBottom: 6, textTransform: "uppercase" }}>Aperçu email généré</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "#6b7280", marginBottom: 6, textTransform: "uppercase" }}>Aperçu courriel généré</div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#111827", marginBottom: 8 }}>Objet : {emailGenere.sujet}</div>
                 <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.6, maxHeight: 100, overflow: "hidden", whiteSpace: "pre-line" }}>
                   {emailGenere.corps.substring(0, 200)}...
@@ -427,7 +427,7 @@ function OngletRelances({ config, onEmailEnvoye }) {
             ) : (
               <button onClick={() => genererRelance(f)} disabled={isSending === "generating"} style={{ ...btnSecondary, justifyContent: "center", width: "100%" }}>
                 <Icon.Sparkle />
-                {isSending === "generating" ? "Génération IA..." : "Générer la relance avec l'IA"}
+                {isSending === "generating" ? "Génération..." : "Générer la relance"}
               </button>
             )}
           </div>
@@ -496,7 +496,7 @@ function OngletHistorique({ refresh }) {
 
       {/* Liste */}
       {filtered.length === 0 ? (
-        <div style={{ textAlign: "center", padding: 40, color: "#9ca3af" }}>Aucun email dans l'historique.</div>
+        <div style={{ textAlign: "center", padding: 40, color: "#9ca3af" }}>Aucun courriel dans l'historique.</div>
       ) : (
         <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 12, overflow: "hidden" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -532,7 +532,7 @@ function OngletHistorique({ refresh }) {
         </div>
       )}
 
-      {/* Modal aperçu email */}
+      {/* Modal aperçu courriel */}
       {selected && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
           <div style={{ background: "#fff", borderRadius: 14, width: "100%", maxWidth: 560, maxHeight: "80vh", overflow: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
@@ -594,9 +594,9 @@ function OngletParametres({ config, onSave }) {
         <h3 style={cardTitle}>Configuration de l'expédition</h3>
 
         <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 8, padding: "12px 14px", marginBottom: 16, fontSize: 13, color: "#1e40af" }}>
-          Le Mail Agent utilise <b>Resend</b> pour envoyer les emails. Créez un compte gratuit sur{" "}
+          Le Mail Agent utilise <b>Resend</b> pour envoyer les courriels. Créez un compte gratuit sur{" "}
           <a href="https://resend.com" target="_blank" rel="noreferrer" style={{ color: "#6366f1" }}>resend.com</a>{" "}
-          et récupérez votre clé API. Vous pouvez envoyer jusqu'à 3 000 emails/mois gratuitement.
+          et récupérez votre clé API. Vous pouvez envoyer jusqu'à 3 000 courriels/mois gratuitement.
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -604,7 +604,7 @@ function OngletParametres({ config, onSave }) {
             <input type="password" value={form.resend_api_key} onChange={e => set("resend_api_key", e.target.value)}
               style={inputStyle} placeholder="re_xxxxxxxxxxxxxxxxxxxx" />
           </Field>
-          <Field label="Email d'expédition (ex: contact@mondomaine.fr)">
+          <Field label="Courriel d'expédition (ex: contact@mondomaine.fr)">
             <input type="email" value={form.email_expediteur} onChange={e => set("email_expediteur", e.target.value)}
               style={inputStyle} placeholder="contact@mondomaine.fr" />
           </Field>
@@ -633,7 +633,7 @@ function OngletParametres({ config, onSave }) {
       <div style={{ ...card, marginTop: 16 }}>
         <h3 style={cardTitle}>Supabase Edge Function</h3>
         <div style={{ fontSize: 13, color: "#6b7280", lineHeight: 1.7 }}>
-          Pour que l'envoi d'emails fonctionne, vous devez déployer une Edge Function Supabase nommée{" "}
+          Pour que l'envoi de courriels fonctionne, vous devez déployer une Edge Function Supabase nommée{" "}
           <code style={{ background: "#f3f4f6", padding: "2px 6px", borderRadius: 4, color: "#4f46e5" }}>send-email</code>{" "}
           qui utilisera votre clé API Resend. Cette fonction est disponible dans la documentation Supabase.
           Rendez-vous dans votre dashboard Supabase → Edge Functions → New Function.
@@ -667,7 +667,7 @@ export default function MailAgent() {
       <div style={{ marginBottom: 28 }}>
         <h1 style={{ margin: 0, fontSize: 26, fontWeight: 800, color: "#111827" }}>Mail Agent</h1>
         <p style={{ margin: "4px 0 0", color: "#6b7280", fontSize: 14 }}>
-          Rédigez et envoyez des emails professionnels assistés par IA · Mode sortant uniquement
+          Rédigez et envoyez des courriels professionnels · Mode sortant uniquement
         </p>
       </div>
 
@@ -675,7 +675,7 @@ export default function MailAgent() {
       {!config?.email_expediteur && (
         <div style={{ background: "#fef3c7", border: "1px solid #fde68a", borderRadius: 10, padding: "12px 16px", marginBottom: 20, fontSize: 13, color: "#92400e", display: "flex", gap: 10, alignItems: "center" }}>
           <Icon.Alert />
-          <span>Configurez votre email d'expédition dans les <b>Paramètres</b> pour pouvoir envoyer des emails.</span>
+          <span>Configurez votre courriel d'expédition dans les <b>Paramètres</b> pour pouvoir envoyer des courriels.</span>
           <button onClick={() => setTab("parametres")} style={{ ...btnSecondary, marginLeft: "auto", fontSize: 12, padding: "5px 12px" }}>
             Configurer →
           </button>

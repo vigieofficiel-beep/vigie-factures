@@ -67,7 +67,7 @@ export function LegalModal({ page, onClose }) {
         - Données d'utilisation (pages visitées, durée)</p>
 
         <h3>Utilisation des données</h3>
-        <p>- Analyse des factures par IA (Claude AI)<br/>
+        <p>- Analyse automatique des factures (Claude AI)<br/>
         - Envoi d'alertes par email<br/>
         - Amélioration du service</p>
 

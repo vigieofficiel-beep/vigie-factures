@@ -22,7 +22,7 @@ const FAQS = [
   { q: "Mes données sont-elles sécurisées et hébergées en Europe ?", a: "Oui. Vigie Pro utilise Supabase avec des serveurs hébergés en Europe (Frankfurt). Toutes les données sont chiffrées en transit et au repos. Chaque utilisateur n'accède qu'à ses propres données grâce au Row Level Security. La plateforme est conforme au RGPD." },
   { q: "Puis-je changer de plan à tout moment ?", a: "Oui, vous pouvez upgrader ou downgrader votre plan à tout moment depuis votre espace. Les changements sont effectifs immédiatement et la facturation est ajustée au prorata. Aucun engagement de durée minimum sur les plans mensuels." },
   { q: "Comment fonctionne l'import de documents ?", a: "Depuis le tableau de bord, glissez ou sélectionnez un fichier (PDF, JPG, PNG, CSV). Vigie Pro détecte automatiquement le type de document et vous propose de le classer dans le bon module — dépenses, fournisseurs ou banque. Vous confirmez en un clic." },
-  { q: "Le Mail Agent accède-t-il à mes emails entrants ?", a: "Non. Le Mail Agent fonctionne en mode sortant uniquement. Il ne lit jamais votre boîte de réception et ne stocke pas les communications de vos clients. Il sert uniquement à rédiger et envoyer des emails professionnels depuis Vigie Pro." },
+  { q: "Le Mail Agent accède-t-il à mes courriels entrants ?", a: "Non. Le Mail Agent fonctionne en mode sortant uniquement. Il ne lit jamais votre boîte de réception et ne stocke pas les communications de vos clients. Il sert uniquement à rédiger et envoyer des courriels professionnels depuis Vigie Pro." },
   { q: "Le FEC généré est-il conforme à la réglementation française ?", a: "Le fichier FEC respecte le format défini par l'article L.47 A du Livre des Procédures Fiscales. Il doit néanmoins être validé par votre expert-comptable avant remise à l'administration fiscale." },
   { q: "Est-il possible d'essayer Vigie Pro avant de s'abonner ?", a: "Oui. Contactez-nous via le formulaire ci-dessous pour obtenir un accès démo personnalisé. Un membre de l'équipe vous guidera à travers les fonctionnalités adaptées à votre situation." },
 ];
@@ -65,7 +65,7 @@ export default function LandingPage() {
   };
 
   const submitForm = () => {
-    if (!form.prenom || !form.email || !form.message) { alert('Merci de remplir prénom, email et message.'); return; }
+    if (!form.prenom || !form.email || !form.message) { alert('Merci de remplir prénom, courriel et message.'); return; }
     setFormDone(true);
   };
 
@@ -217,7 +217,7 @@ export default function LandingPage() {
               { emoji: '💰', title: 'Trésorerie en temps réel',   desc: 'Recettes, dépenses, relevés bancaires et rapprochement automatique. Votre solde du mois à portée de regard.', tag: 'Trésorerie', color: C.green  },
               { emoji: '⚖️', title: 'Zéro oubli juridique',       desc: 'Contrats avec alertes de préavis, formalités administratives avec rappels automatiques. Vos obligations légales sous contrôle.', tag: 'Juridique', color: C.gold },
               { emoji: '👥', title: 'RH & Opérations',            desc: 'Fiches collaborateurs, pointages quotidiens, fournisseurs et exports FEC pour votre expert-comptable.', tag: 'Opérations', color: C.purple },
-              { emoji: '✉️', title: 'Mail Agent IA',              desc: "Rédigez relances, devis et communications en quelques secondes. L'IA s'occupe de la rédaction professionnelle.", tag: 'Mail Agent', color: C.blue  },
+              { emoji: '✉️', title: 'Mail Agent ',              desc: "Rédigez relances, devis et communications en quelques secondes. L'IA s'occupe de la rédaction professionnelle.", tag: 'Mail Agent', color: C.blue  },
               { emoji: '📤', title: 'Import intelligent',         desc: 'Déposez un document — Vigie Pro le classe automatiquement dans le bon module et en extrait les données.', tag: 'Import', color: C.blue },
               { emoji: '📊', title: 'Export FEC légal',           desc: 'Générez votre Fichier des Écritures Comptables au format officiel pour votre expert-comptable ou en cas de contrôle fiscal.', tag: 'Comptabilité', color: C.red },
             ].map((f, i) => (
@@ -249,7 +249,7 @@ export default function LandingPage() {
           <div {...reveal(21)} style={{ ...reveal(21).style, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             {[
               { emoji: '💰', name: 'Trésorerie', color: C.green,  plan: 'Pro & Entreprise', modules: ['Dépenses & Frais professionnels','Recettes, Devis & Facturation','Banque & Rapprochement bancaire','Import justificatifs & relevés CSV'] },
-              { emoji: '⚖️', name: 'Juridique',  color: C.gold,   plan: 'Pro & Entreprise', modules: ['Contrats & Assurances avec alertes préavis','Formalités administratives & rappels','Mail Agent IA (relances, communications)','Historique complet des envois'] },
+              { emoji: '⚖️', name: 'Juridique',  color: C.gold,   plan: 'Pro & Entreprise', modules: ['Contrats & Assurances avec alertes préavis','Formalités administratives & rappels','Mail Agent (relances, communications)','Historique complet des envois'] },
               { emoji: '👥', name: 'Opérations', color: C.purple, plan: 'Entreprise',        modules: ['Équipe & Gestion RH complète','Pointages & Suivi des présences','Fournisseurs & Factures reçues','Exports FEC (format légal fiscal)'] },
               { emoji: '📊', name: 'Dashboard',  color: C.blue,   plan: 'Tous les plans',   modules: ['Vue consolidée de tous vos indicateurs','Alertes intelligentes & rappels automatiques','Import rapide de documents','Raccourcis vers tous les modules'] },
             ].map((p, i) => (
@@ -301,7 +301,7 @@ export default function LandingPage() {
           <div {...reveal(31)} style={{ ...reveal(31).style, display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
             {[
               { plan: 'Starter', color: C.green,  key: 'starter',    desc: 'Pour les auto-entrepreneurs qui démarrent', featured: false,
-                features: ['Dépenses & Frais professionnels','Upload de justificatifs','Dashboard central','Export CSV des dépenses','Support par email'] },
+                features: ['Dépenses & Frais professionnels','Upload de justificatifs','Dashboard central','Export CSV des dépenses','Support par courriel'] },
               { plan: 'Pro',     color: C.blue,   key: 'pro',        desc: 'Pour les entrepreneurs et TPE actives',    featured: true,
                 features: ['Tout le plan Starter','Recettes, Devis & Facturation','Banque & Rapprochement','Contrats & Formalités juridiques','Mail Agent IA','Support prioritaire'] },
               { plan: 'Entreprise', color: C.purple, key: 'entreprise', desc: 'Pour les PME avec équipe et fournisseurs', featured: false,
@@ -383,7 +383,7 @@ export default function LandingPage() {
             <h3 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 36, fontWeight: 700, color: '#fff', marginBottom: 16, lineHeight: 1.2 }}>Une question ?<br />Parlons-en.</h3>
             <p style={{ fontSize: 15, color: C.light, lineHeight: 1.8, marginBottom: 32 }}>Notre équipe est disponible pour répondre à vos questions, vous accompagner dans votre choix de plan ou organiser une démonstration personnalisée.</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {[['✉️','Email','contact@vigiepro.fr'],['⏱️','Délai de réponse','Sous 24h ouvrées'],['🇫🇷','Support','En français, par des humains']].map(([icon, label, value]) => (
+              {[['✉️','courriel','contact@vigiepro.fr'],['⏱️','Délai de réponse','Sous 24h ouvrées'],['🇫🇷','Support','En français, par des humains']].map(([icon, label, value]) => (
                 <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                   <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(91,163,199,0.12)', border: '1px solid rgba(91,163,199,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>{icon}</div>
                   <div>
@@ -412,7 +412,7 @@ export default function LandingPage() {
                     </div>
                   ))}
                 </div>
-                {[['Email professionnel','email','jean@masociete.fr','email'],].map(([label, key, ph, type]) => (
+                {[['Courriel professionnel','courriel','jean@masociete.fr','courriel'],].map(([label, key, ph, type]) => (
                   <div key={key} style={{ marginBottom: 16 }}>
                     <label style={{ fontSize: 11, fontWeight: 700, color: C.light, letterSpacing: '0.04em', display: 'block', marginBottom: 6 }}>{label}</label>
                     <input type={type} placeholder={ph} value={form[key]} onChange={e => setForm(f => ({...f,[key]:e.target.value}))} style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.border}`, borderRadius: 8, padding: '10px 14px', fontFamily: 'inherit', fontSize: 14, color: '#fff', outline: 'none' }} />

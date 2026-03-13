@@ -564,7 +564,7 @@ onDragStart={e => e.dataTransfer.setData('invoiceId', inv.id)}
   <div style={{ fontSize:10, color:'rgba(255,255,255,0.3)', marginBottom:10, textTransform:'uppercase', letterSpacing:1 }}>
     Utilisation — Plan {quota?.plan ?? 'free'}
   </div>
-  <QuotaBar label="Analyses OCR ce mois" used={quota?.ocr_month ?? 0} max={limits.ocr} unit=" analyses" />
+  <QuotaBar label="Analyses ce mois" used={quota?.ocr_month ?? 0} max={limits.ocr} unit=" analyses" />
   <QuotaBar label="Stockage utilisé" used={Math.round((quota?.storage_bytes ?? 0) / (1024*1024))} max={limits.storageMb} unit=" Mo" />
 </div>
 
