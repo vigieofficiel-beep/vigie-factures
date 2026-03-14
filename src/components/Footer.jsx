@@ -123,7 +123,6 @@ export default function Footer() {
           Vigie © {new Date().getFullYear()} — Tous droits réservés
         </span>
         <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)' }}>
-          Analyse propulsée par IA
         </span>
       </div>
     </footer>

@@ -16,11 +16,11 @@ const SECTIONS = [
     title: "1. Responsable du traitement",
     content: `Le responsable du traitement des données personnelles collectées via Vigie Pro est :
 
-• Nom : [À COMPLÉTER — votre nom]
+• Nom : Narcisse
 • Forme juridique : Auto-entrepreneur
-• SIRET : [À COMPLÉTER — en cours d'obtention]
+• SIRET : 888 362 118 00026
 • Email : contact@vigiepro.fr
-• Adresse : [À COMPLÉTER]`
+• Adresse : 37 bis rue du 13 octobre 1918, 02000 Laon`
   },
   {
     title: "2. Données collectées",
