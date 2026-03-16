@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { analyserTout, URGENCE } from '../agents/AlertesAgent';
 import GraphiqueCA from './GraphiqueCA';
+import OnboardingChecklist from '../components/OnboardingChecklist';
 
 const formatEuro = (n) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n ?? 0);
@@ -241,7 +242,7 @@ export default function ProHome() {
           </button>
         ))}
       </div>
-
+      <OnboardingChecklist />
     </div>
   );
 }
