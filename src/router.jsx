@@ -22,10 +22,10 @@ import GraphiqueCA from './pages/GraphiqueCA';
 import CalculateurAmortissement from './pages/CalculateurAmortissement';
 import SimulateurSalaire from './pages/SimulateurSalaire';
 import CalculateurSeuilRentabilite from './pages/CalculateurSeuilRentabilite';
+import TableauFiscal from './pages/TableauFiscal';
 import Tarifs  from './pages/Tarifs';
 import CGU     from './pages/CGU';
 import Contact from './pages/Contact';
-import TableauFiscal from './pages/TableauFiscal';
 
 // Pages publiques
 import HomeHub    from './pages/HomeHub';
@@ -50,16 +50,16 @@ import ProHome from './pages/ProHome';
 const router = createBrowserRouter([
 
   // ═══ Pages publiques ═══
-  { path: '/',           element: <HomeHub /> },
-  { path: '/login',      element: <Login /> },
-  { path: '/signup',     element: <Signup /> },
-  { path: '/pro/login',  element: <ProLogin /> },
-  { path: '/pro/signup', element: <ProSignup /> },
-  { path: '/tarifs', element: <LandingPage /> },
-  { path: '/mentions-legales', element: <MentionsLegales /> },
-  { path: '/confidentialite',  element: <Confidentialite /> },
- 
-
+  { path: '/',                  element: <HomeHub /> },
+  { path: '/login',             element: <Login /> },
+  { path: '/signup',            element: <Signup /> },
+  { path: '/pro/login',         element: <ProLogin /> },
+  { path: '/pro/signup',        element: <ProSignup /> },
+  { path: '/tarifs',            element: <Tarifs /> },
+  { path: '/cgu',               element: <CGU /> },
+  { path: '/contact',           element: <Contact /> },
+  { path: '/mentions-legales',  element: <MentionsLegales /> },
+  { path: '/confidentialite',   element: <Confidentialite /> },
 
   // ═══ Espace Perso ═══
   {
@@ -84,37 +84,34 @@ const router = createBrowserRouter([
       </RequireAuthPro>
     ),
     children: [
-      { index: true,        element: <ProHome /> },
-      { path: 'factures',   element: <VigieFacturesWrapper /> },
-      { path: 'depenses',   element: <DepensesPage /> },
-      { path: 'recettes',   element: <RecettesPage /> },
-      { path: 'banque',     element: <BanquePage /> },
-      { path: 'contrats',   element: <ContratsPage /> },
-      { path: 'formalites', element: <FormalitesPage /> },
-      { path: 'equipe',     element: <EquipePro /> },
-      { path: 'pointages',  element: <PointagesPro /> },
-      { path: 'fournisseurs', element: <FournisseursPro /> },
-      { path: 'exports',    element: <ExportsFEC /> },
-      { path: 'profil',     element: <ProfilPro /> },
-      { path: 'tva',        element: <CalculateurTVA /> },
-      { path: '*',          element: <NotFound /> },
-      { path: 'charges', element: <SimulateurCharges /> },
-      { path: 'devises', element: <ConvertisseurDevises /> },
-      { path: 'rentabilite', element: <RentabiliteClients /> },
-      { path: 'graphiques', element: <GraphiqueCA /> },
+      { index: true,           element: <ProHome /> },
+      { path: 'factures',      element: <VigieFacturesWrapper /> },
+      { path: 'depenses',      element: <DepensesPage /> },
+      { path: 'recettes',      element: <RecettesPage /> },
+      { path: 'banque',        element: <BanquePage /> },
+      { path: 'contrats',      element: <ContratsPage /> },
+      { path: 'formalites',    element: <FormalitesPage /> },
+      { path: 'mail-agent',    element: <MailAgent /> },
+      { path: 'equipe',        element: <EquipePro /> },
+      { path: 'pointages',     element: <PointagesPro /> },
+      { path: 'fournisseurs',  element: <FournisseursPro /> },
+      { path: 'exports',       element: <ExportsFEC /> },
+      { path: 'profil',        element: <ProfilPro /> },
+      { path: 'tva',           element: <CalculateurTVA /> },
+      { path: 'charges',       element: <SimulateurCharges /> },
+      { path: 'devises',       element: <ConvertisseurDevises /> },
+      { path: 'rentabilite',   element: <RentabiliteClients /> },
+      { path: 'graphiques',    element: <GraphiqueCA /> },
       { path: 'amortissement', element: <CalculateurAmortissement /> },
-      { path: 'salaire', element: <SimulateurSalaire /> },
-      { path: 'seuil', element: <CalculateurSeuilRentabilite /> },
-      { path: '/tarifs',  element: <Tarifs />  },
-      { path: '/cgu',     element: <CGU />     },
-      { path: '/contact', element: <Contact /> },
-      { path: 'fiscal', element: <TableauFiscal /> },
-
+      { path: 'salaire',       element: <SimulateurSalaire /> },
+      { path: 'seuil',         element: <CalculateurSeuilRentabilite /> },
+      { path: 'fiscal',        element: <TableauFiscal /> },
+      { path: '*',             element: <NotFound /> },
     ],
   },
 
-  // ═══ Redirect ═══
-  { path: '*', element: <Navigate to="/" replace /> },
+  // ═══ 404 ═══
+  { path: '*', element: <NotFound /> },
 ]);
 
 export default function Router() {
