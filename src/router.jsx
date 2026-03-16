@@ -25,6 +25,7 @@ import CalculateurSeuilRentabilite from './pages/CalculateurSeuilRentabilite';
 import Tarifs  from './pages/Tarifs';
 import CGU     from './pages/CGU';
 import Contact from './pages/Contact';
+import TableauFiscal from './pages/TableauFiscal';
 
 // Pages publiques
 import HomeHub    from './pages/HomeHub';
@@ -107,7 +108,8 @@ const router = createBrowserRouter([
       { path: '/tarifs',  element: <Tarifs />  },
       { path: '/cgu',     element: <CGU />     },
       { path: '/contact', element: <Contact /> },
-      
+      { path: 'fiscal', element: <TableauFiscal /> },
+
     ],
   },
 
