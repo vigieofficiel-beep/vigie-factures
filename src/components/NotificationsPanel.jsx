@@ -93,9 +93,9 @@ export default function NotificationsPanel({ isOpen: sidebarOpen }) {
           ref={panelRef}
           style={{
             position:'fixed',
-            left: 252,
-            bottom: 140,
-            zIndex: 300,
+            left: 256,
+            bottom: 60,
+            zIndex: 999,
             width: 320,
             maxHeight: 460,
             background:'rgba(15,23,42,0.98)',
