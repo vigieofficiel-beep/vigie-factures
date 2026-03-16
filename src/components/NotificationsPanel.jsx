@@ -1,21 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
-import { Bell, X, Check, CheckCheck, AlertTriangle, Info, FileText, TrendingUp } from 'lucide-react';
-import { supabasePro } from '../lib/supabasePro';
+import { Bell, X, CheckCheck, AlertTriangle, Info, FileText, TrendingUp } from 'lucide-react';
 
 const TYPE_CONFIG = {
-  alerte:    { icon: AlertTriangle, color: '#C75B4E', bg: 'rgba(199,91,78,0.1)'  },
-  info:      { icon: Info,          color: '#5BA3C7', bg: 'rgba(91,163,199,0.1)' },
-  recette:   { icon: TrendingUp,    color: '#5BC78A', bg: 'rgba(91,199,138,0.1)' },
-  document:  { icon: FileText,      color: '#D4A853', bg: 'rgba(212,168,83,0.1)' },
+  alerte:   { icon: AlertTriangle, color: '#C75B4E', bg: 'rgba(199,91,78,0.1)'  },
+  info:     { icon: Info,          color: '#5BA3C7', bg: 'rgba(91,163,199,0.1)' },
+  recette:  { icon: TrendingUp,    color: '#5BC78A', bg: 'rgba(91,199,138,0.1)' },
+  document: { icon: FileText,      color: '#D4A853', bg: 'rgba(212,168,83,0.1)' },
 };
 
-// Notifications statiques de démonstration (remplacées par Supabase si données dispo)
 const NOTIFS_DEMO = [
-  { id:1, type:'alerte',   titre:'Contrat expirant',      message:'Votre contrat Orange expire dans 12 jours.',       date: new Date(Date.now() - 1000*60*30),  lu: false },
-  { id:2, type:'alerte',   titre:'Déclaration TVA',        message:'Échéance TVA dans 8 jours (19 du mois).',          date: new Date(Date.now() - 1000*60*120), lu: false },
-  { id:3, type:'recette',  titre:'Devis accepté',          message:'Le devis DEV-2025-012 a été accepté.',             date: new Date(Date.now() - 1000*60*60*3), lu: false },
-  { id:4, type:'info',     titre:'Mise à jour Vigie Pro',  message:'Nouvelles fonctionnalités disponibles.',            date: new Date(Date.now() - 1000*60*60*24),lu: true  },
-  { id:5, type:'document', titre:'Export FEC prêt',        message:'Votre export FEC 2024 est disponible.',            date: new Date(Date.now() - 1000*60*60*48),lu: true  },
+  { id:1, type:'alerte',   titre:'Contrat expirant',      message:'Votre contrat Orange expire dans 12 jours.',  date: new Date(Date.now() - 1000*60*30),   lu: false },
+  { id:2, type:'alerte',   titre:'Déclaration TVA',        message:'Échéance TVA dans 8 jours (19 du mois).',    date: new Date(Date.now() - 1000*60*120),  lu: false },
+  { id:3, type:'recette',  titre:'Devis accepté',          message:'Le devis DEV-2025-012 a été accepté.',        date: new Date(Date.now() - 1000*60*60*3), lu: false },
+  { id:4, type:'info',     titre:'Mise à jour Vigie Pro',  message:'Nouvelles fonctionnalités disponibles.',      date: new Date(Date.now() - 1000*60*60*24),lu: true  },
+  { id:5, type:'document', titre:'Export FEC prêt',        message:'Votre export FEC 2024 est disponible.',       date: new Date(Date.now() - 1000*60*60*48),lu: true  },
 ];
 
 function timeAgo(date) {
@@ -32,28 +30,42 @@ function timeAgo(date) {
 export default function NotificationsPanel({ isOpen: sidebarOpen }) {
   const [open,   setOpen]   = useState(false);
   const [notifs, setNotifs] = useState(NOTIFS_DEMO);
+  const btnRef              = useRef();
   const panelRef            = useRef();
 
   const unread = notifs.filter(n => !n.lu).length;
 
-  // Fermer si clic extérieur
+  // Fermer si clic extérieur — avec délai pour éviter fermeture immédiate
   useEffect(() => {
+    if (!open) return;
     const handler = (e) => {
-      if (panelRef.current && !panelRef.current.contains(e.target)) setOpen(false);
+      if (
+        btnRef.current && btnRef.current.contains(e.target)
+      ) return;
+      if (
+        panelRef.current && panelRef.current.contains(e.target)
+      ) return;
+      setOpen(false);
     };
-    if (open) document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    const timeout = setTimeout(() => {
+      document.addEventListener('mousedown', handler);
+    }, 100);
+    return () => {
+      clearTimeout(timeout);
+      document.removeEventListener('mousedown', handler);
+    };
   }, [open]);
 
-  const marquerLu    = (id) => setNotifs(n => n.map(x => x.id === id ? { ...x, lu: true } : x));
-  const marquerTousLus = ()  => setNotifs(n => n.map(x => ({ ...x, lu: true })));
-  const supprimer    = (id) => setNotifs(n => n.filter(x => x.id !== id));
+  const marquerLu      = (id) => setNotifs(n => n.map(x => x.id === id ? { ...x, lu: true } : x));
+  const marquerTousLus = ()   => setNotifs(n => n.map(x => ({ ...x, lu: true })));
+  const supprimer      = (id) => setNotifs(n => n.filter(x => x.id !== id));
 
   return (
-    <div ref={panelRef} style={{ position:'relative', width:'100%' }}>
+    <div style={{ position:'relative', width:'100%' }}>
 
       {/* Bouton cloche */}
       <button
+        ref={btnRef}
         onClick={() => setOpen(v => !v)}
         style={{ width:'100%', display:'flex', alignItems:'center', gap:12, padding:'9px 8px', borderRadius:10, border:'none', background:open?'rgba(91,163,199,0.1)':'transparent', cursor:'pointer', transition:'background 150ms ease', position:'relative' }}
         onMouseEnter={e => { if (!open) e.currentTarget.style.background='rgba(255,255,255,0.05)'; }}
@@ -75,29 +87,44 @@ export default function NotificationsPanel({ isOpen: sidebarOpen }) {
         </div>
       </button>
 
-      {/* Panel */}
+      {/* Panel — positionné à droite de la sidebar, ancré au bouton */}
       {open && (
-        <div style={{
-          position:'fixed', left:248, bottom:80, zIndex:200,
-          width:340, maxHeight:480,
-          background:'rgba(15,23,42,0.97)', backdropFilter:'blur(20px)',
-          border:'1px solid rgba(91,163,199,0.2)', borderRadius:16,
-          boxShadow:'0 20px 60px rgba(0,0,0,0.5)',
-          display:'flex', flexDirection:'column', overflow:'hidden',
-          animation:'notifOpen 0.18s ease',
-        }}>
-
+        <div
+          ref={panelRef}
+          style={{
+            position:'fixed',
+            left: 252,
+            bottom: 140,
+            zIndex: 300,
+            width: 320,
+            maxHeight: 460,
+            background:'rgba(15,23,42,0.98)',
+            backdropFilter:'blur(20px)',
+            border:'1px solid rgba(91,163,199,0.2)',
+            borderRadius:16,
+            boxShadow:'0 20px 60px rgba(0,0,0,0.5)',
+            display:'flex',
+            flexDirection:'column',
+            overflow:'hidden',
+            animation:'notifOpen 0.18s ease',
+          }}
+        >
           {/* Header */}
           <div style={{ padding:'14px 16px', borderBottom:'1px solid rgba(255,255,255,0.07)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div>
               <div style={{ fontSize:14, fontWeight:700, color:'#F8FAFC' }}>Notifications</div>
               <div style={{ fontSize:11, color:'rgba(255,255,255,0.35)', marginTop:2 }}>{unread} non lue{unread !== 1 ? 's' : ''}</div>
             </div>
-            {unread > 0 && (
-              <button onClick={marquerTousLus} style={{ display:'flex', alignItems:'center', gap:5, background:'rgba(91,163,199,0.1)', border:'1px solid rgba(91,163,199,0.2)', borderRadius:8, padding:'5px 10px', cursor:'pointer', color:'#5BA3C7', fontSize:11, fontWeight:600 }}>
-                <CheckCheck size={12}/> Tout lire
+            <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+              {unread > 0 && (
+                <button onClick={marquerTousLus} style={{ display:'flex', alignItems:'center', gap:5, background:'rgba(91,163,199,0.1)', border:'1px solid rgba(91,163,199,0.2)', borderRadius:8, padding:'5px 10px', cursor:'pointer', color:'#5BA3C7', fontSize:11, fontWeight:600 }}>
+                  <CheckCheck size={12}/> Tout lire
+                </button>
+              )}
+              <button onClick={() => setOpen(false)} style={{ background:'rgba(255,255,255,0.06)', border:'none', borderRadius:6, padding:4, cursor:'pointer', color:'rgba(255,255,255,0.4)', display:'flex' }}>
+                <X size={14}/>
               </button>
-            )}
+            </div>
           </div>
 
           {/* Liste */}
@@ -111,31 +138,30 @@ export default function NotificationsPanel({ isOpen: sidebarOpen }) {
               const cfg  = TYPE_CONFIG[n.type] || TYPE_CONFIG.info;
               const Icon = cfg.icon;
               return (
-                <div key={n.id}
+                <div
+                  key={n.id}
                   onClick={() => marquerLu(n.id)}
                   style={{ display:'flex', gap:10, padding:'10px', borderRadius:10, marginBottom:4, cursor:'pointer', background:n.lu?'transparent':'rgba(91,163,199,0.05)', border:`1px solid ${n.lu?'transparent':'rgba(91,163,199,0.1)'}`, transition:'all 150ms ease', position:'relative' }}
-                  onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,0.04)'}
+                  onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,0.05)'}
                   onMouseLeave={e => e.currentTarget.style.background=n.lu?'transparent':'rgba(91,163,199,0.05)'}
                 >
-                  {/* Icône */}
                   <div style={{ width:34, height:34, borderRadius:9, flexShrink:0, background:cfg.bg, display:'flex', alignItems:'center', justifyContent:'center' }}>
                     <Icon size={15} color={cfg.color} strokeWidth={2}/>
                   </div>
-
-                  {/* Contenu */}
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:3 }}>
-                      <span style={{ fontSize:12, fontWeight:n.lu?500:700, color:n.lu?'rgba(255,255,255,0.6)':'#F8FAFC', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{n.titre}</span>
+                      <span style={{ fontSize:12, fontWeight:n.lu?500:700, color:n.lu?'rgba(255,255,255,0.5)':'#F8FAFC', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{n.titre}</span>
                       {!n.lu && <div style={{ width:6, height:6, borderRadius:'50%', background:'#5BA3C7', flexShrink:0 }}/>}
                     </div>
                     <div style={{ fontSize:11, color:'rgba(255,255,255,0.4)', lineHeight:1.4, marginBottom:4 }}>{n.message}</div>
                     <div style={{ fontSize:10, color:'rgba(255,255,255,0.25)' }}>{timeAgo(n.date)}</div>
                   </div>
-
-                  {/* Supprimer */}
-                  <button onClick={e => { e.stopPropagation(); supprimer(n.id); }} style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.2)', padding:2, flexShrink:0, display:'flex', alignItems:'center' }}
+                  <button
+                    onClick={e => { e.stopPropagation(); supprimer(n.id); }}
+                    style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.2)', padding:2, flexShrink:0, display:'flex', alignItems:'center' }}
                     onMouseEnter={e => e.currentTarget.style.color='rgba(199,91,78,0.7)'}
-                    onMouseLeave={e => e.currentTarget.style.color='rgba(255,255,255,0.2)'}>
+                    onMouseLeave={e => e.currentTarget.style.color='rgba(255,255,255,0.2)'}
+                  >
                     <X size={12}/>
                   </button>
                 </div>
