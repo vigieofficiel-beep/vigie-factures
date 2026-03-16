@@ -11,7 +11,7 @@ import { supabasePro } from '../lib/supabasePro';
 import Footer from '../components/Footer';
 import { ProfileAvatar } from '../components/ProfileAvatar';
 import Vigil from './Vigil';
-
+import NotificationsPanel from '../components/NotificationsPanel';
 const NAV = [
   {
     id: 'accueil', label: 'Bureau', icon: Home, color: '#5BA3C7',
@@ -197,7 +197,7 @@ export default function ProLayout() {
 
           {/* FOOTER — Mon compte + Déconnexion */}
           <div style={{ borderTop:'1px solid rgba(255,255,255,0.05)', padding:'8px 8px 4px' }}>
-
+          <NotificationsPanel isOpen={isOpen} />
             {/* Mon compte */}
             <div style={{ marginBottom:4 }}>
               <button onClick={() => { if (!isOpen) return; setCompteOpen(v => !v); }} style={{ width:'100%', display:'flex', alignItems:'center', gap:12, padding:'9px 8px', borderRadius:10, border:'none', background:compteOpen&&isOpen?'rgba(91,163,199,0.1)':'transparent', cursor:'pointer', transition:'background 150ms ease' }}
