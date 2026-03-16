@@ -6,6 +6,7 @@ import {
   Users, FileText, TrendingUp, RefreshCw, FileDown, Settings
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import ExportButton from '../components/ExportButton';
 
 const ACCENT = '#5BA3C7';
 const formatEuro = (n) => n == null ? '—' : new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n);
@@ -21,24 +22,17 @@ const STATUTS = [
   { id: 'annule',     label: 'Annulé',      color: '#D0D4DC', bg: '#F8F9FB' },
 ];
 
-/* ══ PDF ══════════════════════════════════════════════════════════════ */
 function genererPDF(devis, client, profil, lignes) {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const W = 210; const M = 20;
   const bleu = [91, 163, 199]; const dark = [15, 23, 42]; const gray = [100, 116, 139]; const light = [226, 232, 240];
-
-  doc.setFillColor(...bleu);
-  doc.rect(0, 0, W, 38, 'F');
+  doc.setFillColor(...bleu); doc.rect(0, 0, W, 38, 'F');
   doc.setFont('helvetica', 'bold'); doc.setFontSize(22); doc.setTextColor(255,255,255);
   doc.text('DEVIS', M, 18);
   doc.setFontSize(10); doc.setFont('helvetica', 'normal');
-  doc.text(`N° ${devis.numero}`, M, 26);
-  doc.text(`Émis le ${formatDate(devis.date_emission)}`, M, 32);
-  doc.setFont('helvetica', 'bold');
-  doc.text(`Valable jusqu'au`, W - M - 55, 26);
-  doc.setFont('helvetica', 'normal');
-  doc.text(formatDate(devis.date_validite), W - M - 55, 32);
-
+  doc.text(`N° ${devis.numero}`, M, 26); doc.text(`Émis le ${formatDate(devis.date_emission)}`, M, 32);
+  doc.setFont('helvetica', 'bold'); doc.text(`Valable jusqu'au`, W - M - 55, 26);
+  doc.setFont('helvetica', 'normal'); doc.text(formatDate(devis.date_validite), W - M - 55, 32);
   let y = 50;
   doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(...bleu);
   doc.text('ÉMETTEUR', M, y); y += 5;
@@ -51,7 +45,6 @@ function genererPDF(devis, client, profil, lignes) {
   if (profil.siret) { doc.text(`SIRET : ${profil.siret}`, M, y); y += 4; }
   if (profil.tva_intracommunautaire) { doc.text(`TVA : ${profil.tva_intracommunautaire}`, M, y); y += 4; }
   if (profil.phone) { doc.text(`Tél : ${profil.phone}`, M, y); y += 4; }
-
   let yc = 50; const xc = W / 2 + 5;
   doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(...bleu);
   doc.text('CLIENT', xc, yc); yc += 5;
@@ -62,17 +55,13 @@ function genererPDF(devis, client, profil, lignes) {
   if (client.telephone) { doc.text(client.telephone, xc, yc); yc += 4; }
   if (client.adresse) { doc.text(client.adresse, xc, yc); yc += 4; }
   if (client.siret) { doc.text(`SIRET : ${client.siret}`, xc, yc); yc += 4; }
-
   y = Math.max(y, yc) + 8;
   doc.setDrawColor(...light); doc.setLineWidth(0.3); doc.line(M, y, W-M, y); y += 8;
-
   doc.setFillColor(...bleu); doc.rect(M, y, W-M*2, 8, 'F');
   doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(8);
   const cols = { desc: M+2, qty: 120, pu: 142, tva: 162, ttc: 182 };
   doc.text('Description', cols.desc, y+5.5); doc.text('Qté', cols.qty, y+5.5);
-  doc.text('P.U. HT', cols.pu, y+5.5); doc.text('TVA', cols.tva, y+5.5); doc.text('Total TTC', cols.ttc, y+5.5);
-  y += 8;
-
+  doc.text('P.U. HT', cols.pu, y+5.5); doc.text('TVA', cols.tva, y+5.5); doc.text('Total TTC', cols.ttc, y+5.5); y += 8;
   let totalHT = 0; let totalTVA = 0;
   lignes.forEach((l, i) => {
     const ht = (l.quantite||0)*(l.prix_unitaire||0); const tva = ht*(l.tva_taux||20)/100; const ttc = ht+tva;
@@ -84,10 +73,8 @@ function genererPDF(devis, client, profil, lignes) {
     doc.text(String(l.quantite||1), cols.qty, y+4.5);
     doc.text(`${Number(l.prix_unitaire||0).toFixed(2)} €`, cols.pu, y+4.5);
     doc.text(`${l.tva_taux||20}%`, cols.tva, y+4.5);
-    doc.text(`${ttc.toFixed(2)} €`, cols.ttc, y+4.5);
-    y += 7;
+    doc.text(`${ttc.toFixed(2)} €`, cols.ttc, y+4.5); y += 7;
   });
-
   y += 4; doc.setDrawColor(...light); doc.line(M, y, W-M, y); y += 6;
   const xTot = W-M-60;
   doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...gray);
@@ -96,22 +83,18 @@ function genererPDF(devis, client, profil, lignes) {
   doc.setFillColor(...bleu); doc.rect(xTot-4, y, W-M-xTot+6, 9, 'F');
   doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(10);
   doc.text('TOTAL TTC :', xTot, y+6); doc.text(`${(totalHT+totalTVA).toFixed(2)} €`, W-M-2, y+6, {align:'right'}); y+=16;
-
   doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...gray);
   if (devis.date_echeance) { doc.text(`Conditions de paiement : échéance au ${formatDate(devis.date_echeance)}`, M, y); y+=5; }
   if (profil.iban) { doc.text(`IBAN : ${profil.iban}`, M, y); y+=5; }
   if (devis.notes) { y+=3; doc.setFontSize(8); doc.text(`Notes : ${devis.notes}`, M, y); y+=5; }
-
   y+=8; doc.setDrawColor(...light); doc.line(M, y, W-M, y); y+=5;
   doc.setFontSize(7.5); doc.setTextColor(...gray);
   doc.text("Devis sans engagement — valable jusqu'à la date de validité indiquée.", M, y); y+=4;
   doc.text('En cas d\'acceptation, retourner ce document signé avec la mention "Bon pour accord".', M, y); y+=4;
   if (profil.siret) doc.text(`${profil.company_name||''} — SIRET ${profil.siret}`, M, y);
-
   doc.save(`devis-${devis.numero}.pdf`);
 }
 
-/* ══ LIGNES PRESTATION ════════════════════════════════════════════════ */
 function LignesPrestation({ lignes, setLignes }) {
   const addLigne = () => setLignes(l => [...l, { description:'', quantite:1, prix_unitaire:'', tva_taux:20 }]);
   const removeLigne = (i) => setLignes(l => l.filter((_,idx) => idx!==i));
@@ -154,7 +137,6 @@ function LignesPrestation({ lignes, setLignes }) {
   );
 }
 
-/* ══ FORMULAIRE CLIENT ════════════════════════════════════════════════ */
 function ClientForm({ onSave, onCancel }) {
   const [form, setForm] = useState({nom:'',email:'',telephone:'',adresse:'',siret:''});
   const [loading, setLoading] = useState(false);
@@ -182,7 +164,6 @@ function ClientForm({ onSave, onCancel }) {
   );
 }
 
-/* ══ FORMULAIRE DEVIS ════════════════════════════════════════════════ */
 function DevisForm({ clients, onSave, onCancel, editData=null }) {
   const today=new Date().toISOString().split('T')[0];
   const in30=new Date(Date.now()+30*86400000).toISOString().split('T')[0];
@@ -218,7 +199,6 @@ function DevisForm({ clients, onSave, onCancel, editData=null }) {
   );
 }
 
-/* ══ PAGE PRINCIPALE ════════════════════════════════════════════════ */
 export default function RecettesPage() {
   const [tab,setTab]=useState('devis');
   const [devis,setDevis]=useState([]);
@@ -248,27 +228,8 @@ export default function RecettesPage() {
   const deleteDevis=async(id)=>{if(!confirm('Supprimer ce devis ?'))return;await supabasePro.from('devis').delete().eq('id',id);fetchAll();};
   const deleteClient=async(id)=>{if(!confirm('Supprimer ce client ?'))return;await supabasePro.from('clients').delete().eq('id',id);fetchAll();};
   const changerStatut=async(id,statut)=>{await supabasePro.from('devis').update({statut}).eq('id',id);fetchAll();};
-
-  const envoyerRelance=async(d)=>{
-    const count=(d.relance_count||0)+1;
-    await supabasePro.from('devis').update({relance_count:count,derniere_relance:new Date().toISOString().split('T')[0]}).eq('id',d.id);
-    await supabasePro.from('reminders').insert({user_id:d.user_id,context:'pro',type:'relance',message:`Relance ${count} — ${d.clients?.nom} — devis ${d.numero} (${formatEuro(d.montant_ttc)})`,sent_at:new Date().toISOString()});
-    alert(`Relance ${count} enregistrée pour ${d.clients?.nom}`);fetchAll();
-  };
-
-  const telechargerPDF=(d)=>{
-    if(!profil.company_name&&!profil.first_name){alert('Renseignez votre profil pro avant de générer un devis (bouton "Mon profil")');return;}
-    let lignes=[{description:d.description||'',quantite:1,prix_unitaire:d.montant_ht||0,tva_taux:d.tva_taux||20}];
-    try{lignes=JSON.parse(d.description);}catch{}
-    genererPDF(d,d.clients||{},profil,lignes);
-  };
-
-  const exportCSV=()=>{
-    const rows=filtered.map(d=>[d.numero,d.clients?.nom,d.date_emission,d.date_echeance,d.montant_ht,d.tva_taux,d.montant_ttc,d.statut,d.relance_count||0]);
-    const headers=['N° Devis','Client','Date émission','Échéance','HT','TVA%','TTC','Statut','Nb relances'];
-    const csv=[headers,...rows].map(r=>r.map(v=>`"${v??''}"`).join(';')).join('\n');
-    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));a.download=`devis-${new Date().toISOString().split('T')[0]}.csv`;a.click();
-  };
+  const envoyerRelance=async(d)=>{const count=(d.relance_count||0)+1;await supabasePro.from('devis').update({relance_count:count,derniere_relance:new Date().toISOString().split('T')[0]}).eq('id',d.id);await supabasePro.from('reminders').insert({user_id:d.user_id,context:'pro',type:'relance',message:`Relance ${count} — ${d.clients?.nom} — devis ${d.numero} (${formatEuro(d.montant_ttc)})`,sent_at:new Date().toISOString()});alert(`Relance ${count} enregistrée pour ${d.clients?.nom}`);fetchAll();};
+  const telechargerPDF=(d)=>{if(!profil.company_name&&!profil.first_name){alert('Renseignez votre profil pro avant de générer un devis');return;}let lignes=[{description:d.description||'',quantite:1,prix_unitaire:d.montant_ht||0,tva_taux:d.tva_taux||20}];try{lignes=JSON.parse(d.description);}catch{}genererPDF(d,d.clients||{},profil,lignes);};
 
   const filtered=filterStatut==='tous'?devis:devis.filter(d=>d.statut===filterStatut);
   const totalSigne=devis.filter(d=>d.statut==='signe').reduce((s,d)=>s+(d.montant_ttc||0),0);
@@ -276,16 +237,22 @@ export default function RecettesPage() {
   const enRetard=devis.filter(d=>(d.statut==='signe'||d.statut==='envoye')&&daysUntil(d.date_echeance)!==null&&daysUntil(d.date_echeance)<0);
   const profilIncomplet=!profil.company_name&&!profil.first_name;
 
+  // Données aplaties pour export
+  const devisExport = filtered.map(d => ({
+    numero: d.numero,
+    client: d.clients?.nom || '',
+    date_emission: d.date_emission,
+    date_echeance: d.date_echeance,
+    montant_ht: d.montant_ht,
+    tva_taux: d.tva_taux,
+    montant_ttc: d.montant_ttc,
+    statut: d.statut,
+    relances: d.relance_count || 0,
+  }));
+
   return (
     <div style={{fontFamily:"'Nunito Sans', sans-serif",padding:'32px 28px',maxWidth:1000,margin:'0 auto'}}>
-
-      {profilIncomplet&&(
-        <div onClick={()=>navigate('/pro/profil')} style={{display:'flex',alignItems:'center',gap:10,background:'#FFF7ED',border:'1px solid #FED7AA',borderRadius:10,padding:'10px 16px',marginBottom:20,cursor:'pointer'}}>
-          <AlertTriangle size={14} color="#F59E0B"/>
-          <span style={{fontSize:12,color:'#92400E',fontWeight:600}}>Profil pro incomplet — vos PDF ne seront pas correctement remplis.</span>
-          <span style={{fontSize:12,color:'#F59E0B',fontWeight:700,marginLeft:'auto'}}>Compléter →</span>
-        </div>
-      )}
+      {profilIncomplet&&(<div onClick={()=>navigate('/pro/profil')} style={{display:'flex',alignItems:'center',gap:10,background:'#FFF7ED',border:'1px solid #FED7AA',borderRadius:10,padding:'10px 16px',marginBottom:20,cursor:'pointer'}}><AlertTriangle size={14} color="#F59E0B"/><span style={{fontSize:12,color:'#92400E',fontWeight:600}}>Profil pro incomplet — vos PDF ne seront pas correctement remplis.</span><span style={{fontSize:12,color:'#F59E0B',fontWeight:700,marginLeft:'auto'}}>Compléter →</span></div>)}
 
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:24,flexWrap:'wrap',gap:12}}>
         <div>
@@ -294,19 +261,29 @@ export default function RecettesPage() {
         </div>
         <div style={{display:'flex',gap:10}}>
           <button onClick={()=>navigate('/pro/profil')} style={{display:'flex',alignItems:'center',gap:6,padding:'9px 16px',borderRadius:9,border:'1px solid #E8EAF0',background:'#fff',color:'#5A6070',fontSize:12,fontWeight:600,cursor:'pointer'}}><Settings size={13}/> Mon profil</button>
-          <button onClick={exportCSV} style={{display:'flex',alignItems:'center',gap:6,padding:'9px 16px',borderRadius:9,border:'1px solid #E8EAF0',background:'#fff',color:'#5A6070',fontSize:12,fontWeight:600,cursor:'pointer'}}><Download size={13}/> CSV</button>
+          <ExportButton
+            data={devisExport}
+            filename={`recettes-${new Date().getFullYear()}`}
+            color={ACCENT}
+            columns={[
+              { key:'numero',      label:'N° Devis' },
+              { key:'client',      label:'Client' },
+              { key:'date_emission',label:'Date émission' },
+              { key:'date_echeance',label:'Échéance' },
+              { key:'montant_ht',  label:'HT (€)' },
+              { key:'tva_taux',    label:'TVA %' },
+              { key:'montant_ttc', label:'TTC (€)' },
+              { key:'statut',      label:'Statut' },
+              { key:'relances',    label:'Nb relances' },
+            ]}
+          />
           <button onClick={()=>{setShowClientForm(true);setShowDevisForm(false);}} style={{display:'flex',alignItems:'center',gap:6,padding:'9px 16px',borderRadius:9,border:`1px solid ${ACCENT}`,background:'#fff',color:ACCENT,fontSize:12,fontWeight:700,cursor:'pointer'}}><Users size={13}/> Nouveau client</button>
           <button onClick={()=>{setShowDevisForm(true);setShowClientForm(false);setEditDevis(null);}} style={{display:'flex',alignItems:'center',gap:6,padding:'9px 16px',borderRadius:9,border:'none',background:ACCENT,color:'#fff',fontSize:12,fontWeight:700,cursor:'pointer'}}><Plus size={13}/> Nouveau devis</button>
         </div>
       </div>
 
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))',gap:14,marginBottom:24}}>
-        {[{label:'Devis signés',value:formatEuro(totalSigne),color:'#5BC78A',icon:CheckCircle},{label:'Encaissé',value:formatEuro(totalEncaisse),color:'#A85BC7',icon:TrendingUp},{label:'En retard',value:enRetard.length,color:'#C75B4E',icon:AlertTriangle,alert:enRetard.length>0},{label:'Clients',value:clients.length,color:ACCENT,icon:Users}].map(s=>{const Icon=s.icon;return(
-          <div key={s.label} style={{background:'#fff',border:`1px solid ${s.alert?'rgba(199,91,78,0.3)':'#E8EAF0'}`,borderRadius:12,padding:'16px 18px',boxShadow:'0 1px 4px rgba(0,0,0,0.05)'}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}><p style={{fontSize:11,color:'#9AA0AE',fontWeight:600,textTransform:'uppercase',letterSpacing:'0.06em',margin:0}}>{s.label}</p><Icon size={14} color={s.color}/></div>
-            <p style={{fontSize:22,fontWeight:700,color:s.alert?'#C75B4E':s.color,margin:0}}>{s.value}</p>
-          </div>
-        );})}
+        {[{label:'Devis signés',value:formatEuro(totalSigne),color:'#5BC78A',icon:CheckCircle},{label:'Encaissé',value:formatEuro(totalEncaisse),color:'#A85BC7',icon:TrendingUp},{label:'En retard',value:enRetard.length,color:'#C75B4E',icon:AlertTriangle,alert:enRetard.length>0},{label:'Clients',value:clients.length,color:ACCENT,icon:Users}].map(s=>{const Icon=s.icon;return(<div key={s.label} style={{background:'#fff',border:`1px solid ${s.alert?'rgba(199,91,78,0.3)':'#E8EAF0'}`,borderRadius:12,padding:'16px 18px',boxShadow:'0 1px 4px rgba(0,0,0,0.05)'}}><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}><p style={{fontSize:11,color:'#9AA0AE',fontWeight:600,textTransform:'uppercase',letterSpacing:'0.06em',margin:0}}>{s.label}</p><Icon size={14} color={s.color}/></div><p style={{fontSize:22,fontWeight:700,color:s.alert?'#C75B4E':s.color,margin:0}}>{s.value}</p></div>);})}
       </div>
 
       {showClientForm&&<ClientForm onSave={()=>{setShowClientForm(false);fetchAll();}} onCancel={()=>setShowClientForm(false)}/>}
@@ -316,42 +293,40 @@ export default function RecettesPage() {
         {[{id:'devis',label:'Devis',icon:FileText},{id:'clients',label:'Clients',icon:Users}].map(t=>{const Icon=t.icon;return(<button key={t.id} onClick={()=>setTab(t.id)} style={{display:'flex',alignItems:'center',gap:6,padding:'7px 16px',borderRadius:8,border:'none',background:tab===t.id?'#fff':'transparent',color:tab===t.id?'#1A1C20':'#9AA0AE',fontSize:13,fontWeight:tab===t.id?700:500,cursor:'pointer',boxShadow:tab===t.id?'0 1px 3px rgba(0,0,0,0.08)':'none',transition:'all 150ms ease'}}><Icon size={13}/> {t.label}</button>);})}
       </div>
 
-      {tab==='devis'&&(
-        <>
-          <div style={{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap'}}>
-            {[{id:'tous',label:'Tous',color:'#9AA0AE'},...STATUTS].map(s=>(<button key={s.id} onClick={()=>setFilterStatut(s.id)} style={{padding:'5px 14px',borderRadius:20,border:`1px solid ${filterStatut===s.id?s.color:'#E8EAF0'}`,background:filterStatut===s.id?`${s.color}15`:'#fff',color:filterStatut===s.id?s.color:'#5A6070',fontSize:12,fontWeight:filterStatut===s.id?700:500,cursor:'pointer'}}>{s.label}</button>))}
-          </div>
-          <div style={{background:'#fff',border:'1px solid #E8EAF0',borderRadius:14,overflow:'hidden',boxShadow:'0 1px 4px rgba(0,0,0,0.06)'}}>
-            {loading?<div style={{padding:40,textAlign:'center',color:'#9AA0AE',fontSize:13}}>Chargement...</div>
-            :filtered.length===0?<div style={{padding:48,textAlign:'center'}}><FileText size={32} color="#E8EAF0" style={{marginBottom:12}}/><p style={{color:'#9AA0AE',fontSize:13,margin:0}}>{devis.length===0?'Aucun devis — cliquez sur "Nouveau devis"':'Aucun devis pour ce filtre'}</p></div>
-            :<table style={{width:'100%',borderCollapse:'collapse'}}>
-              <thead><tr style={{borderBottom:'1px solid #F0F2F5'}}>{['N° Devis','Client','Émission','Échéance','Montant TTC','Statut','Relances',''].map(h=>(<th key={h} style={{padding:'11px 14px',textAlign:'left',fontSize:10,fontWeight:700,color:'#9AA0AE',textTransform:'uppercase',letterSpacing:'0.06em'}}>{h}</th>))}</tr></thead>
-              <tbody>
-                {filtered.map((d,i)=>{
-                  const days=daysUntil(d.date_echeance);const isLate=(d.statut==='signe'||d.statut==='envoye')&&days!==null&&days<0;
-                  return(<tr key={d.id||i} style={{borderBottom:'1px solid #F8F9FB',background:isLate?'rgba(199,91,78,0.02)':'transparent'}} onMouseEnter={ev=>ev.currentTarget.style.background=isLate?'rgba(199,91,78,0.04)':'#FAFBFC'} onMouseLeave={ev=>ev.currentTarget.style.background=isLate?'rgba(199,91,78,0.02)':'transparent'}>
-                    <td style={{padding:'11px 14px',fontSize:12,fontWeight:700,color:'#1A1C20'}}>{d.numero}</td>
-                    <td style={{padding:'11px 14px',fontSize:13,color:'#1A1C20'}}>{d.clients?.nom||'—'}</td>
-                    <td style={{padding:'11px 14px',fontSize:12,color:'#5A6070'}}>{formatDate(d.date_emission)}</td>
-                    <td style={{padding:'11px 14px',fontSize:12,color:isLate?'#C75B4E':'#5A6070',fontWeight:isLate?700:400}}>{formatDate(d.date_echeance)}{isLate&&<span style={{fontSize:10,marginLeft:4}}>({Math.abs(days)}j)</span>}</td>
-                    <td style={{padding:'11px 14px',fontSize:13,fontWeight:700,color:ACCENT}}>{formatEuro(d.montant_ttc)}</td>
-                    <td style={{padding:'11px 14px'}}><select value={d.statut} onChange={e=>changerStatut(d.id,e.target.value)} style={{background:'transparent',border:'none',cursor:'pointer',fontSize:12,fontWeight:600,outline:'none',color:STATUTS.find(s=>s.id===d.statut)?.color||'#9AA0AE'}}>{STATUTS.map(s=><option key={s.id} value={s.id}>{s.label}</option>)}</select></td>
-                    <td style={{padding:'11px 14px',fontSize:12,color:'#9AA0AE'}}>{d.relance_count||0} relance{(d.relance_count||0)>1?'s':''}</td>
-                    <td style={{padding:'11px 14px'}}>
-                      <div style={{display:'flex',gap:4}}>
-                        <button onClick={()=>telechargerPDF(d)} title="Télécharger PDF" style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'#9AA0AE'}} onMouseEnter={ev=>ev.currentTarget.style.color=ACCENT} onMouseLeave={ev=>ev.currentTarget.style.color='#9AA0AE'}><FileDown size={13}/></button>
-                        {(d.statut==='signe'||d.statut==='envoye')&&<button onClick={()=>envoyerRelance(d)} title="Relance" style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'#D4A853'}} onMouseEnter={ev=>ev.currentTarget.style.color='#B8860B'} onMouseLeave={ev=>ev.currentTarget.style.color='#D4A853'}><RefreshCw size={13}/></button>}
-                        <button onClick={()=>{setEditDevis(d);setShowDevisForm(false);}} title="Modifier" style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'#9AA0AE'}} onMouseEnter={ev=>ev.currentTarget.style.color=ACCENT} onMouseLeave={ev=>ev.currentTarget.style.color='#9AA0AE'}><Edit2 size={13}/></button>
-                        <button onClick={()=>deleteDevis(d.id)} title="Supprimer" style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'#D0D4DC'}} onMouseEnter={ev=>ev.currentTarget.style.color='#C75B4E'} onMouseLeave={ev=>ev.currentTarget.style.color='#D0D4DC'}><Trash2 size={13}/></button>
-                      </div>
-                    </td>
-                  </tr>);
-                })}
-              </tbody>
-            </table>}
-          </div>
-        </>
-      )}
+      {tab==='devis'&&(<>
+        <div style={{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap'}}>
+          {[{id:'tous',label:'Tous',color:'#9AA0AE'},...STATUTS].map(s=>(<button key={s.id} onClick={()=>setFilterStatut(s.id)} style={{padding:'5px 14px',borderRadius:20,border:`1px solid ${filterStatut===s.id?s.color:'#E8EAF0'}`,background:filterStatut===s.id?`${s.color}15`:'#fff',color:filterStatut===s.id?s.color:'#5A6070',fontSize:12,fontWeight:filterStatut===s.id?700:500,cursor:'pointer'}}>{s.label}</button>))}
+        </div>
+        <div style={{background:'#fff',border:'1px solid #E8EAF0',borderRadius:14,overflow:'hidden',boxShadow:'0 1px 4px rgba(0,0,0,0.06)'}}>
+          {loading?<div style={{padding:40,textAlign:'center',color:'#9AA0AE',fontSize:13}}>Chargement...</div>
+          :filtered.length===0?<div style={{padding:48,textAlign:'center'}}><FileText size={32} color="#E8EAF0" style={{marginBottom:12}}/><p style={{color:'#9AA0AE',fontSize:13,margin:0}}>{devis.length===0?'Aucun devis — cliquez sur "Nouveau devis"':'Aucun devis pour ce filtre'}</p></div>
+          :<table style={{width:'100%',borderCollapse:'collapse'}}>
+            <thead><tr style={{borderBottom:'1px solid #F0F2F5'}}>{['N° Devis','Client','Émission','Échéance','Montant TTC','Statut','Relances',''].map(h=>(<th key={h} style={{padding:'11px 14px',textAlign:'left',fontSize:10,fontWeight:700,color:'#9AA0AE',textTransform:'uppercase',letterSpacing:'0.06em'}}>{h}</th>))}</tr></thead>
+            <tbody>
+              {filtered.map((d,i)=>{
+                const days=daysUntil(d.date_echeance);const isLate=(d.statut==='signe'||d.statut==='envoye')&&days!==null&&days<0;
+                return(<tr key={d.id||i} style={{borderBottom:'1px solid #F8F9FB',background:isLate?'rgba(199,91,78,0.02)':'transparent'}} onMouseEnter={ev=>ev.currentTarget.style.background=isLate?'rgba(199,91,78,0.04)':'#FAFBFC'} onMouseLeave={ev=>ev.currentTarget.style.background=isLate?'rgba(199,91,78,0.02)':'transparent'}>
+                  <td style={{padding:'11px 14px',fontSize:12,fontWeight:700,color:'#1A1C20'}}>{d.numero}</td>
+                  <td style={{padding:'11px 14px',fontSize:13,color:'#1A1C20'}}>{d.clients?.nom||'—'}</td>
+                  <td style={{padding:'11px 14px',fontSize:12,color:'#5A6070'}}>{formatDate(d.date_emission)}</td>
+                  <td style={{padding:'11px 14px',fontSize:12,color:isLate?'#C75B4E':'#5A6070',fontWeight:isLate?700:400}}>{formatDate(d.date_echeance)}{isLate&&<span style={{fontSize:10,marginLeft:4}}>({Math.abs(days)}j)</span>}</td>
+                  <td style={{padding:'11px 14px',fontSize:13,fontWeight:700,color:ACCENT}}>{formatEuro(d.montant_ttc)}</td>
+                  <td style={{padding:'11px 14px'}}><select value={d.statut} onChange={e=>changerStatut(d.id,e.target.value)} style={{background:'transparent',border:'none',cursor:'pointer',fontSize:12,fontWeight:600,outline:'none',color:STATUTS.find(s=>s.id===d.statut)?.color||'#9AA0AE'}}>{STATUTS.map(s=><option key={s.id} value={s.id}>{s.label}</option>)}</select></td>
+                  <td style={{padding:'11px 14px',fontSize:12,color:'#9AA0AE'}}>{d.relance_count||0} relance{(d.relance_count||0)>1?'s':''}</td>
+                  <td style={{padding:'11px 14px'}}>
+                    <div style={{display:'flex',gap:4}}>
+                      <button onClick={()=>telechargerPDF(d)} title="PDF" style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'#9AA0AE'}} onMouseEnter={ev=>ev.currentTarget.style.color=ACCENT} onMouseLeave={ev=>ev.currentTarget.style.color='#9AA0AE'}><FileDown size={13}/></button>
+                      {(d.statut==='signe'||d.statut==='envoye')&&<button onClick={()=>envoyerRelance(d)} title="Relance" style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'#D4A853'}}><RefreshCw size={13}/></button>}
+                      <button onClick={()=>{setEditDevis(d);setShowDevisForm(false);}} title="Modifier" style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'#9AA0AE'}} onMouseEnter={ev=>ev.currentTarget.style.color=ACCENT} onMouseLeave={ev=>ev.currentTarget.style.color='#9AA0AE'}><Edit2 size={13}/></button>
+                      <button onClick={()=>deleteDevis(d.id)} title="Supprimer" style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'#D0D4DC'}} onMouseEnter={ev=>ev.currentTarget.style.color='#C75B4E'} onMouseLeave={ev=>ev.currentTarget.style.color='#D0D4DC'}><Trash2 size={13}/></button>
+                    </div>
+                  </td>
+                </tr>);
+              })}
+            </tbody>
+          </table>}
+        </div>
+      </>)}
 
       {tab==='clients'&&(
         <div style={{background:'#fff',border:'1px solid #E8EAF0',borderRadius:14,overflow:'hidden',boxShadow:'0 1px 4px rgba(0,0,0,0.06)'}}>

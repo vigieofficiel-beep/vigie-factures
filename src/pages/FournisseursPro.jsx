@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabasePro } from "../lib/supabasePro";
 import { Plus, Trash2, Edit2, Download, Search, AlertTriangle, TrendingUp, X, ChevronDown, ChevronUp, ShoppingCart, BarChart2, RefreshCw } from "lucide-react";
+import ExportButton from '../components/ExportButton';
 
 /* ══ AGENT 6 — Détecteur prix surélevés + INSEE ══════════════════════ */
 async function fetchInflationINSEE(categorie) {
@@ -293,9 +294,21 @@ export default function FournisseursPro() {
           <button onClick={() => enrichirAvecINSEE(fournisseurs, expenses)} title="Actualiser les indices INSEE" style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 16px', borderRadius:9, border:'1px solid #E8EAF0', background:'#fff', color:'#5A6070', fontSize:12, fontWeight:600, cursor:'pointer' }}>
             <RefreshCw size={13}/> INSEE
           </button>
-          <button onClick={exportCSV} style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 16px', borderRadius:9, border:'1px solid #E8EAF0', background:'#fff', color:'#5A6070', fontSize:12, fontWeight:600, cursor:'pointer' }}>
-            <Download size={13}/> CSV
-          </button>
+          <ExportButton
+  data={filtered}
+  filename="fournisseurs"
+  color="#5BA3C7"
+  columns={[
+    { key:'nom',                 label:'Nom' },
+    { key:'siret',               label:'SIRET' },
+    { key:'categorie',           label:'Catégorie' },
+    { key:'email',               label:'Email' },
+    { key:'telephone',           label:'Téléphone' },
+    { key:'ville',               label:'Ville' },
+    { key:'contact_nom',         label:'Contact' },
+    { key:'conditions_paiement', label:'Délai paiement' },
+  ]}
+/>
           <button onClick={() => { setShowForm(true); setEditData(null); }} style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 16px', borderRadius:9, border:'none', background:C.blue, color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer' }}>
             <Plus size={13}/> Nouveau fournisseur
           </button>

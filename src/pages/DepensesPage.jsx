@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabasePro } from '../lib/supabasePro';
 import { Plus, Trash2, FileText, Car, Coffee, Hotel, Package, CheckCircle, Loader, Download, Scan } from 'lucide-react';
+import ExportButton from '../components/ExportButton';
 
 const ACCENT = '#5BC78A';
 
@@ -385,13 +386,20 @@ export default function DepensesPage() {
             padding: '9px 16px', borderRadius: 9, border: '1px solid #E8EAF0',
             background: '#fff', color: '#5A6070', fontSize: 12, fontWeight: 600, cursor: 'pointer',
           }}>
-            <Download size={13} /> Exporter CSV
-          </button>
-          <button onClick={() => setShowForm(true)} style={{
-            display: 'flex', alignItems: 'center', gap: 6,
-            padding: '9px 16px', borderRadius: 9, border: 'none',
-            background: ACCENT, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
-          }}>
+            <ExportButton
+  data={filtered}
+  filename={`depenses-${new Date().getFullYear()}`}
+  color="#5BC78A"
+  columns={[
+    { key:'date',         label:'Date' },
+    { key:'type',         label:'Catégorie' },
+    { key:'etablissement',label:'Fournisseur' },
+    { key:'amount_ttc',   label:'Montant TTC (€)' },
+    { key:'km',           label:'Km' },
+    { key:'indemnite_km', label:'Indemnité Km (€)' },
+    { key:'notes',        label:'Remarques' },
+  ]}
+/>
             <Plus size={13} /> Nouvelle dépense
           </button>
         </div>
