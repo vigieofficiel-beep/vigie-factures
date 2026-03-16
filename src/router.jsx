@@ -22,6 +22,9 @@ import GraphiqueCA from './pages/GraphiqueCA';
 import CalculateurAmortissement from './pages/CalculateurAmortissement';
 import SimulateurSalaire from './pages/SimulateurSalaire';
 import CalculateurSeuilRentabilite from './pages/CalculateurSeuilRentabilite';
+import Tarifs  from './pages/Tarifs';
+import CGU     from './pages/CGU';
+import Contact from './pages/Contact';
 
 // Pages publiques
 import HomeHub    from './pages/HomeHub';
@@ -101,7 +104,10 @@ const router = createBrowserRouter([
       { path: 'amortissement', element: <CalculateurAmortissement /> },
       { path: 'salaire', element: <SimulateurSalaire /> },
       { path: 'seuil', element: <CalculateurSeuilRentabilite /> },
-
+      { path: '/tarifs',  element: <Tarifs />  },
+      { path: '/cgu',     element: <CGU />     },
+      { path: '/contact', element: <Contact /> },
+      
     ],
   },
 
