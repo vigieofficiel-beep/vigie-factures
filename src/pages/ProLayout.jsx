@@ -41,6 +41,8 @@ const NAV = [
       { id: 'devises',     label: 'Convertisseur devises',icon: Calculator, color: '#5BA3C7', route: '/pro/devises',     active: true },
       { id: 'rentabilite', label: 'Rentabilité clients',  icon: Calculator, color: '#5BA3C7', route: '/pro/rentabilite', active: true },
       { id: 'graphiques',  label: 'Graphiques',           icon: Calculator, color: '#5BA3C7', route: '/pro/graphiques',  active: true },
+      { id:'amortissement', label:'Amortissement', icon:Calculator, color:'#5BA3C7', route:'/pro/amortissement', active:true },
+
     ],
   },
   {

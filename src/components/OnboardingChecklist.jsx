@@ -120,7 +120,7 @@ export default function OnboardingChecklist() {
       <div
         onClick={() => setMinimise(false)}
         style={{
-          position: 'fixed', bottom: 90, left: 24, zIndex: 900,
+          position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 900,
           background: 'linear-gradient(135deg, #1E293B, #0F172A)',
           border: '1px solid rgba(91,163,199,0.3)',
           borderRadius: 14, padding: '10px 14px',
@@ -143,7 +143,7 @@ export default function OnboardingChecklist() {
 
   return (
     <div style={{
-      position: 'fixed', bottom: 24, left: 24, zIndex: 900,
+      position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 900,
       width: 360, maxHeight: '80vh',
       background: 'rgba(15,23,42,0.97)', backdropFilter: 'blur(20px)',
       border: '1px solid rgba(91,163,199,0.2)',
