@@ -43,6 +43,7 @@ const NAV = [
       { id: 'graphiques',  label: 'Graphiques',           icon: Calculator, color: '#5BA3C7', route: '/pro/graphiques',  active: true },
       { id:'amortissement', label:'Amortissement', icon:Calculator, color:'#5BA3C7', route:'/pro/amortissement', active:true },
       { id:'salaire', label:'Simulateur salaire', icon:Calculator, color:'#5BA3C7', route:'/pro/salaire', active:true },
+      { id:'seuil', label:'Seuil de rentabilité', icon:Calculator, color:'#5BA3C7', route:'/pro/seuil', active:true },
 
     ],
   },

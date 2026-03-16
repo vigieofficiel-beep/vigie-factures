@@ -21,6 +21,7 @@ import RentabiliteClients from './pages/RentabiliteClients';
 import GraphiqueCA from './pages/GraphiqueCA';
 import CalculateurAmortissement from './pages/CalculateurAmortissement';
 import SimulateurSalaire from './pages/SimulateurSalaire';
+import CalculateurSeuilRentabilite from './pages/CalculateurSeuilRentabilite';
 
 // Pages publiques
 import HomeHub    from './pages/HomeHub';
@@ -99,6 +100,7 @@ const router = createBrowserRouter([
       { path: 'graphiques', element: <GraphiqueCA /> },
       { path: 'amortissement', element: <CalculateurAmortissement /> },
       { path: 'salaire', element: <SimulateurSalaire /> },
+      { path: 'seuil', element: <CalculateurSeuilRentabilite /> },
 
     ],
   },
