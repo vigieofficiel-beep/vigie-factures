@@ -10,7 +10,6 @@ const FR_ERRORS = {
 };
 const toFr = (msg) => { if (!msg) return 'Une erreur est survenue.'; for (const [en, fr] of Object.entries(FR_ERRORS)) { if (msg.includes(en)) return fr; } return msg; };
 
-/* ── Générateur de mot de passe ── */
 function genererMdp(longueur = 16) {
   const maj = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const min = 'abcdefghijklmnopqrstuvwxyz';
@@ -45,17 +44,22 @@ function scoreMdp(mdp) {
 }
 
 export default function ProSignup() {
-  const [form, setForm] = useState({ firstName:'', lastName:'', birthDate:'', city:'', email:'', password:'' });
+  const [form, setForm] = useState({ firstName:'', lastName:'', birthDate:'', city:'', email:'', password:'', confirmPassword:'' });
   const [error,   setError]   = useState(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showMdp, setShowMdp] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [copied,  setCopied]  = useState(false);
 
   const set = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }));
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); setError(null); setLoading(true);
+    e.preventDefault(); setError(null);
+    if (form.password !== form.confirmPassword) {
+      setError('Les mots de passe ne correspondent pas.'); return;
+    }
+    setLoading(true);
     const { error } = await supabasePro.auth.signUp({
       email: form.email, password: form.password,
       options: { emailRedirectTo: `${window.location.origin}/perso`, data: { full_name:`${form.firstName} ${form.lastName}`, first_name:form.firstName, last_name:form.lastName, birth_date:form.birthDate, city:form.city } },
@@ -66,18 +70,18 @@ export default function ProSignup() {
 
   const generer = () => {
     const mdp = genererMdp(16);
-    setForm(f => ({ ...f, password: mdp }));
-    setShowMdp(true);
-    setCopied(false);
+    setForm(f => ({ ...f, password: mdp, confirmPassword: mdp }));
+    setShowMdp(true); setShowConfirm(true); setCopied(false);
   };
 
   const copier = () => {
     navigator.clipboard.writeText(form.password);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopied(true); setTimeout(() => setCopied(false), 2000);
   };
 
   const score = scoreMdp(form.password);
+  const confirmOk = form.confirmPassword && form.password === form.confirmPassword;
+  const confirmErr = form.confirmPassword && form.password !== form.confirmPassword;
 
   const inputStyle = { width:'100%', padding:'10px 14px', borderRadius:8, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', color:'#F8FAFC', fontSize:13, outline:'none', boxSizing:'border-box' };
   const labelStyle = { display:'block', fontSize:11, color:'rgba(255,255,255,0.5)', marginBottom:6 };
@@ -142,7 +146,7 @@ export default function ProSignup() {
                     {copied ? '✓' : '📋'}
                   </button>
                 )}
-                <button type="button" onClick={() => setShowMdp(v => !v)} title={showMdp ? 'Masquer' : 'Afficher'} style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.3)', fontSize:14, padding:2 }}>
+                <button type="button" onClick={() => setShowMdp(v => !v)} style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.3)', fontSize:14, padding:2 }}>
                   {showMdp ? '🙈' : '👁️'}
                 </button>
               </div>
@@ -161,12 +165,37 @@ export default function ProSignup() {
               </div>
             )}
 
-            {/* Conseil si mot de passe généré */}
             {showMdp && form.password && (
               <div style={{ marginTop:8, background:'rgba(91,163,199,0.08)', border:'1px solid rgba(91,163,199,0.2)', borderRadius:7, padding:'7px 10px', fontSize:11, color:'rgba(255,255,255,0.45)' }}>
                 💡 Copiez ce mot de passe et conservez-le dans un endroit sûr avant de continuer.
               </div>
             )}
+          </div>
+
+          {/* Confirmation mot de passe */}
+          <div>
+            <label style={labelStyle}>Confirmer le mot de passe</label>
+            <div style={{ position:'relative' }}>
+              <input
+                type={showConfirm ? 'text' : 'password'}
+                value={form.confirmPassword}
+                onChange={set('confirmPassword')}
+                placeholder="••••••••"
+                required minLength={6}
+                style={{
+                  ...inputStyle,
+                  paddingRight:40,
+                  border: confirmOk ? '1px solid rgba(91,199,138,0.4)' : confirmErr ? '1px solid rgba(199,91,78,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                  fontFamily: showConfirm ? 'monospace' : 'inherit',
+                  letterSpacing: showConfirm ? '0.05em' : 'normal',
+                }}
+              />
+              <button type="button" onClick={() => setShowConfirm(v => !v)} style={{ position:'absolute', right:8, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.3)', fontSize:14, padding:2 }}>
+                {showConfirm ? '🙈' : '👁️'}
+              </button>
+            </div>
+            {confirmOk && <p style={{ fontSize:10, color:'#5BC78A', marginTop:4, fontWeight:600 }}>✓ Les mots de passe correspondent</p>}
+            {confirmErr && <p style={{ fontSize:10, color:'#C75B4E', marginTop:4, fontWeight:600 }}>✗ Les mots de passe ne correspondent pas</p>}
           </div>
 
           {error && <div style={{ color:'#C75B4E', fontSize:11, background:'rgba(199,91,78,0.1)', padding:'8px 12px', borderRadius:6 }}>{error}</div>}

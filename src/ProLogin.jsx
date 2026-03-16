@@ -69,7 +69,7 @@ export default function ProLogin() {
         </p>
 
         <p style={{ textAlign: 'center', marginTop: 12, fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>
-          <Link to="/" style={{ color: 'rgba(255,255,255,0.3)', textDecoration: 'none' }}>← Retour au Hub</Link>
+          <Link to="/" style={{ color: 'rgba(255,255,255,0.3)', textDecoration: 'none' }}>← Retour à la page d'accueil Vigie </Link>
         </p>
       </div>
     </div>

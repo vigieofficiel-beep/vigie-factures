@@ -76,7 +76,7 @@ export default function PersoSpace() {
           borderRadius: 8,
           background: 'rgba(212,168,83,0.1)',
         }}>
-          <ArrowLeft size={14} /> Retour au hub
+          <ArrowLeft size={14} /> Retour à la page d'accueil Vigie
         </Link>
 
         <h1 style={{
