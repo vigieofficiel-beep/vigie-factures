@@ -1,10 +1,22 @@
-import { useState } from 'react';
-import { FileText, FilePlus, Clock, CheckCircle, XCircle, Eye, Download, Plus, Trash2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { FileText, FilePlus } from 'lucide-react';
 import DocumentsDevis from './DocumentsDevis';
 import DocumentsFactures from './DocumentsFactures';
 
 export default function DocumentsPage() {
-  const [activeTab, setActiveTab] = useState('factures');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'factures');
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'devis' || tab === 'factures') setActiveTab(tab);
+  }, [searchParams]);
+
+  const switchTab = (tab) => {
+    setActiveTab(tab);
+    setSearchParams({ tab });
+  };
 
   return (
     <div style={{
@@ -13,8 +25,7 @@ export default function DocumentsPage() {
       fontFamily: "'Nunito Sans', sans-serif",
       padding: '32px 24px',
     }}>
-      {/* HEADER */}
-      <div style={{ marginBottom: 32 }}>
+      <div style={{ marginBottom: 28 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
           <div style={{
             width: 44, height: 44, borderRadius: 12,
@@ -28,19 +39,14 @@ export default function DocumentsPage() {
             <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: '#0F172A', fontFamily: "'Cormorant Garamond', serif" }}>
               Documents
             </h1>
-            <p style={{ margin: 0, fontSize: 13, color: '#64748B' }}>
-              Gérez vos devis et factures
-            </p>
+            <p style={{ margin: 0, fontSize: 13, color: '#64748B' }}>Générez vos devis et factures</p>
           </div>
         </div>
       </div>
 
-      {/* ONGLETS */}
       <div style={{
         display: 'flex', gap: 4, marginBottom: 28,
-        background: 'rgba(15,23,42,0.06)',
-        borderRadius: 12, padding: 4,
-        width: 'fit-content',
+        background: 'rgba(15,23,42,0.06)', borderRadius: 12, padding: 4, width: 'fit-content',
       }}>
         {[
           { id: 'factures', label: 'Factures', icon: FileText },
@@ -49,29 +55,21 @@ export default function DocumentsPage() {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                padding: '9px 20px', borderRadius: 9, border: 'none',
-                background: isActive ? '#fff' : 'transparent',
-                color: isActive ? '#5BA3C7' : '#64748B',
-                fontWeight: isActive ? 700 : 500,
-                fontSize: 13, cursor: 'pointer',
-                boxShadow: isActive ? '0 2px 8px rgba(15,23,42,0.1)' : 'none',
-                transition: 'all 180ms ease',
-                fontFamily: "'Nunito Sans', sans-serif",
-              }}
-            >
-              <Icon size={15} strokeWidth={2} />
-              {tab.label}
+            <button key={tab.id} onClick={() => switchTab(tab.id)} style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '9px 20px', borderRadius: 9, border: 'none',
+              background: isActive ? '#fff' : 'transparent',
+              color: isActive ? '#5BA3C7' : '#64748B',
+              fontWeight: isActive ? 700 : 500, fontSize: 13, cursor: 'pointer',
+              boxShadow: isActive ? '0 2px 8px rgba(15,23,42,0.1)' : 'none',
+              transition: 'all 180ms ease', fontFamily: "'Nunito Sans', sans-serif",
+            }}>
+              <Icon size={15} strokeWidth={2} />{tab.label}
             </button>
           );
         })}
       </div>
 
-      {/* CONTENU */}
       {activeTab === 'factures' ? <DocumentsFactures /> : <DocumentsDevis />}
     </div>
   );

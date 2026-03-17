@@ -1,20 +1,15 @@
 import { useState } from 'react';
-import { Plus, Trash2, Download, Eye, Send, FileText, Building2, User, Calendar, Hash, AlertCircle, CheckCircle, Loader } from 'lucide-react';
-import { supabasePro } from '../lib/supabasePro';
+import { Plus, Trash2, Download, FileText, Building2, User, Hash, AlertCircle, CheckCircle, Printer } from 'lucide-react';
 
 const TVA_TAUX = [0, 5.5, 10, 20];
 
 function newLigne() {
-  return { id: Date.now(), description: '', quantite: 1, prixUnitaire: 0, tva: 20 };
+  return { id: Date.now() + Math.random(), description: '', quantite: 1, prixUnitaire: 0, tva: 20 };
 }
 
 function CardSection({ title, icon: Icon, children }) {
   return (
-    <div style={{
-      background: '#fff', borderRadius: 16, padding: 24,
-      boxShadow: '0 1px 4px rgba(15,23,42,0.06)', marginBottom: 20,
-      border: '1px solid rgba(15,23,42,0.06)',
-    }}>
+    <div style={{ background: '#fff', borderRadius: 16, padding: 24, boxShadow: '0 1px 4px rgba(15,23,42,0.06)', marginBottom: 20, border: '1px solid rgba(15,23,42,0.06)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
         <Icon size={16} color="#5BA3C7" strokeWidth={2} />
         <span style={{ fontSize: 14, fontWeight: 700, color: '#1E293B' }}>{title}</span>
@@ -39,59 +34,35 @@ function Field({ label, required, children }) {
   );
 }
 
-const inputStyle = {
-  width: '100%', padding: '9px 12px', borderRadius: 8,
-  border: '1px solid #E2E8F0', background: '#F8FAFC',
-  fontSize: 13, color: '#1E293B', outline: 'none',
-  fontFamily: "'Nunito Sans', sans-serif",
-  boxSizing: 'border-box',
-  transition: 'border-color 150ms ease',
+const inp = {
+  width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #E2E8F0',
+  background: '#F8FAFC', fontSize: 13, color: '#1E293B', outline: 'none',
+  fontFamily: "'Nunito Sans', sans-serif", boxSizing: 'border-box',
 };
 
 export default function DocumentsFactures() {
   const [form, setForm] = useState({
-    // Émetteur
-    emetteurNom: '',
-    emetteurAdresse: '',
-    emetteurCodePostal: '',
-    emetteurVille: '',
-    emetteurSiret: '',
-    emetteurTvaIntra: '',
-    emetteurEmail: '',
-    emetteurTel: '',
-    // Client
-    clientNom: '',
-    clientAdresse: '',
-    clientCodePostal: '',
-    clientVille: '',
-    clientSiret: '',
-    clientEmail: '',
-    // Facture
+    emetteurNom: '', emetteurAdresse: '', emetteurCodePostal: '', emetteurVille: '',
+    emetteurSiret: '', emetteurTvaIntra: '', emetteurEmail: '', emetteurTel: '',
+    clientNom: '', clientAdresse: '', clientCodePostal: '', clientVille: '',
+    clientSiret: '', clientEmail: '',
     numeroFacture: `F-${new Date().getFullYear()}-001`,
     dateEmission: new Date().toISOString().split('T')[0],
     dateEcheance: '',
     conditionsPaiement: '30 jours',
-    mentionEscompte: 'Pas d\'escompte pour paiement anticipé.',
-    mentionPenalites: 'En cas de retard de paiement, des pénalités de 3 fois le taux d\'intérêt légal seront appliquées, ainsi qu\'une indemnité forfaitaire de recouvrement de 40 €.',
     objet: '',
     notes: '',
+    mentionPenalites: "En cas de retard de paiement, des pénalités de 3 fois le taux d'intérêt légal seront appliquées, ainsi qu'une indemnité forfaitaire de recouvrement de 40 €.",
+    mentionEscompte: "Pas d'escompte pour paiement anticipé.",
   });
 
   const [lignes, setLignes] = useState([newLigne()]);
-  const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState(null); // null | 'success' | 'error'
-  const [message, setMessage] = useState('');
-  const [preview, setPreview] = useState(false);
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
-  const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
-
-  const updateLigne = (id, key, val) => {
-    setLignes(ls => ls.map(l => l.id === id ? { ...l, [key]: val } : l));
-  };
+  const updateLigne = (id, k, v) => setLignes(ls => ls.map(l => l.id === id ? { ...l, [k]: v } : l));
   const addLigne = () => setLignes(ls => [...ls, newLigne()]);
   const removeLigne = (id) => setLignes(ls => ls.filter(l => l.id !== id));
 
-  // Calculs
   const calcLigne = (l) => {
     const ht = parseFloat(l.quantite) * parseFloat(l.prixUnitaire) || 0;
     const tvaAmt = ht * (parseFloat(l.tva) / 100);
@@ -100,335 +71,308 @@ export default function DocumentsFactures() {
 
   const totaux = lignes.reduce((acc, l) => {
     const c = calcLigne(l);
-    acc.ht += c.ht;
-    acc.tva += c.tvaAmt;
-    acc.ttc += c.ttc;
+    acc.ht += c.ht; acc.tva += c.tvaAmt; acc.ttc += c.ttc;
     return acc;
   }, { ht: 0, tva: 0, ttc: 0 });
 
-  const fmt = (n) => n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt = (n) => Number(n).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtDate = (d) => { if (!d) return ''; const [y, m, j] = d.split('-'); return `${j}/${m}/${y}`; };
 
-  const handleGenerate = async () => {
-    if (!form.emetteurNom || !form.clientNom || !form.numeroFacture) {
-      setStatus('error');
-      setMessage('Veuillez remplir les champs obligatoires : émetteur, client et numéro de facture.');
-      return;
-    }
+  // Regrouper TVA par taux
+  const tvaDetails = {};
+  lignes.forEach(l => {
+    const t = parseFloat(l.tva);
+    if (!tvaDetails[t]) tvaDetails[t] = { base: 0, montant: 0 };
+    const c = calcLigne(l);
+    tvaDetails[t].base += c.ht;
+    tvaDetails[t].montant += c.tvaAmt;
+  });
 
-    setLoading(true);
-    setStatus(null);
+  const genererPDF = () => {
+    const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Facture ${form.numeroFacture}</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:11px; color:#1E293B; padding:32px 40px; background:#fff; line-height:1.5; }
+  .header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:28px; padding-bottom:18px; border-bottom:2px solid #5BA3C7; }
+  .emetteur-nom { font-size:22px; font-weight:800; color:#0F172A; }
+  .emetteur-info { margin-top:6px; color:#64748B; font-size:10px; line-height:1.7; }
+  .facture-label { font-size:26px; font-weight:800; color:#5BA3C7; text-transform:uppercase; letter-spacing:-1px; text-align:right; }
+  .facture-meta { margin-top:8px; text-align:right; font-size:10px; line-height:1.8; }
+  .facture-meta strong { color:#1E293B; }
+  .parties { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:24px; }
+  .partie { padding:12px 14px; border-radius:6px; background:#F8FAFC; border:1px solid #E2E8F0; }
+  .partie-title { font-size:8px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:#5BA3C7; margin-bottom:6px; }
+  .partie-nom { font-size:13px; font-weight:700; color:#0F172A; margin-bottom:3px; }
+  .partie-detail { font-size:10px; color:#64748B; line-height:1.7; }
+  .objet { background:rgba(91,163,199,0.07); border-left:3px solid #5BA3C7; padding:8px 12px; border-radius:0 5px 5px 0; margin-bottom:20px; font-size:11px; }
+  table.lignes { width:100%; border-collapse:collapse; margin-bottom:20px; font-size:10px; }
+  table.lignes thead tr { background:#0F172A; color:#F8FAFC; }
+  table.lignes thead th { padding:9px 10px; text-align:left; font-size:8.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; }
+  table.lignes thead th.r { text-align:right; }
+  table.lignes tbody tr:nth-child(even) { background:#F8FAFC; }
+  table.lignes tbody td { padding:9px 10px; border-bottom:1px solid #E2E8F0; }
+  table.lignes tbody td.r { text-align:right; font-variant-numeric:tabular-nums; }
+  .totaux { display:flex; justify-content:flex-end; margin-bottom:24px; }
+  .totaux-box { width:280px; border:1px solid #E2E8F0; border-radius:6px; overflow:hidden; }
+  .tot-row { display:flex; justify-content:space-between; padding:7px 12px; font-size:10.5px; border-bottom:1px solid #F1F5F9; }
+  .tot-row .tl { color:#64748B; }
+  .tot-row .tv { font-variant-numeric:tabular-nums; font-weight:500; }
+  .tot-row.ttc { background:#0F172A; border-bottom:none; padding:10px 12px; }
+  .tot-row.ttc .tl { color:#fff; font-weight:700; font-size:12px; }
+  .tot-row.ttc .tv { color:#5BA3C7; font-weight:800; font-size:15px; }
+  .mentions { font-size:9px; color:#94A3B8; line-height:1.7; border-top:1px solid #E2E8F0; padding-top:14px; margin-top:8px; }
+  .mentions p { margin-bottom:4px; }
+  .footer-page { margin-top:20px; text-align:center; font-size:9px; color:#CBD5E1; border-top:1px solid #F1F5F9; padding-top:10px; }
+  @media print {
+    body { padding:20px 28px; }
+    @page { margin:10mm; size:A4; }
+  }
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <div class="emetteur-nom">${form.emetteurNom || 'Mon Entreprise'}</div>
+    <div class="emetteur-info">
+      ${form.emetteurAdresse ? form.emetteurAdresse + '<br>' : ''}
+      ${(form.emetteurCodePostal || form.emetteurVille) ? form.emetteurCodePostal + ' ' + form.emetteurVille + '<br>' : ''}
+      ${form.emetteurSiret ? 'SIRET : ' + form.emetteurSiret + '<br>' : ''}
+      ${form.emetteurTvaIntra ? 'TVA intra : ' + form.emetteurTvaIntra + '<br>' : ''}
+      ${form.emetteurEmail ? form.emetteurEmail + '<br>' : ''}
+      ${form.emetteurTel ? form.emetteurTel : ''}
+    </div>
+  </div>
+  <div>
+    <div class="facture-label">Facture</div>
+    <div class="facture-meta">
+      N° <strong>${form.numeroFacture}</strong><br>
+      Émise le <strong>${fmtDate(form.dateEmission)}</strong><br>
+      ${form.dateEcheance ? 'Échéance <strong>' + fmtDate(form.dateEcheance) + '</strong><br>' : ''}
+      Paiement : <strong>${form.conditionsPaiement}</strong>
+    </div>
+  </div>
+</div>
 
-    try {
-      const { data: { session } } = await supabasePro.auth.getSession();
+<div class="parties">
+  <div class="partie">
+    <div class="partie-title">Émetteur</div>
+    <div class="partie-nom">${form.emetteurNom}</div>
+    <div class="partie-detail">
+      ${form.emetteurAdresse ? form.emetteurAdresse + '<br>' : ''}
+      ${(form.emetteurCodePostal || form.emetteurVille) ? form.emetteurCodePostal + ' ' + form.emetteurVille + '<br>' : ''}
+      ${form.emetteurSiret ? 'SIRET : ' + form.emetteurSiret : ''}
+    </div>
+  </div>
+  <div class="partie">
+    <div class="partie-title">Client</div>
+    <div class="partie-nom">${form.clientNom || '—'}</div>
+    <div class="partie-detail">
+      ${form.clientAdresse ? form.clientAdresse + '<br>' : ''}
+      ${(form.clientCodePostal || form.clientVille) ? form.clientCodePostal + ' ' + form.clientVille + '<br>' : ''}
+      ${form.clientSiret ? 'SIRET : ' + form.clientSiret + '<br>' : ''}
+      ${form.clientEmail ? form.clientEmail : ''}
+    </div>
+  </div>
+</div>
 
-      const payload = {
-        form,
-        lignes: lignes.map(l => ({ ...l, ...calcLigne(l) })),
-        totaux,
-        userId: session?.user?.id,
-      };
+${form.objet ? `<div class="objet"><strong>Objet :</strong> ${form.objet}</div>` : ''}
 
-      const res = await fetch('/api/generate-invoice', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+<table class="lignes">
+  <thead>
+    <tr>
+      <th style="width:40%">Description</th>
+      <th class="r" style="width:8%">Qté</th>
+      <th class="r" style="width:12%">PU HT</th>
+      <th class="r" style="width:8%">TVA</th>
+      <th class="r" style="width:12%">HT</th>
+      <th class="r" style="width:12%">TTC</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${lignes.map(l => {
+      const c = calcLigne(l);
+      return `<tr>
+        <td>${l.description || '—'}</td>
+        <td class="r">${l.quantite}</td>
+        <td class="r">${fmt(l.prixUnitaire)} €</td>
+        <td class="r">${l.tva}%</td>
+        <td class="r">${fmt(c.ht)} €</td>
+        <td class="r">${fmt(c.ttc)} €</td>
+      </tr>`;
+    }).join('')}
+  </tbody>
+</table>
 
-      if (!res.ok) throw new Error('Erreur serveur');
+<div class="totaux">
+  <div class="totaux-box">
+    <div class="tot-row"><span class="tl">Total HT</span><span class="tv">${fmt(totaux.ht)} €</span></div>
+    ${Object.entries(tvaDetails).filter(([, d]) => d.base > 0).map(([taux, d]) =>
+      `<div class="tot-row"><span class="tl">TVA ${taux}% (base ${fmt(d.base)} €)</span><span class="tv">${fmt(d.montant)} €</span></div>`
+    ).join('')}
+    <div class="tot-row ttc"><span class="tl">Total TTC</span><span class="tv">${fmt(totaux.ttc)} €</span></div>
+  </div>
+</div>
 
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${form.numeroFacture}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
+${form.notes ? `<div style="margin-bottom:16px;padding:10px 12px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:6px;font-size:10px;color:#92400E"><strong>Note :</strong> ${form.notes}</div>` : ''}
 
-      setStatus('success');
-      setMessage(`Facture ${form.numeroFacture} générée et téléchargée.`);
+<div class="mentions">
+  ${form.mentionPenalites ? `<p>${form.mentionPenalites}</p>` : ''}
+  ${form.mentionEscompte ? `<p>${form.mentionEscompte}</p>` : ''}
+</div>
 
-      // Auto-incrémenter le numéro
-      const match = form.numeroFacture.match(/(\d+)$/);
-      if (match) {
-        const next = String(parseInt(match[1]) + 1).padStart(match[1].length, '0');
-        set('numeroFacture', form.numeroFacture.replace(/(\d+)$/, next));
-      }
+<div class="footer-page">
+  ${form.emetteurNom}${form.emetteurSiret ? ' — SIRET ' + form.emetteurSiret : ''} — Facture ${form.numeroFacture} — ${fmt(totaux.ttc)} € TTC
+</div>
 
-    } catch (e) {
-      setStatus('error');
-      setMessage('Erreur lors de la génération. Vérifiez votre connexion.');
-    } finally {
-      setLoading(false);
+</body>
+</html>`;
+
+    const w = window.open('', '_blank', 'width=900,height=700');
+    w.document.write(html);
+    w.document.close();
+    w.onload = () => { w.focus(); w.print(); };
+
+    // Auto-incrémenter le numéro
+    const match = form.numeroFacture.match(/(\d+)$/);
+    if (match) {
+      const next = String(parseInt(match[1]) + 1).padStart(match[1].length, '0');
+      set('numeroFacture', form.numeroFacture.replace(/(\d+)$/, next));
     }
   };
 
   return (
     <div>
-      {/* ALERTE */}
-      {status && (
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px',
-          borderRadius: 10, marginBottom: 20,
-          background: status === 'success' ? 'rgba(91,199,138,0.1)' : 'rgba(239,68,68,0.1)',
-          border: `1px solid ${status === 'success' ? 'rgba(91,199,138,0.3)' : 'rgba(239,68,68,0.3)'}`,
-          color: status === 'success' ? '#166534' : '#991B1B',
-          fontSize: 13, fontWeight: 500,
-        }}>
-          {status === 'success' ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
-          {message}
-        </div>
-      )}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 20, alignItems: 'start' }}>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 20, alignItems: 'start' }}>
-
-        {/* COLONNE GAUCHE — Formulaire */}
+        {/* FORMULAIRE */}
         <div>
-
-          {/* Émetteur */}
           <CardSection title="Votre entreprise (émetteur)" icon={Building2}>
             <FieldRow>
-              <Field label="Raison sociale / Nom" required>
-                <input style={inputStyle} value={form.emetteurNom} onChange={e => set('emetteurNom', e.target.value)} placeholder="Ma Société SAS" />
-              </Field>
-              <Field label="SIRET">
-                <input style={inputStyle} value={form.emetteurSiret} onChange={e => set('emetteurSiret', e.target.value)} placeholder="888 362 118 00026" />
-              </Field>
+              <Field label="Raison sociale / Nom" required><input style={inp} value={form.emetteurNom} onChange={e => set('emetteurNom', e.target.value)} placeholder="Ma Société SAS" /></Field>
+              <Field label="SIRET"><input style={inp} value={form.emetteurSiret} onChange={e => set('emetteurSiret', e.target.value)} placeholder="888 362 118 00026" /></Field>
             </FieldRow>
             <FieldRow>
-              <Field label="N° TVA intracommunautaire">
-                <input style={inputStyle} value={form.emetteurTvaIntra} onChange={e => set('emetteurTvaIntra', e.target.value)} placeholder="FR12345678901" />
-              </Field>
-              <Field label="Email">
-                <input style={inputStyle} type="email" value={form.emetteurEmail} onChange={e => set('emetteurEmail', e.target.value)} placeholder="contact@masociete.fr" />
-              </Field>
+              <Field label="N° TVA intracommunautaire"><input style={inp} value={form.emetteurTvaIntra} onChange={e => set('emetteurTvaIntra', e.target.value)} placeholder="FR12345678901" /></Field>
+              <Field label="Email"><input style={inp} type="email" value={form.emetteurEmail} onChange={e => set('emetteurEmail', e.target.value)} placeholder="contact@masociete.fr" /></Field>
             </FieldRow>
-            <Field label="Adresse">
-              <input style={{ ...inputStyle, marginBottom: 8 }} value={form.emetteurAdresse} onChange={e => set('emetteurAdresse', e.target.value)} placeholder="37 bis rue du 13 octobre 1918" />
-            </Field>
+            <Field label="Adresse"><input style={{ ...inp, marginBottom: 8 }} value={form.emetteurAdresse} onChange={e => set('emetteurAdresse', e.target.value)} placeholder="37 bis rue du 13 octobre 1918" /></Field>
             <FieldRow>
-              <Field label="Code postal">
-                <input style={inputStyle} value={form.emetteurCodePostal} onChange={e => set('emetteurCodePostal', e.target.value)} placeholder="02000" />
-              </Field>
-              <Field label="Ville">
-                <input style={inputStyle} value={form.emetteurVille} onChange={e => set('emetteurVille', e.target.value)} placeholder="Laon" />
-              </Field>
+              <Field label="Code postal"><input style={inp} value={form.emetteurCodePostal} onChange={e => set('emetteurCodePostal', e.target.value)} placeholder="02000" /></Field>
+              <Field label="Ville"><input style={inp} value={form.emetteurVille} onChange={e => set('emetteurVille', e.target.value)} placeholder="Laon" /></Field>
             </FieldRow>
-            <Field label="Téléphone">
-              <input style={inputStyle} value={form.emetteurTel} onChange={e => set('emetteurTel', e.target.value)} placeholder="06 00 00 00 00" />
-            </Field>
+            <Field label="Téléphone"><input style={inp} value={form.emetteurTel} onChange={e => set('emetteurTel', e.target.value)} placeholder="06 00 00 00 00" /></Field>
           </CardSection>
 
-          {/* Client */}
           <CardSection title="Client" icon={User}>
             <FieldRow>
-              <Field label="Nom / Raison sociale" required>
-                <input style={inputStyle} value={form.clientNom} onChange={e => set('clientNom', e.target.value)} placeholder="Client SAS" />
-              </Field>
-              <Field label="SIRET">
-                <input style={inputStyle} value={form.clientSiret} onChange={e => set('clientSiret', e.target.value)} placeholder="123 456 789 00010" />
-              </Field>
+              <Field label="Nom / Raison sociale" required><input style={inp} value={form.clientNom} onChange={e => set('clientNom', e.target.value)} placeholder="Client SAS" /></Field>
+              <Field label="SIRET"><input style={inp} value={form.clientSiret} onChange={e => set('clientSiret', e.target.value)} placeholder="123 456 789 00010" /></Field>
             </FieldRow>
-            <Field label="Adresse">
-              <input style={{ ...inputStyle, marginBottom: 8 }} value={form.clientAdresse} onChange={e => set('clientAdresse', e.target.value)} placeholder="10 rue de la Paix" />
-            </Field>
+            <Field label="Adresse"><input style={{ ...inp, marginBottom: 8 }} value={form.clientAdresse} onChange={e => set('clientAdresse', e.target.value)} placeholder="10 rue de la Paix" /></Field>
             <FieldRow>
-              <Field label="Code postal">
-                <input style={inputStyle} value={form.clientCodePostal} onChange={e => set('clientCodePostal', e.target.value)} placeholder="75001" />
-              </Field>
-              <Field label="Ville">
-                <input style={inputStyle} value={form.clientVille} onChange={e => set('clientVille', e.target.value)} placeholder="Paris" />
-              </Field>
+              <Field label="Code postal"><input style={inp} value={form.clientCodePostal} onChange={e => set('clientCodePostal', e.target.value)} placeholder="75001" /></Field>
+              <Field label="Ville"><input style={inp} value={form.clientVille} onChange={e => set('clientVille', e.target.value)} placeholder="Paris" /></Field>
             </FieldRow>
-            <Field label="Email">
-              <input style={inputStyle} type="email" value={form.clientEmail} onChange={e => set('clientEmail', e.target.value)} placeholder="contact@client.fr" />
-            </Field>
+            <Field label="Email"><input style={inp} type="email" value={form.clientEmail} onChange={e => set('clientEmail', e.target.value)} placeholder="contact@client.fr" /></Field>
           </CardSection>
 
-          {/* Infos facture */}
           <CardSection title="Informations de la facture" icon={Hash}>
             <FieldRow>
-              <Field label="Numéro de facture" required>
-                <input style={inputStyle} value={form.numeroFacture} onChange={e => set('numeroFacture', e.target.value)} placeholder="F-2026-001" />
-              </Field>
-              <Field label="Objet">
-                <input style={inputStyle} value={form.objet} onChange={e => set('objet', e.target.value)} placeholder="Prestation de service..." />
-              </Field>
+              <Field label="Numéro de facture" required><input style={inp} value={form.numeroFacture} onChange={e => set('numeroFacture', e.target.value)} /></Field>
+              <Field label="Objet"><input style={inp} value={form.objet} onChange={e => set('objet', e.target.value)} placeholder="Prestation de service..." /></Field>
             </FieldRow>
             <FieldRow>
-              <Field label="Date d'émission" required>
-                <input style={inputStyle} type="date" value={form.dateEmission} onChange={e => set('dateEmission', e.target.value)} />
-              </Field>
-              <Field label="Date d'échéance">
-                <input style={inputStyle} type="date" value={form.dateEcheance} onChange={e => set('dateEcheance', e.target.value)} />
-              </Field>
+              <Field label="Date d'émission" required><input style={inp} type="date" value={form.dateEmission} onChange={e => set('dateEmission', e.target.value)} /></Field>
+              <Field label="Date d'échéance"><input style={inp} type="date" value={form.dateEcheance} onChange={e => set('dateEcheance', e.target.value)} /></Field>
             </FieldRow>
             <Field label="Conditions de paiement">
-              <select style={{ ...inputStyle, cursor: 'pointer' }} value={form.conditionsPaiement} onChange={e => set('conditionsPaiement', e.target.value)}>
-                {['Comptant', '15 jours', '30 jours', '45 jours', '60 jours', 'Fin de mois'].map(v => (
-                  <option key={v} value={v}>{v}</option>
-                ))}
+              <select style={{ ...inp, cursor: 'pointer' }} value={form.conditionsPaiement} onChange={e => set('conditionsPaiement', e.target.value)}>
+                {['Comptant', '15 jours', '30 jours', '45 jours', '60 jours', 'Fin de mois'].map(v => <option key={v} value={v}>{v}</option>)}
               </select>
             </Field>
           </CardSection>
 
-          {/* Lignes de prestation */}
           <CardSection title="Prestations / Produits" icon={FileText}>
-            {/* En-têtes */}
-            <div style={{ display: 'grid', gridTemplateColumns: '3fr 80px 100px 80px 90px 32px', gap: 8, marginBottom: 8 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '3fr 70px 100px 70px 85px 32px', gap: 8, marginBottom: 8 }}>
               {['Description', 'Qté', 'Prix HT', 'TVA', 'Total HT', ''].map(h => (
                 <span key={h} style={{ fontSize: 11, fontWeight: 600, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</span>
               ))}
             </div>
-
-            {lignes.map((l) => (
-              <div key={l.id} style={{ display: 'grid', gridTemplateColumns: '3fr 80px 100px 80px 90px 32px', gap: 8, marginBottom: 8, alignItems: 'center' }}>
-                <input
-                  style={inputStyle}
-                  value={l.description}
-                  onChange={e => updateLigne(l.id, 'description', e.target.value)}
-                  placeholder="Description de la prestation"
-                />
-                <input
-                  style={{ ...inputStyle, textAlign: 'center' }}
-                  type="number" min="0" step="0.01"
-                  value={l.quantite}
-                  onChange={e => updateLigne(l.id, 'quantite', e.target.value)}
-                />
-                <input
-                  style={{ ...inputStyle, textAlign: 'right' }}
-                  type="number" min="0" step="0.01"
-                  value={l.prixUnitaire}
-                  onChange={e => updateLigne(l.id, 'prixUnitaire', e.target.value)}
-                />
-                <select
-                  style={{ ...inputStyle, textAlign: 'center', cursor: 'pointer' }}
-                  value={l.tva}
-                  onChange={e => updateLigne(l.id, 'tva', e.target.value)}
-                >
+            {lignes.map(l => (
+              <div key={l.id} style={{ display: 'grid', gridTemplateColumns: '3fr 70px 100px 70px 85px 32px', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+                <input style={inp} value={l.description} onChange={e => updateLigne(l.id, 'description', e.target.value)} placeholder="Description..." />
+                <input style={{ ...inp, textAlign: 'center' }} type="number" min="0" step="0.01" value={l.quantite} onChange={e => updateLigne(l.id, 'quantite', e.target.value)} />
+                <input style={{ ...inp, textAlign: 'right' }} type="number" min="0" step="0.01" value={l.prixUnitaire} onChange={e => updateLigne(l.id, 'prixUnitaire', e.target.value)} />
+                <select style={{ ...inp, cursor: 'pointer' }} value={l.tva} onChange={e => updateLigne(l.id, 'tva', e.target.value)}>
                   {TVA_TAUX.map(t => <option key={t} value={t}>{t}%</option>)}
                 </select>
-                <div style={{ textAlign: 'right', fontSize: 13, fontWeight: 600, color: '#1E293B', padding: '9px 4px' }}>
-                  {fmt(calcLigne(l).ht)} €
-                </div>
-                <button
-                  onClick={() => removeLigne(l.id)}
-                  disabled={lignes.length === 1}
-                  style={{ width: 28, height: 28, borderRadius: 7, border: 'none', background: lignes.length === 1 ? 'transparent' : 'rgba(239,68,68,0.08)', color: lignes.length === 1 ? '#CBD5E1' : '#EF4444', cursor: lignes.length === 1 ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                >
+                <div style={{ textAlign: 'right', fontSize: 13, fontWeight: 600, color: '#1E293B', padding: '9px 4px' }}>{fmt(calcLigne(l).ht)} €</div>
+                <button onClick={() => removeLigne(l.id)} disabled={lignes.length === 1} style={{ width: 28, height: 28, borderRadius: 7, border: 'none', background: lignes.length === 1 ? 'transparent' : 'rgba(239,68,68,0.08)', color: lignes.length === 1 ? '#CBD5E1' : '#EF4444', cursor: lignes.length === 1 ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Trash2 size={13} />
                 </button>
               </div>
             ))}
-
-            <button
-              onClick={addLigne}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, border: '1px dashed rgba(91,163,199,0.4)', background: 'rgba(91,163,199,0.05)', color: '#5BA3C7', fontSize: 13, fontWeight: 600, cursor: 'pointer', marginTop: 8, fontFamily: "'Nunito Sans', sans-serif" }}
-            >
+            <button onClick={addLigne} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, border: '1px dashed rgba(91,163,199,0.4)', background: 'rgba(91,163,199,0.05)', color: '#5BA3C7', fontSize: 13, fontWeight: 600, cursor: 'pointer', marginTop: 8, fontFamily: "'Nunito Sans', sans-serif" }}>
               <Plus size={14} /> Ajouter une ligne
             </button>
           </CardSection>
 
-          {/* Mentions légales */}
           <CardSection title="Mentions légales" icon={AlertCircle}>
-            <Field label="Clause de pénalités de retard">
-              <textarea
-                style={{ ...inputStyle, minHeight: 72, resize: 'vertical', lineHeight: 1.5 }}
-                value={form.mentionPenalites}
-                onChange={e => set('mentionPenalites', e.target.value)}
-              />
+            <Field label="Pénalités de retard">
+              <textarea style={{ ...inp, minHeight: 72, resize: 'vertical', lineHeight: 1.5 }} value={form.mentionPenalites} onChange={e => set('mentionPenalites', e.target.value)} />
             </Field>
-            <Field label="Clause d'escompte">
-              <textarea
-                style={{ ...inputStyle, minHeight: 48, resize: 'vertical', lineHeight: 1.5 }}
-                value={form.mentionEscompte}
-                onChange={e => set('mentionEscompte', e.target.value)}
-              />
+            <Field label="Escompte">
+              <textarea style={{ ...inp, minHeight: 48, resize: 'vertical', lineHeight: 1.5 }} value={form.mentionEscompte} onChange={e => set('mentionEscompte', e.target.value)} />
             </Field>
             <Field label="Notes complémentaires">
-              <textarea
-                style={{ ...inputStyle, minHeight: 60, resize: 'vertical', lineHeight: 1.5 }}
-                value={form.notes}
-                onChange={e => set('notes', e.target.value)}
-                placeholder="Informations supplémentaires..."
-              />
+              <textarea style={{ ...inp, minHeight: 60, resize: 'vertical', lineHeight: 1.5 }} value={form.notes} onChange={e => set('notes', e.target.value)} placeholder="Informations supplémentaires..." />
             </Field>
           </CardSection>
         </div>
 
-        {/* COLONNE DROITE — Récap + Actions */}
+        {/* RÉCAP + BOUTON */}
         <div style={{ position: 'sticky', top: 24 }}>
-          <div style={{
-            background: '#fff', borderRadius: 16, padding: 24,
-            boxShadow: '0 1px 4px rgba(15,23,42,0.06)',
-            border: '1px solid rgba(15,23,42,0.06)',
-            marginBottom: 16,
-          }}>
+          <div style={{ background: '#fff', borderRadius: 16, padding: 24, boxShadow: '0 1px 4px rgba(15,23,42,0.06)', border: '1px solid rgba(15,23,42,0.06)', marginBottom: 16 }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#1E293B', marginBottom: 20 }}>Récapitulatif</div>
 
-            {/* Détail TVA par taux */}
-            {TVA_TAUX.filter(t => lignes.some(l => parseFloat(l.tva) === t && (parseFloat(l.quantite) * parseFloat(l.prixUnitaire)) > 0)).map(t => {
-              const base = lignes.filter(l => parseFloat(l.tva) === t).reduce((s, l) => s + calcLigne(l).ht, 0);
-              const tvaAmt = base * (t / 100);
-              if (base === 0) return null;
-              return (
-                <div key={t} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#64748B', marginBottom: 6 }}>
-                  <span>TVA {t}% (base {fmt(base)} €)</span>
-                  <span>{fmt(tvaAmt)} €</span>
-                </div>
-              );
-            })}
-
-            <div style={{ borderTop: '1px solid #F1F5F9', margin: '12px 0' }} />
-
-            {[
-              { label: 'Total HT', value: totaux.ht, bold: false },
-              { label: 'Total TVA', value: totaux.tva, bold: false },
-            ].map(r => (
-              <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#64748B', marginBottom: 8 }}>
-                <span>{r.label}</span>
-                <span style={{ fontWeight: r.bold ? 700 : 400 }}>{fmt(r.value)} €</span>
+            {Object.entries(tvaDetails).filter(([, d]) => d.base > 0).map(([t, d]) => (
+              <div key={t} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#64748B', marginBottom: 6 }}>
+                <span>TVA {t}% (base {fmt(d.base)} €)</span>
+                <span>{fmt(d.montant)} €</span>
               </div>
             ))}
 
-            <div style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '12px 14px', borderRadius: 10, marginTop: 8,
-              background: 'linear-gradient(135deg, rgba(91,163,199,0.12), rgba(91,163,199,0.06))',
-              border: '1px solid rgba(91,163,199,0.2)',
-            }}>
+            <div style={{ borderTop: '1px solid #F1F5F9', margin: '12px 0' }} />
+            {[['Total HT', totaux.ht], ['Total TVA', totaux.tva]].map(([l, v]) => (
+              <div key={l} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#64748B', marginBottom: 8 }}>
+                <span>{l}</span><span>{fmt(v)} €</span>
+              </div>
+            ))}
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', borderRadius: 10, marginTop: 8, background: 'linear-gradient(135deg, rgba(91,163,199,0.12), rgba(91,163,199,0.06))', border: '1px solid rgba(91,163,199,0.2)' }}>
               <span style={{ fontSize: 14, fontWeight: 700, color: '#1E293B' }}>Total TTC</span>
               <span style={{ fontSize: 18, fontWeight: 800, color: '#5BA3C7' }}>{fmt(totaux.ttc)} €</span>
             </div>
           </div>
 
-          {/* Bouton générer */}
-          <button
-            onClick={handleGenerate}
-            disabled={loading}
-            style={{
-              width: '100%', padding: '14px 20px', borderRadius: 12, border: 'none',
-              background: loading ? '#CBD5E1' : 'linear-gradient(135deg, #5BA3C7, #3D7FA3)',
-              color: '#fff', fontSize: 14, fontWeight: 700, cursor: loading ? 'default' : 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              boxShadow: loading ? 'none' : '0 4px 16px rgba(91,163,199,0.35)',
-              transition: 'all 180ms ease',
-              fontFamily: "'Nunito Sans', sans-serif",
-            }}
-          >
-            {loading ? (
-              <><Loader size={16} style={{ animation: 'spin 1s linear infinite' }} /> Génération en cours...</>
-            ) : (
-              <><Download size={16} /> Générer et télécharger le PDF</>
-            )}
+          <button onClick={genererPDF} style={{
+            width: '100%', padding: '14px 20px', borderRadius: 12, border: 'none',
+            background: 'linear-gradient(135deg, #5BA3C7, #3D7FA3)', color: '#fff',
+            fontSize: 14, fontWeight: 700, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            boxShadow: '0 4px 16px rgba(91,163,199,0.35)', fontFamily: "'Nunito Sans', sans-serif",
+          }}>
+            <Printer size={16} /> Générer et imprimer / PDF
           </button>
-
           <div style={{ fontSize: 11, color: '#94A3B8', textAlign: 'center', marginTop: 10, lineHeight: 1.5 }}>
-            Le PDF est conforme aux obligations légales françaises.
+            Une fenêtre s'ouvre → "Enregistrer en PDF" dans l'imprimante.
           </div>
         </div>
       </div>
-
-      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
