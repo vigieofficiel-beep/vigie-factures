@@ -98,7 +98,7 @@ function analyserPrixFournisseurs(fournisseurs, expenses, inflationData = {}) {
 }
 
 /* ══ STYLES ══════════════════════════════════════════════════════════ */
-const C = { blue:'#5BA3C7', purple:'#A85BC7', dark:'#1A1C20', light:'#9AA0AE', border:'#E8EAF0', bg:'#F8F9FB', red:'#C75B4E', orange:'#D4A853', green:'#5BC78A' };
+const C = { blue:'#5BA3C7', purple:'#A85BC7', dark:'#1A1C20', light:'#9AA0AE', border:'#E8EAF0', bg:'#F8F9FB', red:'#C75B4E', orange:'#5BC78A', green:'#5BC78A' };
 const CATEGORIES = ["Toutes","Informatique","Fournitures","Loyer","Transport","Alimentation","Communication","Énergie","Assurance","Comptabilité","Juridique","Marketing","RH","Autre"];
 const iS = { width:'100%', padding:'9px 12px', borderRadius:8, background:'#F8F9FB', border:'1px solid #E8EAF0', color:'#1A1C20', fontSize:13, outline:'none', boxSizing:'border-box', fontFamily:'inherit' };
 const lS = { fontSize:11, fontWeight:600, color:'#5A6070', marginBottom:5, display:'block', textTransform:'uppercase', letterSpacing:'0.05em' };

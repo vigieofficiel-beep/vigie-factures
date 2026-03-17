@@ -46,12 +46,12 @@ const NAV = [
     id: 'juridique',
     label: 'Juridique',
     icon: FileCheck,
-    color: '#D4A853',
+    color: '#5BC78A',
     active: true,
     children: [
-      { id: 'contrats',   label: 'Contrats',   icon: FileCheck,  color: '#D4A853', route: '/pro/contrats',   active: true },
-      { id: 'formalites', label: 'Formalités', icon: AlertCircle,color: '#D4A853', route: '/pro/formalites', active: true },
-      { id: 'mail-agent', label: 'Mail Agent', icon: Mail,       color: '#D4A853', route: '/pro/mail-agent', active: true },
+      { id: 'contrats',   label: 'Contrats',   icon: FileCheck,  color: '#5BC78A', route: '/pro/contrats',   active: true },
+      { id: 'formalites', label: 'Formalités', icon: AlertCircle,color: '#5BC78A', route: '/pro/formalites', active: true },
+      { id: 'mail-agent', label: 'Mail Agent', icon: Mail,       color: '#5BC78A', route: '/pro/mail-agent', active: true },
     ],
   },
   {

@@ -41,7 +41,7 @@ function normalizeDate(str) {
 
 function StatutBadge({ rapproche }) {
   return (
-    <span style={{ display:'inline-flex', alignItems:'center', gap:4, background:rapproche?'rgba(91,199,138,0.1)':'rgba(212,168,83,0.1)', color:rapproche?'#5BC78A':'#D4A853', fontSize:10, fontWeight:700, padding:'3px 9px', borderRadius:20 }}>
+    <span style={{ display:'inline-flex', alignItems:'center', gap:4, background:rapproche?'rgba(91,199,138,0.1)':'rgba(212,168,83,0.1)', color:rapproche?'#5BC78A':'#5BC78A', fontSize:10, fontWeight:700, padding:'3px 9px', borderRadius:20 }}>
       {rapproche ? <><CheckCircle size={10}/> Rapproché</> : <><AlertTriangle size={10}/> À rapprocher</>}
     </span>
   );
@@ -157,7 +157,7 @@ export default function BanquePage() {
           { label:'Crédits',      value:formatEuro(totalCredits),  color:'#5BC78A', icon:TrendingUp   },
           { label:'Débits',       value:formatEuro(totalDebits),   color:'#C75B4E', icon:TrendingDown  },
           { label:'Rapprochés',   value:rapproches,                color:ACCENT,    icon:CheckCircle  },
-          { label:'À rapprocher', value:nonRapproches,             color:'#D4A853', icon:AlertTriangle, alert:nonRapproches > 0 },
+          { label:'À rapprocher', value:nonRapproches,             color:'#5BC78A', icon:AlertTriangle, alert:nonRapproches > 0 },
         ].map(s => { const Icon = s.icon; return (
           <div key={s.label} style={{ background:'#fff', border:`1px solid ${s.alert?'rgba(212,168,83,0.3)':'#E8EAF0'}`, borderRadius:12, padding:'16px 18px', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
@@ -211,7 +211,7 @@ export default function BanquePage() {
           <div style={{ width:1, height:20, background:'#E8EAF0' }}/>
           <div style={{ display:'flex', gap:6 }}>
             {[{id:'tous',label:'Tous'},{id:'rapproche',label:'Rapprochés'},{id:'non_rapproche',label:'À rapprocher'}].map(f=>(
-              <button key={f.id} onClick={()=>setFilterRaproche(f.id)} style={{ padding:'5px 14px', borderRadius:20, border:`1px solid ${filterRaproche===f.id?'#D4A853':'#E8EAF0'}`, background:filterRaproche===f.id?'rgba(212,168,83,0.1)':'#fff', color:filterRaproche===f.id?'#D4A853':'#5A6070', fontSize:12, fontWeight:filterRaproche===f.id?700:500, cursor:'pointer' }}>{f.label}</button>
+              <button key={f.id} onClick={()=>setFilterRaproche(f.id)} style={{ padding:'5px 14px', borderRadius:20, border:`1px solid ${filterRaproche===f.id?'#5BC78A':'#E8EAF0'}`, background:filterRaproche===f.id?'rgba(212,168,83,0.1)':'#fff', color:filterRaproche===f.id?'#5BC78A':'#5A6070', fontSize:12, fontWeight:filterRaproche===f.id?700:500, cursor:'pointer' }}>{f.label}</button>
             ))}
           </div>
         </div>
@@ -236,7 +236,7 @@ export default function BanquePage() {
                   <td style={{ padding:'11px 14px' }}><StatutBadge rapproche={t.rapproche}/></td>
                   <td style={{ padding:'11px 14px' }}>
                     <div style={{ display:'flex', gap:4 }}>
-                      <button onClick={()=>toggleRapprochement(t)} title={t.rapproche?'Marquer non rapproché':'Marquer rapproché'} style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:t.rapproche?'#5BC78A':'#D4A853' }}><RefreshCw size={13}/></button>
+                      <button onClick={()=>toggleRapprochement(t)} title={t.rapproche?'Marquer non rapproché':'Marquer rapproché'} style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:t.rapproche?'#5BC78A':'#5BC78A' }}><RefreshCw size={13}/></button>
                       <button onClick={()=>deleteTransaction(t.id)} style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'#D0D4DC' }} onMouseEnter={ev=>ev.currentTarget.style.color='#C75B4E'} onMouseLeave={ev=>ev.currentTarget.style.color='#D0D4DC'}><X size={13}/></button>
                     </div>
                   </td>

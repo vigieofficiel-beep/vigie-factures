@@ -39,7 +39,7 @@ function scoreMdp(mdp) {
   if (/[^A-Za-z0-9]/.test(mdp)) s++;
   if (s <= 2) return { pct:20,  label:'Très faible', color:'#C75B4E' };
   if (s <= 3) return { pct:40,  label:'Faible',      color:'#C75B4E' };
-  if (s <= 4) return { pct:60,  label:'Moyen',       color:'#D4A853' };
+  if (s <= 4) return { pct:60,  label:'Moyen',       color:'#5BC78A' };
   if (s <= 5) return { pct:80,  label:'Fort',        color:'#5BA3C7' };
   return              { pct:100, label:'Très fort',  color:'#5BC78A' };
 }
@@ -88,9 +88,9 @@ export default function Signup() {
         <div style={{ fontSize:40, marginBottom:16 }}>✅</div>
         <h2 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:22, color:'#EDE8DB', marginBottom:12 }}>Compte créé !</h2>
         <p style={{ fontSize:13, color:'rgba(255,255,255,0.45)', lineHeight:1.6, marginBottom:24 }}>
-          Un email de confirmation a été envoyé à <strong style={{ color:'#D4A853' }}>{form.email}</strong>. Cliquez sur le lien pour activer votre compte.
+          Un email de confirmation a été envoyé à <strong style={{ color:'#5BC78A' }}>{form.email}</strong>. Cliquez sur le lien pour activer votre compte.
         </p>
-        <Link to="/login" style={{ display:'inline-block', padding:'10px 24px', borderRadius:10, background:'linear-gradient(135deg, #D4A853, #C78A5B)', color:'#0E0D0B', fontSize:13, fontWeight:700, textDecoration:'none' }}>
+        <Link to="/login" style={{ display:'inline-block', padding:'10px 24px', borderRadius:10, background:'linear-gradient(135deg, #5BC78A, #C78A5B)', color:'#0E0D0B', fontSize:13, fontWeight:700, textDecoration:'none' }}>
           Se connecter
         </Link>
       </div>
@@ -102,10 +102,10 @@ export default function Signup() {
       <div style={{ background:'#161513', border:'1px solid rgba(255,255,255,0.08)', borderRadius:16, padding:'36px 40px', width:'100%', maxWidth:460 }}>
 
         <Link to="/" style={{ textDecoration:'none' }}>
-          <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:24, color:'#D4A853', marginBottom:4 }}>Vigie</h1>
+          <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:24, color:'#5BC78A', marginBottom:4 }}>Vigie</h1>
         </Link>
         <p style={{ fontSize:12, color:'rgba(255,255,255,0.35)', marginBottom:28 }}>
-          Créez votre compte <span style={{ color:'#D4A853' }}>Perso</span> gratuitement
+          Créez votre compte <span style={{ color:'#5BC78A' }}>Perso</span> gratuitement
         </p>
 
         <form onSubmit={handleSubmit} style={{ display:'flex', flexDirection:'column', gap:14 }}>
@@ -123,7 +123,7 @@ export default function Signup() {
           <div>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
               <label style={{ ...labelStyle, marginBottom:0 }}>Mot de passe</label>
-              <button type="button" onClick={generer} style={{ background:'rgba(212,168,83,0.15)', border:'1px solid rgba(212,168,83,0.3)', borderRadius:6, padding:'3px 10px', color:'#D4A853', fontSize:11, fontWeight:700, cursor:'pointer' }}>
+              <button type="button" onClick={generer} style={{ background:'rgba(212,168,83,0.15)', border:'1px solid rgba(212,168,83,0.3)', borderRadius:6, padding:'3px 10px', color:'#5BC78A', fontSize:11, fontWeight:700, cursor:'pointer' }}>
                 🔐 Générer
               </button>
             </div>
@@ -171,13 +171,13 @@ export default function Signup() {
 
           {error && <div style={{ color:'#C75B4E', fontSize:11, background:'rgba(199,91,78,0.1)', padding:'8px 12px', borderRadius:6 }}>{error}</div>}
 
-          <button type="submit" disabled={loading} style={{ width:'100%', padding:'12px', borderRadius:10, border:'none', background:loading?'rgba(212,168,83,0.3)':'linear-gradient(135deg, #D4A853, #C78A5B)', color:'#0E0D0B', fontSize:14, fontWeight:700, cursor:loading?'not-allowed':'pointer', marginTop:4 }}>
+          <button type="submit" disabled={loading} style={{ width:'100%', padding:'12px', borderRadius:10, border:'none', background:loading?'rgba(212,168,83,0.3)':'linear-gradient(135deg, #5BC78A, #C78A5B)', color:'#0E0D0B', fontSize:14, fontWeight:700, cursor:loading?'not-allowed':'pointer', marginTop:4 }}>
             {loading ? 'Création...' : 'Créer mon compte Perso'}
           </button>
         </form>
 
         <p style={{ textAlign:'center', marginTop:20, fontSize:12, color:'rgba(255,255,255,0.35)' }}>
-          Déjà inscrit ?{' '}<Link to="/login" style={{ color:'#D4A853', textDecoration:'none' }}>Connexion</Link>
+          Déjà inscrit ?{' '}<Link to="/login" style={{ color:'#5BC78A', textDecoration:'none' }}>Connexion</Link>
         </p>
       </div>
     </div>

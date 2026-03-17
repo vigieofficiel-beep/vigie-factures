@@ -3,7 +3,7 @@ import { supabasePro } from '../lib/supabasePro';
 import { Plus, Trash2, Edit2, FileCheck, AlertTriangle, CheckCircle, Clock, Download, Upload, Bell } from 'lucide-react';
 import ExportButton from '../components/ExportButton';
 
-const ACCENT = '#D4A853';
+const ACCENT = '#5BC78A';
 const formatEuro = (n) => n == null ? '—' : new Intl.NumberFormat('fr-FR', { style:'currency', currency:'EUR' }).format(n);
 const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric' }) : '—';
 const daysUntil = (dateStr) => { if (!dateStr) return null; return Math.ceil((new Date(dateStr) - new Date()) / (1000*60*60*24)); };
@@ -28,7 +28,7 @@ function StatutBadge({ contrat }) {
   if (!contrat.date_fin) return <span style={{ fontSize:11, color:'#9AA0AE' }}>—</span>;
   if (days < 0)   return <span style={{ background:'rgba(199,91,78,0.1)',  color:'#C75B4E', fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:20 }}>Expiré</span>;
   if (days <= 30) return <span style={{ background:'rgba(199,91,78,0.1)',  color:'#C75B4E', fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:20 }}>⚠️ {days}j restants</span>;
-  if (days <= 60) return <span style={{ background:'rgba(212,168,83,0.1)', color:'#D4A853', fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:20 }}>⏰ {days}j restants</span>;
+  if (days <= 60) return <span style={{ background:'rgba(212,168,83,0.1)', color:'#5BC78A', fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:20 }}>⏰ {days}j restants</span>;
   return <span style={{ background:'rgba(91,199,138,0.1)', color:'#5BC78A', fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:20 }}>✓ Actif</span>;
 }
 
@@ -170,14 +170,14 @@ export default function ContratsPage() {
         <div style={{ background:'rgba(199,91,78,0.04)', border:'1px solid rgba(199,91,78,0.2)', borderRadius:12, padding:'14px 18px', marginBottom:20 }}>
           <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}><Bell size={14} color="#C75B4E"/><span style={{ fontSize:13, fontWeight:700, color:'#C75B4E' }}>Alertes échéances</span></div>
           {expires.map(c => <p key={c.id} style={{ fontSize:12, color:'#C75B4E', margin:'3px 0' }}>⚠️ <strong>{c.nom}</strong> ({c.fournisseur}) — expiré depuis {Math.abs(daysUntil(c.date_fin))} jours</p>)}
-          {alertes.map(c => <p key={c.id} style={{ fontSize:12, color:'#D4A853', margin:'3px 0' }}>⏰ <strong>{c.nom}</strong> ({c.fournisseur}) — expire dans {daysUntil(c.date_fin)} jours{c.reconduction_tacite&&<span style={{ marginLeft:6, fontSize:11, opacity:0.8 }}>— reconduction tacite, préavis {c.delai_preavis_jours}j</span>}</p>)}
+          {alertes.map(c => <p key={c.id} style={{ fontSize:12, color:'#5BC78A', margin:'3px 0' }}>⏰ <strong>{c.nom}</strong> ({c.fournisseur}) — expire dans {daysUntil(c.date_fin)} jours{c.reconduction_tacite&&<span style={{ marginLeft:6, fontSize:11, opacity:0.8 }}>— reconduction tacite, préavis {c.delai_preavis_jours}j</span>}</p>)}
         </div>
       )}
 
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))', gap:14, marginBottom:24 }}>
         {[
           { label:'Contrats actifs',  value:contrats.length,        color:ACCENT,    icon:FileCheck    },
-          { label:'Alertes',          value:alertes.length,         color:'#D4A853', icon:Clock,        alert:alertes.length>0 },
+          { label:'Alertes',          value:alertes.length,         color:'#5BC78A', icon:Clock,        alert:alertes.length>0 },
           { label:'Expirés',          value:expires.length,         color:'#C75B4E', icon:AlertTriangle,alert:expires.length>0 },
           { label:'Coût annuel est.', value:formatEuro(totalAnnuel),color:'#5BC78A', icon:CheckCircle  },
         ].map(s => { const Icon = s.icon; return (

@@ -5,7 +5,7 @@ const TYPE_CONFIG = {
   alerte:   { icon: AlertTriangle, color: '#C75B4E', bg: 'rgba(199,91,78,0.1)'  },
   info:     { icon: Info,          color: '#5BA3C7', bg: 'rgba(91,163,199,0.1)' },
   recette:  { icon: TrendingUp,    color: '#5BC78A', bg: 'rgba(91,199,138,0.1)' },
-  document: { icon: FileText,      color: '#D4A853', bg: 'rgba(212,168,83,0.1)' },
+  document: { icon: FileText,      color: '#5BC78A', bg: 'rgba(212,168,83,0.1)' },
 };
 
 const NOTIFS_DEMO = [

@@ -18,7 +18,7 @@ const formatDate = (d) =>
 
 const ALERTE_STYLE = {
   critique : { bg: 'rgba(199,91,78,0.08)',  border: 'rgba(199,91,78,0.3)',  color: '#C75B4E', label: 'Urgent'    },
-  attention: { bg: 'rgba(212,168,83,0.08)', border: 'rgba(212,168,83,0.3)', color: '#D4A853', label: 'Attention' },
+  attention: { bg: 'rgba(212,168,83,0.08)', border: 'rgba(212,168,83,0.3)', color: '#5BC78A', label: 'Attention' },
   info     : { bg: 'rgba(91,163,199,0.08)', border: 'rgba(91,163,199,0.3)', color: '#5BA3C7', label: 'Info'      },
 };
 
@@ -51,8 +51,8 @@ function BandeauAlertes({ alertes, onDismiss }) {
   return (
     <div style={{ background: critiques > 0 ? 'rgba(199,91,78,0.06)' : 'rgba(212,168,83,0.06)', border: `1px solid ${critiques > 0 ? 'rgba(199,91,78,0.25)' : 'rgba(212,168,83,0.25)'}`, borderRadius: 14, marginBottom: 24, overflow: 'hidden' }}>
       <div onClick={() => setCollapsed(c => !c)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', cursor: 'pointer', background: critiques > 0 ? 'rgba(199,91,78,0.04)' : 'rgba(212,168,83,0.04)' }}>
-        <Bell size={15} color={critiques > 0 ? '#C75B4E' : '#D4A853'} />
-        <span style={{ fontSize: 13, fontWeight: 700, color: critiques > 0 ? '#C75B4E' : '#D4A853', flex: 1 }}>
+        <Bell size={15} color={critiques > 0 ? '#C75B4E' : '#5BC78A'} />
+        <span style={{ fontSize: 13, fontWeight: 700, color: critiques > 0 ? '#C75B4E' : '#5BC78A', flex: 1 }}>
           {visibles.length} alerte{visibles.length > 1 ? 's' : ''} en attente
           {critiques > 0 && <span style={{ fontSize: 11, fontWeight: 600, marginLeft: 8, background: 'rgba(199,91,78,0.15)', color: '#C75B4E', padding: '2px 7px', borderRadius: 20 }}>{critiques} urgent{critiques > 1 ? 'es' : 'e'}</span>}
         </span>
@@ -187,7 +187,7 @@ export default function ProHome() {
         {[
           { label: 'Dépenses (mois)',    value: formatEuro(totalDepenses), color: '#C75B4E', icon: TrendingDown, action: () => navigate('/pro/depenses') },
           { label: 'Recettes encaissées',value: formatEuro(totalRecettes), color: '#5BC78A', icon: TrendingUp,   action: () => navigate('/pro/recettes') },
-          { label: 'Devis en attente',   value: devisEnAttente,            color: '#D4A853', icon: Receipt,      action: () => navigate('/pro/recettes') },
+          { label: 'Devis en attente',   value: devisEnAttente,            color: '#5BC78A', icon: Receipt,      action: () => navigate('/pro/recettes') },
           { label: 'Contrats actifs',    value: contratsActifs,            color: '#5BA3C7', icon: FileCheck,    action: () => navigate('/pro/contrats') },
         ].map(s => {
           const Icon = s.icon;
@@ -232,7 +232,7 @@ export default function ProHome() {
         {[
           { label: 'Nouvelle dépense', color: '#5BC78A', path: '/pro/depenses' },
           { label: 'Nouveau devis',    color: '#5BA3C7', path: '/pro/recettes' },
-          { label: 'Voir les contrats',color: '#D4A853', path: '/pro/contrats' },
+          { label: 'Voir les contrats',color: '#5BC78A', path: '/pro/contrats' },
           { label: 'Formalités',       color: '#A85BC7', path: '/pro/formalites' },
         ].map(r => (
           <button key={r.label} onClick={() => navigate(r.path)} style={{ padding: '13px 18px', borderRadius: 11, border: `1px solid ${r.color}30`, background: `${r.color}08`, color: r.color, fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'background 150ms ease' }}

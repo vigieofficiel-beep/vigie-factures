@@ -31,7 +31,7 @@ function niveauUrgence(days) {
 
 // ── Génère le HTML de l'email
 function buildEmailHTML(alertes, userName) {
-  const couleurs = { critique: '#C75B4E', attention: '#D4A853', info: '#5BA3C7' };
+  const couleurs = { critique: '#C75B4E', attention: '#5BC78A', info: '#5BA3C7' };
   const emojis   = { critique: '🔴', attention: '🟡', info: '🔵' };
 
   const lignes = alertes.map(a => `

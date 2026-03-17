@@ -26,14 +26,14 @@ import { FolderTree } from '../components/FolderTree';
 
 // ═══ CONFIG ═══
 const ANALYZE_API = "/api/analyze";
-const COLORS = ["#D4A853","#C75B4E","#5BA3C7","#5BC78A","#A85BC7","#C78A5B","#5BC7B8","#C75BA8"];
+const COLORS = ["#5BC78A","#C75B4E","#5BA3C7","#5BC78A","#A85BC7","#C78A5B","#5BC7B8","#C75BA8"];
 const MONTHS_FR = ["Jan","Fév","Mar","Avr","Mai","Juin","Juil","Août","Sep","Oct","Nov","Déc"];
 const getSb = (context) => context === "pro" ? supabasePro : supabase;
 
 const BUDGET_CATEGORIES = {
   "Logement":     { color: "#5BA3C7", keywords: ["loyer","immobilier","habitation","logement","eau","edf","engie","électricité","gaz","chauffage"] },
   "Transport":    { color: "#5BC78A", keywords: ["transport","essence","carburant","sncf","ratp","uber","taxi","parking","autoroute","péage"] },
-  "Alimentation": { color: "#D4A853", keywords: ["alimentaire","restaurant","supermarché","courses","épicerie","boulangerie"] },
+  "Alimentation": { color: "#5BC78A", keywords: ["alimentaire","restaurant","supermarché","courses","épicerie","boulangerie"] },
   "Télécom":      { color: "#A85BC7", keywords: ["télécom","mobile","internet","free","orange","sfr","bouygues","fibre","forfait"] },
   "Santé":        { color: "#C75B4E", keywords: ["santé","médecin","pharmacie","mutuelle","dentiste","opticien","hôpital"] },
   "Assurance":    { color: "#C78A5B", keywords: ["assurance","axa","maif","macif","allianz","groupama"] },
@@ -110,7 +110,7 @@ function StatCard({ icon: Icon, label, value, sub, color, trend }) {
 }
 
 function FileItem({ file, onRemove }) {
-  const sc = { pending:"rgba(255,255,255,0.3)", processing:"#D4A853", done:"#5BC78A", error:"#C75B4E" };
+  const sc = { pending:"rgba(255,255,255,0.3)", processing:"#5BC78A", done:"#5BC78A", error:"#C75B4E" };
   const SI = { pending:Clock, processing:Loader, done:CheckCircle, error:AlertTriangle }[file.status];
   return (
     <div style={{
@@ -177,7 +177,7 @@ function CustomTooltip({ active, payload }) {
   return (
     <div style={{ background:"#161513", border:"1px solid rgba(255,255,255,0.08)", borderRadius:8, padding:"6px 10px", fontSize:10 }}>
       <div style={{ color:"rgba(255,255,255,0.4)" }}>{payload[0]?.name||payload[0]?.payload?.name}</div>
-      <div style={{ color:"#D4A853", fontWeight:700 }}>{formatEuro(payload[0]?.value)}</div>
+      <div style={{ color:"#5BC78A", fontWeight:700 }}>{formatEuro(payload[0]?.value)}</div>
     </div>
   );
 }
@@ -344,10 +344,10 @@ const filtered = useMemo(() => {
                 display: "flex", alignItems: "center", gap: 7,
                 padding: "14px 16px",
                 background: "none", border: "none", cursor: "pointer",
-                color: isActive ? "#D4A853" : "rgba(255,255,255,0.35)",
+                color: isActive ? "#5BC78A" : "rgba(255,255,255,0.35)",
                 fontSize: 12, fontWeight: isActive ? 700 : 400,
                 fontFamily: "'Nunito Sans', sans-serif",
-                borderBottom: isActive ? "2px solid #D4A853" : "2px solid transparent",
+                borderBottom: isActive ? "2px solid #5BC78A" : "2px solid transparent",
                 transition: "all 150ms ease",
                 position: "relative",
               }}
@@ -355,7 +355,7 @@ const filtered = useMemo(() => {
               <t.icon size={14} />
               {t.label}
               {badge && (
-                <span style={{ background:"#D4A853", color:"#0E0D0B", borderRadius:10, padding:"1px 6px", fontSize:9, fontWeight:700 }}>{badge}</span>
+                <span style={{ background:"#5BC78A", color:"#0E0D0B", borderRadius:10, padding:"1px 6px", fontSize:9, fontWeight:700 }}>{badge}</span>
               )}
             </button>
           );
@@ -373,7 +373,7 @@ const filtered = useMemo(() => {
               <div style={{
                 height: "100%",
                 width: `${quotaPct}%`,
-                background: quotaAlert ? "#C75B4E" : quotaPct > 60 ? "#D4A853" : "#5BC78A",
+                background: quotaAlert ? "#C75B4E" : quotaPct > 60 ? "#5BC78A" : "#5BC78A",
                 borderRadius: 2, transition: "width 0.5s",
               }} />
             </div>
@@ -395,7 +395,7 @@ const filtered = useMemo(() => {
               <div style={{ display:"flex", gap:8 }}>
 <button onClick={() => exportCSVExpert(filtered, `vigie-${context}`)} style={{ background:"rgba(91,199,138,0.08)", border:"1px solid rgba(91,199,138,0.2)", borderRadius:7, padding:"7px 12px", cursor:"pointer", display:"flex", alignItems:"center", gap:5, color:"#5BC78A", fontSize:11, fontFamily:"'Nunito Sans', sans-serif" }}>                  <Download size={12} /> Export CSV
                 </button>
-                <button onClick={() => exportZIP(filtered, sb, `vigie-${context}`)} style={{ background:"rgba(212,168,83,0.08)", border:"1px solid rgba(212,168,83,0.2)", borderRadius:7, padding:"7px 12px", cursor:"pointer", display:"flex", alignItems:"center", gap:5, color:"#D4A853", fontSize:11, fontFamily:"'Nunito Sans', sans-serif" }}>
+                <button onClick={() => exportZIP(filtered, sb, `vigie-${context}`)} style={{ background:"rgba(212,168,83,0.08)", border:"1px solid rgba(212,168,83,0.2)", borderRadius:7, padding:"7px 12px", cursor:"pointer", display:"flex", alignItems:"center", gap:5, color:"#5BC78A", fontSize:11, fontFamily:"'Nunito Sans', sans-serif" }}>
   <Download size={12} /> Export ZIP
 </button>
                 <button onClick={fetchInvoices} style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:7, padding:"7px 12px", cursor:"pointer", display:"flex", alignItems:"center", gap:5, color:"rgba(255,255,255,0.4)", fontSize:11, fontFamily:"'Nunito Sans', sans-serif" }}>
@@ -419,7 +419,7 @@ const filtered = useMemo(() => {
 
             {/* Stats */}
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(160px, 1fr))", gap:12, marginBottom:24 }}>
-              <StatCard icon={FileText}      label="Factures"    value={stats.count}               sub={`${stats.providers} fournisseur${stats.providers>1?"s":""}`} color="#D4A853" />
+              <StatCard icon={FileText}      label="Factures"    value={stats.count}               sub={`${stats.providers} fournisseur${stats.providers>1?"s":""}`} color="#5BC78A" />
               <StatCard icon={TrendingUp}    label="Total"       value={formatEuro(stats.total)}    sub={`${formatEuro(stats.totalYear)} est. annuel`} color="#5BA3C7" />
               <StatCard icon={AlertTriangle} label="Anomalies"   value={stats.anomalies}            sub={stats.anomalies>0?"À vérifier":"RAS"} color={stats.anomalies>0?"#C75B4E":"#5BC78A"} trend={stats.anomalies>0?"up":undefined} />
               <StatCard icon={Calendar}      label="Récurrents"  value={invoices.filter(i=>i.frequency==="mensuel").length} sub={`${formatEuro(invoices.filter(i=>i.frequency==="mensuel").reduce((s,i)=>s+(i.amount_ttc||0),0))}/mois`} color="#A85BC7" />
@@ -522,7 +522,7 @@ onDragStart={e => e.dataTransfer.setData('invoiceId', inv.id)}
                             >
                               <td style={{ padding:"10px 12px", color:"#EDE8DB", fontSize:11, fontWeight:500 }}>{inv.invoice_number||"—"}</td>
                               <td style={{ padding:"10px 12px", color:"rgba(255,255,255,0.6)", fontSize:11 }}>{inv.provider||"—"}</td>
-                              <td style={{ padding:"10px 12px", color:"#D4A853", fontSize:11, fontWeight:600 }}>{formatEuro(inv.amount_ttc)}</td>
+                              <td style={{ padding:"10px 12px", color:"#5BC78A", fontSize:11, fontWeight:600 }}>{formatEuro(inv.amount_ttc)}</td>
                               <td style={{ padding:"10px 12px", color:"rgba(255,255,255,0.4)", fontSize:11 }}>{formatDate(inv.invoice_date)}</td>
                               <td style={{ padding:"10px 12px" }}>
                                 <span style={{ padding:"2px 7px", borderRadius:10, fontSize:9, fontWeight:600, background:inv.frequency==="mensuel"?"rgba(91,163,199,0.12)":"rgba(255,255,255,0.05)", color:inv.frequency==="mensuel"?"#5BA3C7":"rgba(255,255,255,0.4)" }}>{inv.frequency||"—"}</span>
@@ -589,8 +589,8 @@ onDragStart={e => e.dataTransfer.setData('invoiceId', inv.id)}
       }}
     >
       <input ref={fileInputRef} type="file" multiple accept=".pdf,.txt,.png,.jpg,.jpeg" onChange={e => { addFiles(e.target.files); e.target.value=""; }} />
-      <Upload size={32} color={dragOver?"#D4A853":"rgba(255,255,255,0.2)"} style={{ marginBottom:12, display:"block", margin:"0 auto 12px" }} />
-      <div style={{ color:dragOver?"#D4A853":"rgba(255,255,255,0.5)", fontSize:14, fontWeight:500, marginBottom:6 }}>
+      <Upload size={32} color={dragOver?"#5BC78A":"rgba(255,255,255,0.2)"} style={{ marginBottom:12, display:"block", margin:"0 auto 12px" }} />
+      <div style={{ color:dragOver?"#5BC78A":"rgba(255,255,255,0.5)", fontSize:14, fontWeight:500, marginBottom:6 }}>
         {dragOver ? "Lâchez ici !" : "Glissez vos factures"}
       </div>
       <div style={{ color:"rgba(255,255,255,0.25)", fontSize:11 }}>ou cliquez pour parcourir • PDF, images, texte</div>
@@ -610,8 +610,8 @@ onDragStart={e => e.dataTransfer.setData('invoiceId', inv.id)}
             disabled={isProcessing || pendingCount === 0}
             style={{
               flex:1, minWidth:200, padding:"12px 20px", borderRadius:10, border:"none",
-              background:isProcessing?"rgba(212,168,83,0.15)":pendingCount===0?"rgba(255,255,255,0.05)":"linear-gradient(135deg, #D4A853, #C78A5B)",
-              color:isProcessing?"#D4A853":pendingCount===0?"rgba(255,255,255,0.3)":"#0E0D0B",
+              background:isProcessing?"rgba(212,168,83,0.15)":pendingCount===0?"rgba(255,255,255,0.05)":"linear-gradient(135deg, #5BC78A, #C78A5B)",
+              color:isProcessing?"#5BC78A":pendingCount===0?"rgba(255,255,255,0.3)":"#0E0D0B",
               fontSize:13, fontWeight:700, cursor:isProcessing||pendingCount===0?"not-allowed":"pointer",
               fontFamily:"'Nunito Sans', sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:6,
             }}
@@ -658,7 +658,7 @@ onDragStart={e => e.dataTransfer.setData('invoiceId', inv.id)}
                 </div>
                 <div style={{ background:"rgba(212,168,83,0.08)", border:"1px solid rgba(212,168,83,0.15)", borderRadius:10, padding:"10px 16px", textAlign:"center" }}>
                   <div style={{ fontSize:9, color:"rgba(255,255,255,0.35)", textTransform:"uppercase", letterSpacing:1, marginBottom:3 }}>Estimation annuelle</div>
-                  <div style={{ fontSize:20, fontWeight:700, color:"#D4A853", fontFamily:"'Cormorant Garamond', serif" }}>{formatEuro(grandYearly)}</div>
+                  <div style={{ fontSize:20, fontWeight:700, color:"#5BC78A", fontFamily:"'Cormorant Garamond', serif" }}>{formatEuro(grandYearly)}</div>
                 </div>
               </div>
 
@@ -773,13 +773,13 @@ onDragStart={e => e.dataTransfer.setData('invoiceId', inv.id)}
                   <h2 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:26, fontWeight:700, marginBottom:3 }}>Rapport mensuel</h2>
                   <p style={{ color:"rgba(255,255,255,0.25)", fontSize:11 }}>{reportDate} — {monthInvoices.length} facture{monthInvoices.length>1?"s":""} ce mois</p>
                 </div>
-                <button onClick={printReport} style={{ background:"linear-gradient(135deg, #D4A853, #C78A5B)", color:"#0E0D0B", border:"none", borderRadius:9, padding:"10px 18px", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'Nunito Sans', sans-serif", display:"flex", alignItems:"center", gap:6 }}>
+                <button onClick={printReport} style={{ background:"linear-gradient(135deg, #5BC78A, #C78A5B)", color:"#0E0D0B", border:"none", borderRadius:9, padding:"10px 18px", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'Nunito Sans', sans-serif", display:"flex", alignItems:"center", gap:6 }}>
                   <Download size={13} /> Télécharger PDF
                 </button>
               </div>
 
               <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(160px, 1fr))", gap:12, marginBottom:24 }}>
-                <StatCard icon={FileText}      label="Factures du mois" value={monthInvoices.length} color="#D4A853" />
+                <StatCard icon={FileText}      label="Factures du mois" value={monthInvoices.length} color="#5BC78A" />
                 <StatCard icon={TrendingUp}    label="Total du mois"    value={formatEuro(monthTotal)} sub={`${variation>0?"+":""}${Math.round(variation)}% vs mois préc.`} color="#5BA3C7" trend={variation>5?"up":variation<-5?"down":undefined} />
                 <StatCard icon={AlertTriangle} label="Anomalies"         value={monthAnomalies.length} sub={monthAnomalies.length>0?"À vérifier":"RAS"} color={monthAnomalies.length>0?"#C75B4E":"#5BC78A"} />
                 <StatCard icon={Wallet}        label="Récurrents"        value={formatEuro(recurringTotal)} sub={`${recurring.length} abonnement${recurring.length>1?"s":""}`} color="#A85BC7" />
@@ -829,7 +829,7 @@ onDragStart={e => e.dataTransfer.setData('invoiceId', inv.id)}
                           return (
                             <tr key={i} style={{ borderBottom:"1px solid rgba(255,255,255,0.03)" }}>
                               <td style={{ padding:"10px 12px", color:"#EDE8DB", fontSize:11, fontWeight:500 }}>{inv.provider||"—"}</td>
-                              <td style={{ padding:"10px 12px", color:"#D4A853", fontSize:11, fontWeight:600 }}>{formatEuro(inv.amount_ttc)}</td>
+                              <td style={{ padding:"10px 12px", color:"#5BC78A", fontSize:11, fontWeight:600 }}>{formatEuro(inv.amount_ttc)}</td>
                               <td style={{ padding:"10px 12px" }}><span style={{ background:`${catColor}18`, color:catColor, padding:"2px 8px", borderRadius:10, fontSize:9, fontWeight:600 }}>{cat}</span></td>
                               <td style={{ padding:"10px 12px" }}>
                                 {inv.has_anomaly ? <span style={{ color:"#C75B4E", fontSize:10, fontWeight:600 }}>⚠️ Anomalie</span> : <span style={{ color:"rgba(91,199,138,0.6)", fontSize:10 }}>✅ OK</span>}

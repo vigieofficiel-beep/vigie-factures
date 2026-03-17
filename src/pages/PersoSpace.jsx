@@ -7,7 +7,7 @@ const PERSO_MODULES = [
     id: 'factures-perso',
     label: 'Factures',
     icon: FileText,
-    color: '#D4A853',
+    color: '#5BC78A',
     bg: 'rgba(212,168,83,0.12)',
     route: '/perso/factures',
     status: 'active',
@@ -68,7 +68,7 @@ export default function PersoSpace() {
           display: 'inline-flex',
           alignItems: 'center',
           gap: 6,
-          color: '#D4A853',
+          color: '#5BC78A',
           textDecoration: 'none',
           fontSize: 13,
           marginBottom: 32,
@@ -86,7 +86,7 @@ export default function PersoSpace() {
           color: '#2C2416',
           marginBottom: 8,
         }}>
-          Vigie <span style={{ color: '#D4A853' }}>Perso</span>
+          Vigie <span style={{ color: '#5BC78A' }}>Perso</span>
         </h1>
         <p style={{ color: 'rgba(44,36,22,0.5)', fontSize: 14 }}>
           Vos outils de gestion personnelle

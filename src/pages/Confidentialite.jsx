@@ -189,7 +189,7 @@ export default function Confidentialite() {
                   const rest = part.substring(end + 1);
                   return (
                     <span key={j}>
-                      <span style={{ background: 'rgba(212,168,83,0.15)', color: '#D4A853', borderRadius: 4, padding: '1px 6px', fontSize: 12, fontWeight: 700 }}>{placeholder}</span>
+                      <span style={{ background: 'rgba(212,168,83,0.15)', color: '#5BC78A', borderRadius: 4, padding: '1px 6px', fontSize: 12, fontWeight: 700 }}>{placeholder}</span>
                       {rest}
                     </span>
                   );

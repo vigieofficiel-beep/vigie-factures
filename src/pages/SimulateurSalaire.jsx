@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 
-const C = { blue:'#5BA3C7', green:'#5BC78A', orange:'#D4A853', red:'#C75B4E', purple:'#A85BC7', dark:'#1A1C20', light:'#9AA0AE', border:'#E8EAF0', bg:'#F8F9FB' };
+const C = { blue:'#5BA3C7', green:'#5BC78A', orange:'#5BC78A', red:'#C75B4E', purple:'#A85BC7', dark:'#1A1C20', light:'#9AA0AE', border:'#E8EAF0', bg:'#F8F9FB' };
 
 const euro = (n) => new Intl.NumberFormat('fr-FR', { style:'currency', currency:'EUR', maximumFractionDigits:2 }).format(n ?? 0);
 const pct  = (n) => `${Number(n).toFixed(2)}%`;

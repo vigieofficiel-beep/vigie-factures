@@ -6,7 +6,7 @@ export default function Footer() {
       <div style={{ maxWidth:1000, margin:'0 auto', display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))', gap:40, marginBottom:40 }}>
 
         <div>
-          <h3 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:22, fontWeight:700, color:'#D4A853', marginBottom:14, letterSpacing:0.5 }}>Vigie</h3>
+          <h3 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:22, fontWeight:700, color:'#5BC78A', marginBottom:14, letterSpacing:0.5 }}>Vigie</h3>
           <p style={{ fontSize:13, color:'#BDBABB', lineHeight:1.7, maxWidth:200 }}>
             La solution intelligente pour gérer et automatiser votre gestion d'entreprise.
           </p>
@@ -23,7 +23,7 @@ export default function Footer() {
               { label:'Contact',     to:'/contact'},
             ].map(link => (
               <Link key={link.to} to={link.to} style={{ fontSize:14, color:'#BDBABB', textDecoration:'none', transition:'color 150ms ease' }}
-                onMouseEnter={e => e.currentTarget.style.color='#D4A853'}
+                onMouseEnter={e => e.currentTarget.style.color='#5BC78A'}
                 onMouseLeave={e => e.currentTarget.style.color='#BDBABB'}>
                 {link.label}
               </Link>
@@ -40,7 +40,7 @@ export default function Footer() {
               { label:'CGU',              to:'/cgu'              },
             ].map(link => (
               <Link key={link.label} to={link.to} style={{ fontSize:14, color:'#BDBABB', textDecoration:'none', transition:'color 150ms ease' }}
-                onMouseEnter={e => e.currentTarget.style.color='#D4A853'}
+                onMouseEnter={e => e.currentTarget.style.color='#5BC78A'}
                 onMouseLeave={e => e.currentTarget.style.color='#BDBABB'}>
                 {link.label}
               </Link>
@@ -52,17 +52,17 @@ export default function Footer() {
           <h4 style={{ fontSize:13, fontWeight:700, letterSpacing:1.4, color:'#D8D5CF', textTransform:'uppercase', marginBottom:16 }}>Contact</h4>
           <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
             <a href="mailto:vigie-officiel@gmail.com" style={{ fontSize:14, color:'#BDBABB', textDecoration:'none', transition:'color 150ms ease' }}
-              onMouseEnter={e => e.currentTarget.style.color='#D4A853'}
+              onMouseEnter={e => e.currentTarget.style.color='#5BC78A'}
               onMouseLeave={e => e.currentTarget.style.color='#BDBABB'}>
               vigie-officiel@gmail.com
             </a>
             <Link to="/contact" style={{ fontSize:14, color:'#BDBABB', textDecoration:'none', transition:'color 150ms ease' }}
-              onMouseEnter={e => e.currentTarget.style.color='#D4A853'}
+              onMouseEnter={e => e.currentTarget.style.color='#5BC78A'}
               onMouseLeave={e => e.currentTarget.style.color='#BDBABB'}>
               Formulaire de contact
             </Link>
             <Link to="/tarifs#faq" style={{ fontSize:14, color:'#BDBABB', textDecoration:'none', transition:'color 150ms ease' }}
-              onMouseEnter={e => e.currentTarget.style.color='#D4A853'}
+              onMouseEnter={e => e.currentTarget.style.color='#5BC78A'}
               onMouseLeave={e => e.currentTarget.style.color='#BDBABB'}>
               FAQ
             </Link>

@@ -222,7 +222,7 @@ export default function OnboardingChecklist() {
                     {etape.titre}
                   </span>
                   {etape.important && !fait && (
-                    <span style={{ fontSize: 9, fontWeight: 700, color: '#D4A853', background: 'rgba(212,168,83,0.15)', borderRadius: 4, padding: '1px 5px' }}>PRIORITÉ</span>
+                    <span style={{ fontSize: 9, fontWeight: 700, color: '#5BC78A', background: 'rgba(212,168,83,0.15)', borderRadius: 4, padding: '1px 5px' }}>PRIORITÉ</span>
                   )}
                 </div>
                 <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: '2px 0 0', lineHeight: 1.4 }}>{etape.description}</p>

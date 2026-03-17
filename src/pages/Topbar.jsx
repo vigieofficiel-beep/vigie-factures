@@ -18,7 +18,7 @@ export default function Topbar({
   onFavoris,
   notifCount = 0,
 }) {
-  const accent = mode === 'pro' ? '#5BA3C7' : '#D4A853';
+  const accent = mode === 'pro' ? '#5BA3C7' : '#5BC78A';
   const label  = mode === 'pro' ? 'Espace Pro' : 'Espace Perso';
 
   return (

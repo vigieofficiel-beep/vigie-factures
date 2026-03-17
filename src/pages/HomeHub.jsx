@@ -69,11 +69,11 @@ export default function HomeHub() {
           {/* Vigie Perso — EN CONSTRUCTION */}
           <div style={{ position:'relative', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:20, padding:'36px 28px', opacity:0.5, cursor:'not-allowed', backdropFilter:'blur(10px)' }}>
             <div style={{ position:'absolute', top:14, right:14, display:'flex', alignItems:'center', gap:4, background:'rgba(212,168,83,0.1)', border:'1px solid rgba(212,168,83,0.25)', borderRadius:20, padding:'3px 10px' }}>
-              <Lock size={9} color="#D4A853"/>
-              <span style={{ fontSize:10, fontWeight:700, color:'#D4A853' }}>Bientôt</span>
+              <Lock size={9} color="#5BC78A"/>
+              <span style={{ fontSize:10, fontWeight:700, color:'#5BC78A' }}>Bientôt</span>
             </div>
             <div style={{ width:56, height:56, borderRadius:16, background:'rgba(212,168,83,0.1)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:18 }}>
-              <User size={24} color="#D4A853" strokeWidth={2}/>
+              <User size={24} color="#5BC78A" strokeWidth={2}/>
             </div>
             <h2 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:22, fontWeight:700, color:'#EDE8DB', marginBottom:8, textAlign:'left' }}>Vigie Perso</h2>
             <p style={{ fontSize:13, color:'rgba(237,232,219,0.4)', lineHeight:1.6, textAlign:'left', marginBottom:14 }}>Gestion personnelle, factures, démarches, foyer</p>

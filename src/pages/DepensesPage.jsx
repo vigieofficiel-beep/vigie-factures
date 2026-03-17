@@ -6,7 +6,7 @@ import ExportButton from '../components/ExportButton';
 const ACCENT = '#5BC78A';
 
 const TYPES = [
-  { id: 'restauration', label: 'Restauration', icon: Coffee,   color: '#D4A853' },
+  { id: 'restauration', label: 'Restauration', icon: Coffee,   color: '#5BC78A' },
   { id: 'transport',    label: 'Transport',     icon: Car,      color: '#5BA3C7' },
   { id: 'logement',     label: 'Logement',      icon: Hotel,    color: '#A85BC7' },
   { id: 'fournitures',  label: 'Fournitures',   icon: Package,  color: '#5BC78A' },
@@ -211,7 +211,7 @@ function AddExpenseForm({ onSave, onCancel }) {
         <div
           onClick={() => fileRef.current?.click()}
           style={{
-            border: `2px dashed ${ocrSuccess ? ACCENT : file ? '#D4A853' : '#E8EAF0'}`,
+            border: `2px dashed ${ocrSuccess ? ACCENT : file ? '#5BC78A' : '#E8EAF0'}`,
             borderRadius: 10, padding: '18px', textAlign: 'center', cursor: 'pointer',
             background: ocrSuccess ? `${ACCENT}08` : file ? '#FFF9F0' : '#F8F9FB',
             transition: 'all 200ms ease',
@@ -231,7 +231,7 @@ function AddExpenseForm({ onSave, onCancel }) {
               <span style={{ fontSize: 13, color: ACCENT, fontWeight: 600 }}>✓ Formulaire complété automatiquement — {file?.name}</span>
             </div>
           ) : file ? (
-            <span style={{ fontSize: 12, color: '#D4A853', fontWeight: 600 }}>📄 {file.name}</span>
+            <span style={{ fontSize: 12, color: '#5BC78A', fontWeight: 600 }}>📄 {file.name}</span>
           ) : (
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 4 }}>
@@ -416,7 +416,7 @@ export default function DepensesPage() {
         {[
           { label: 'Total dépenses', value: formatEuro(totalFiltered), color: ACCENT },
           { label: 'Indemnités km', value: formatEuro(totalKm), color: '#5BA3C7' },
-          { label: 'Nombre de dépenses', value: filtered.length, color: '#D4A853' },
+          { label: 'Nombre de dépenses', value: filtered.length, color: '#5BC78A' },
         ].map(s => (
           <div key={s.label} style={{ background: '#fff', border: '1px solid #E8EAF0', borderRadius: 12, padding: '16px 18px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
             <p style={{ fontSize: 11, color: '#9AA0AE', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>{s.label}</p>

@@ -1,6 +1,6 @@
 const STATUS_CONFIG = {
   recu:      { label: 'Reçu',      color: '#5BA3C7', bg: 'rgba(91,163,199,0.12)'  },
-  a_valider: { label: 'À valider', color: '#D4A853', bg: 'rgba(212,168,83,0.12)'  },
+  a_valider: { label: 'À valider', color: '#5BC78A', bg: 'rgba(212,168,83,0.12)'  },
   a_payer:   { label: 'À payer',   color: '#C78A5B', bg: 'rgba(199,138,91,0.12)'  },
   paye:      { label: 'Payé',      color: '#5BC78A', bg: 'rgba(91,199,138,0.12)'  },
   litige:    { label: 'Litige',    color: '#C75B4E', bg: 'rgba(199,91,78,0.12)'   },

@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 const C = {
   blue:   '#5BA3C7',
   green:  '#5BC78A',
-  gold:   '#D4A853',
+  gold:   '#5BC78A',
   purple: '#A85BC7',
   red:    '#C75B4E',
   dark:   '#0A0F1E',

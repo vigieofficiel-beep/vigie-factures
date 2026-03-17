@@ -9,7 +9,7 @@ import './home.css';
 /* ── Config par mode ── */
 const CONFIG = {
   perso: {
-    accent    : '#D4A853',
+    accent    : '#5BC78A',
     mainTitle : 'Mes finances du mois',
     mainSub   : "Vue d'ensemble de vos factures et dépenses",
     bannerText: '🔔 Votre facture EDF de novembre est disponible.',

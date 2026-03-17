@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Bell, X } from 'lucide-react';
 
 const TYPE_CONFIG = {
-  'j-7':    { label: 'J-7',    color: '#D4A853', desc: 'Rappel 7 jours avant échéance' },
+  'j-7':    { label: 'J-7',    color: '#5BC78A', desc: 'Rappel 7 jours avant échéance' },
   'j-1':    { label: 'J-1',    color: '#C78A5B', desc: 'Rappel 1 jour avant échéance'  },
   'j+3':    { label: 'J+3',    color: '#C75B4E', desc: 'Retard 3 jours'                },
   'manuel': { label: 'Manuel', color: '#5BA3C7', desc: 'Relance manuelle'              },
@@ -51,7 +51,7 @@ export function RemindersLog({ sb, userId, context }) {
           display:'flex', alignItems:'center', gap:6,
         }}
       >
-        <Bell size={14} color={unread > 0 ? '#D4A853' : 'rgba(255,255,255,0.4)'} />
+        <Bell size={14} color={unread > 0 ? '#5BC78A' : 'rgba(255,255,255,0.4)'} />
         <span style={{ fontSize:11, color:'rgba(255,255,255,0.5)' }}>Relances</span>
         {unread > 0 && (
           <span style={{

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Check, X, ArrowRight, Zap, Star, Crown } from 'lucide-react';
 import Footer from '../components/Footer';
 
-const C = { blue:'#5BA3C7', gold:'#D4A853', purple:'#A85BC7', green:'#5BC78A', dark:'#08090C', card:'rgba(255,255,255,0.04)', border:'rgba(255,255,255,0.08)', text:'#EDE8DB', light:'rgba(237,232,219,0.5)' };
+const C = { blue:'#5BA3C7', gold:'#5BC78A', purple:'#A85BC7', green:'#5BC78A', dark:'#08090C', card:'rgba(255,255,255,0.04)', border:'rgba(255,255,255,0.08)', text:'#EDE8DB', light:'rgba(237,232,219,0.5)' };
 
 const PLANS = [
   {

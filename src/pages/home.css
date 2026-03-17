@@ -345,7 +345,7 @@ button { font-family: var(--font-body); cursor: pointer; }
 }
 .btn:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 .btn--perso {
-  background : linear-gradient(135deg, #D4A853, #C78A5B);
+  background : linear-gradient(135deg, #5BC78A, #C78A5B);
   color      : #1A1008;
 }
 .btn--perso:hover { opacity: 0.88; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(212,168,83,0.35); }

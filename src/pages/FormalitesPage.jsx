@@ -5,7 +5,7 @@ import {
   Clock, Bell, RefreshCw, Download, Calendar
 } from 'lucide-react';
 
-const ACCENT = '#D4A853';
+const ACCENT = '#5BC78A';
 
 const formatDate = (d) =>
   d ? new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
@@ -72,7 +72,7 @@ const TYPES_PREDEFINIS = [
 ];
 
 const STATUTS = [
-  { id: 'a_faire',    label: 'À faire',    color: '#D4A853' },
+  { id: 'a_faire',    label: 'À faire',    color: '#5BC78A' },
   { id: 'en_cours',   label: 'En cours',   color: '#5BA3C7' },
   { id: 'fait',       label: 'Fait',       color: '#5BC78A' },
   { id: 'en_retard',  label: 'En retard',  color: '#C75B4E' },
@@ -84,7 +84,7 @@ function UrgenceBadge({ dateEcheance, statut }) {
   if (days === null) return null;
   if (days < 0)   return <span style={{ background: 'rgba(199,91,78,0.1)',  color: '#C75B4E', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>En retard {Math.abs(days)}j</span>;
   if (days <= 15) return <span style={{ background: 'rgba(199,91,78,0.1)',  color: '#C75B4E', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>🔴 {days}j</span>;
-  if (days <= 30) return <span style={{ background: 'rgba(212,168,83,0.1)', color: '#D4A853', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>🟡 {days}j</span>;
+  if (days <= 30) return <span style={{ background: 'rgba(212,168,83,0.1)', color: '#5BC78A', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>🟡 {days}j</span>;
   if (days <= 60) return <span style={{ background: 'rgba(91,163,199,0.1)', color: '#5BA3C7', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>🔵 {days}j</span>;
   return <span style={{ background: 'rgba(91,199,138,0.1)', color: '#5BC78A', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>{days}j</span>;
 }
@@ -341,7 +341,7 @@ export default function FormalitesPage() {
             </span>
           </div>
           {urgentes.map(f => (
-            <p key={f.id} style={{ fontSize: 12, color: '#D4A853', margin: '3px 0' }}>
+            <p key={f.id} style={{ fontSize: 12, color: '#5BC78A', margin: '3px 0' }}>
               ⏰ <strong>{f.label}</strong> — échéance le {formatDate(f.date_echeance)} ({daysUntil(f.date_echeance)}j)
             </p>
           ))}

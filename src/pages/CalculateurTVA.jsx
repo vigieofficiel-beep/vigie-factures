@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const C = { blue:'#5BA3C7', purple:'#A85BC7', dark:'#1A1C20', light:'#9AA0AE', border:'#E8EAF0', bg:'#F8F9FB', red:'#C75B4E', orange:'#D4A853', green:'#5BC78A' };
+const C = { blue:'#5BA3C7', purple:'#A85BC7', dark:'#1A1C20', light:'#9AA0AE', border:'#E8EAF0', bg:'#F8F9FB', red:'#C75B4E', orange:'#5BC78A', green:'#5BC78A' };
 
 const TAUX_TVA = [
   { label:'20% — Taux normal',        value:20,  desc:'Biens et services courants' },

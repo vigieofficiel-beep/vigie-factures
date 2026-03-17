@@ -6,7 +6,7 @@ const VIGIE_MODULES = [
     id: 'vigie-factures',
     label: 'Factures',
     icon: FileText,
-    color: '#D4A853',
+    color: '#5BC78A',
     bg: 'rgba(212,168,83,0.12)',
     route: '/app/vigie-factures',
     status: 'active',
@@ -57,7 +57,7 @@ export default function Dashboard() {
     <div style={{ padding: '40px 24px 60px', maxWidth: 900, margin: '0 auto' }}>
       <div style={{ marginBottom: 48, textAlign: 'center' }}>
         <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(28px, 5vw, 42px)', fontWeight: 700, color: '#EDE8DB', marginBottom: 10 }}>
-          Plateforme <span style={{ color: '#D4A853' }}>Vigie</span>
+          Plateforme <span style={{ color: '#5BC78A' }}>Vigie</span>
         </h1>
         <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 14, maxWidth: 400, margin: '0 auto' }}>
           Choisissez un module pour commencer

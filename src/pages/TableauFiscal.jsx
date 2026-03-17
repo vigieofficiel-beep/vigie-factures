@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { supabasePro } from '../lib/supabasePro';
 import { TrendingUp, TrendingDown, FileText, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
 
-const C = { blue:'#5BA3C7', green:'#5BC78A', orange:'#D4A853', red:'#C75B4E', dark:'#1A1C20', light:'#9AA0AE', border:'#E8EAF0', bg:'#F8F9FB' };
+const C = { blue:'#5BA3C7', green:'#5BC78A', orange:'#5BC78A', red:'#C75B4E', dark:'#1A1C20', light:'#9AA0AE', border:'#E8EAF0', bg:'#F8F9FB' };
 const euro = (n) => new Intl.NumberFormat('fr-FR', { style:'currency', currency:'EUR', maximumFractionDigits:0 }).format(n ?? 0);
 const pct  = (n) => `${Number(n).toFixed(1)}%`;
 

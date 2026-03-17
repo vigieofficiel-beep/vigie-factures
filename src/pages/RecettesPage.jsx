@@ -316,7 +316,7 @@ export default function RecettesPage() {
                   <td style={{padding:'11px 14px'}}>
                     <div style={{display:'flex',gap:4}}>
                       <button onClick={()=>telechargerPDF(d)} title="PDF" style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'#9AA0AE'}} onMouseEnter={ev=>ev.currentTarget.style.color=ACCENT} onMouseLeave={ev=>ev.currentTarget.style.color='#9AA0AE'}><FileDown size={13}/></button>
-                      {(d.statut==='signe'||d.statut==='envoye')&&<button onClick={()=>envoyerRelance(d)} title="Relance" style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'#D4A853'}}><RefreshCw size={13}/></button>}
+                      {(d.statut==='signe'||d.statut==='envoye')&&<button onClick={()=>envoyerRelance(d)} title="Relance" style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'#5BC78A'}}><RefreshCw size={13}/></button>}
                       <button onClick={()=>{setEditDevis(d);setShowDevisForm(false);}} title="Modifier" style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'#9AA0AE'}} onMouseEnter={ev=>ev.currentTarget.style.color=ACCENT} onMouseLeave={ev=>ev.currentTarget.style.color='#9AA0AE'}><Edit2 size={13}/></button>
                       <button onClick={()=>deleteDevis(d.id)} title="Supprimer" style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'#D0D4DC'}} onMouseEnter={ev=>ev.currentTarget.style.color='#C75B4E'} onMouseLeave={ev=>ev.currentTarget.style.color='#D0D4DC'}><Trash2 size={13}/></button>
                     </div>

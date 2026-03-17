@@ -24,7 +24,7 @@ export function useFolders(sb, userId, context) {
 
   const tree = useMemo(() => buildTree(folders), [folders]);
 
-  const create = async (name, parentId = null, color = '#D4A853') => {
+  const create = async (name, parentId = null, color = '#5BC78A') => {
     await sb.from('folders').insert({
       user_id: userId, context, name, parent_id: parentId, color
     });

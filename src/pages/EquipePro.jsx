@@ -20,7 +20,7 @@ const TYPES_POINTAGE = [
   { id: 'deplacement',  label: 'Déplacement',  color: '#5BA3C7' },
   { id: 'teletravail',  label: 'Télétravail',  color: '#A85BC7' },
   { id: 'absence',      label: 'Absence',      color: '#C75B4E' },
-  { id: 'conge',        label: 'Congé',        color: '#D4A853' },
+  { id: 'conge',        label: 'Congé',        color: '#5BC78A' },
 ];
 
 function dureeHeures(debut, fin) {
@@ -314,7 +314,7 @@ export default function EquipePage() {
           { label: 'Membres actifs',   value: employes.filter(e => e.statut === 'actif').length, color: ACCENT,    icon: Users    },
           { label: 'Pointages ce mois',value: pointagesFiltres.length,                           color: '#5BA3C7', icon: Clock    },
           { label: 'Km ce mois',       value: `${totalKm} km`,                                   color: '#5BC78A', icon: Car      },
-          { label: 'Indemnités km',    value: formatEuro(totalIndemnites),                        color: '#D4A853', icon: MapPin   },
+          { label: 'Indemnités km',    value: formatEuro(totalIndemnites),                        color: '#5BC78A', icon: MapPin   },
         ].map(s => {
           const Icon = s.icon;
           return (

@@ -38,7 +38,7 @@ function scoreMdp(mdp) {
   if (/[^A-Za-z0-9]/.test(mdp)) s++;
   if (s <= 2) return { pct:20,  label:'Très faible', color:'#C75B4E' };
   if (s <= 3) return { pct:40,  label:'Faible',      color:'#C75B4E' };
-  if (s <= 4) return { pct:60,  label:'Moyen',       color:'#D4A853' };
+  if (s <= 4) return { pct:60,  label:'Moyen',       color:'#5BC78A' };
   if (s <= 5) return { pct:80,  label:'Fort',        color:'#5BA3C7' };
   return              { pct:100, label:'Très fort',  color:'#5BC78A' };
 }

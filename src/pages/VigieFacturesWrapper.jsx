@@ -26,7 +26,7 @@ export default function VigieFacturesWrapper() {
   }, [context]);
 
   if (loading) return (
-    <div style={{ minHeight: "100vh", background: "#0E0D0B", display: "flex", alignItems: "center", justifyContent: "center", color: "#D4A853", fontFamily: "'Nunito Sans', sans-serif", fontSize: 13 }}>
+    <div style={{ minHeight: "100vh", background: "#0E0D0B", display: "flex", alignItems: "center", justifyContent: "center", color: "#5BC78A", fontFamily: "'Nunito Sans', sans-serif", fontSize: 13 }}>
       Chargement...
     </div>
   );

@@ -124,9 +124,9 @@ export function LegalModal({ page, onClose }) {
       <div onClick={e => e.stopPropagation()} style={{ background: "#161513", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "32px 36px", width: "100%", maxWidth: 700, maxHeight: "80vh", overflowY: "auto", animation: "modalIn 0.3s ease-out" }}>
         <button onClick={onClose} style={{ float: "right", background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.3)", fontSize: 24, padding: 0, marginTop: -8 }}>×</button>
         
-        <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, color: "#D4A853", marginBottom: 24 }}>{current.title}</h2>
+        <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, color: "#5BC78A", marginBottom: 24 }}>{current.title}</h2>
         
-        <div style={{ color: "rgba(255,255,255,0.7)", fontSize: 13, lineHeight: 1.8 }} dangerouslySetInnerHTML={{ __html: current.body.replace(/<h3>/g, '<h3 style="color:#EDE8DB;font-size:15px;margin:20px 0 10px;font-weight:600">').replace(/<p>/g, '<p style="margin-bottom:12px">').replace(/<a /g, '<a style="color:#D4A853" ') }} />
+        <div style={{ color: "rgba(255,255,255,0.7)", fontSize: 13, lineHeight: 1.8 }} dangerouslySetInnerHTML={{ __html: current.body.replace(/<h3>/g, '<h3 style="color:#EDE8DB;font-size:15px;margin:20px 0 10px;font-weight:600">').replace(/<p>/g, '<p style="margin-bottom:12px">').replace(/<a /g, '<a style="color:#5BC78A" ') }} />
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 export function QuotaBar({ label, used, max, unit = '' }) {
   const pct     = Math.min((used / max) * 100, 100);
   const isAlert = pct >= 90;
-  const color   = isAlert ? '#C75B4E' : pct > 60 ? '#D4A853' : '#5BC78A';
+  const color   = isAlert ? '#C75B4E' : pct > 60 ? '#5BC78A' : '#5BC78A';
 
   return (
     <div style={{ marginBottom: 10 }}>

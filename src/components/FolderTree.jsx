@@ -44,11 +44,11 @@ function FolderNode({ node, depth = 0, onDrop, onDelete, activeFolder, onSelect 
         )}
 
         {open
-          ? <FolderOpen size={13} color={node.color ?? '#D4A853'} />
-          : <Folder size={13} color={node.color ?? '#D4A853'} />
+          ? <FolderOpen size={13} color={node.color ?? '#5BC78A'} />
+          : <Folder size={13} color={node.color ?? '#5BC78A'} />
         }
 
-        <span style={{ fontSize: 11, color: isActive ? '#D4A853' : 'rgba(255,255,255,0.6)', flex: 1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+        <span style={{ fontSize: 11, color: isActive ? '#5BC78A' : 'rgba(255,255,255,0.6)', flex: 1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
           {node.name}
         </span>
 
@@ -117,7 +117,7 @@ export function FolderTree({ tree, onDrop, onDelete, onCreate, activeFolder, onS
         }}
       >
         <Folder size={13} color="rgba(255,255,255,0.3)" />
-        <span style={{ fontSize:11, color: activeFolder === null ? '#D4A853' : 'rgba(255,255,255,0.4)' }}>
+        <span style={{ fontSize:11, color: activeFolder === null ? '#5BC78A' : 'rgba(255,255,255,0.4)' }}>
           Tous les documents
         </span>
       </div>
@@ -151,7 +151,7 @@ export function FolderTree({ tree, onDrop, onDelete, onCreate, activeFolder, onS
           />
           <button
             onClick={handleCreate}
-            style={{ background:'rgba(212,168,83,0.15)', border:'1px solid rgba(212,168,83,0.3)', borderRadius:6, padding:'5px 10px', cursor:'pointer', color:'#D4A853', fontSize:11 }}
+            style={{ background:'rgba(212,168,83,0.15)', border:'1px solid rgba(212,168,83,0.3)', borderRadius:6, padding:'5px 10px', cursor:'pointer', color:'#5BC78A', fontSize:11 }}
           >
             OK
           </button>
