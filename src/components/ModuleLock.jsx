@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Lock, Zap, ArrowRight, CheckCircle } from 'lucide-react';
-import { usePlan, hasAccess, PLANS, MODULE_ACCESS } from '../hooks/usePlan';
+import { usePlan, hasAccess, PLANS, MODULE_ACCESS } from '../hooks/usePlan.jsx';
 
 // Contenu affiché selon le plan requis
 const UPGRADE_CONTENT = {

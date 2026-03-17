@@ -13,7 +13,7 @@ import { ProfileAvatar } from '../components/ProfileAvatar';
 import Vigil from './Vigil';
 import AnalyseDocumentFlottant from '../components/AnalyseDocumentFlottant';
 import NotificationsPanel from '../components/NotificationsPanel';
-import { PlanProvider } from '../hooks/usePlan';
+import { PlanProvider } from '../hooks/usePlan.jsx';
 const NAV = [
   {
     id: 'accueil', label: 'Bureau', icon: Home, color: '#5BA3C7',
