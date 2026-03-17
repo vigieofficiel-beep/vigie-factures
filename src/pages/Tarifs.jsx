@@ -1,110 +1,134 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, X, ArrowRight, Zap, Star, Crown } from 'lucide-react';
+import { Check, X, ArrowRight, Zap, Star, Crown, Rocket } from 'lucide-react';
 import Footer from '../components/Footer';
 
-const C = { blue:'#5BA3C7', gold:'#5BC78A', purple:'#A85BC7', green:'#5BC78A', dark:'#08090C', card:'rgba(255,255,255,0.04)', border:'rgba(255,255,255,0.08)', text:'#EDE8DB', light:'rgba(237,232,219,0.5)' };
+const C = {
+  blue:'#5BA3C7', green:'#5BC78A', purple:'#A85BC7',
+  dark:'#08090C', card:'rgba(255,255,255,0.04)',
+  border:'rgba(255,255,255,0.08)', text:'#EDE8DB',
+  light:'rgba(237,232,219,0.5)',
+};
 
 const PLANS = [
   {
     id: 'gratuit',
-    nom: 'Découverte',
+    nom: 'Gratuit',
     prix: 0,
     couleur: C.blue,
     icon: Zap,
-    description: 'Pour tester Vigie Pro sans engagement',
+    description: 'Pour découvrir Vigie Pro sans engagement',
     cta: 'Commencer gratuitement',
     ctaLink: '/pro/signup',
     populaire: false,
     fonctionnalites: [
-      { label:'Bureau de pilotage',           ok:true  },
-      { label:'Dépenses (20/mois max)',        ok:true  },
-      { label:'Devis (5/mois max)',            ok:true  },
-      { label:'Calculateur TVA',              ok:true  },
-      { label:'Convertisseur devises',        ok:true  },
-      { label:'Simulateur salaire',           ok:true  },
-      { label:'Vigil (10 messages/jour)',     ok:true  },
-      { label:'Dépenses illimitées',          ok:false },
-      { label:'Devis PDF illimités',          ok:false },
-      { label:'Export FEC',                   ok:false },
-      { label:'Alertes email automatiques',   ok:false },
-      { label:'Analyse fournisseurs IA',      ok:false },
-      { label:'Banque & Rapprochement',       ok:false },
-      { label:'Générateur de factures',       ok:false },
-      { label:'Business Plan IA',             ok:false },
+      { label: 'Bureau de pilotage',          ok: true  },
+      { label: 'Calculateur TVA',             ok: true  },
+      { label: 'Simulateur de charges',       ok: true  },
+      { label: 'Convertisseur devises',       ok: true  },
+      { label: 'Calculateur amortissement',   ok: true  },
+      { label: 'Seuil de rentabilité',        ok: true  },
+      { label: 'Simulateur salaire',          ok: true  },
+      { label: 'Tableau fiscal',              ok: true  },
+      { label: 'Vigil (assistant limité)',    ok: true  },
+      { label: 'Dépenses & Recettes',         ok: false },
+      { label: 'Banque & Rapprochement',      ok: false },
+      { label: 'Contrats & Assurances',       ok: false },
+      { label: 'Générateur de documents',     ok: false },
+      { label: 'Export FEC comptable',        ok: false },
+    ],
+  },
+  {
+    id: 'starter',
+    nom: 'Starter',
+    prix: 29,
+    couleur: C.green,
+    icon: Star,
+    description: 'Pour indépendants et auto-entrepreneurs',
+    cta: 'Choisir Starter',
+    ctaLink: '/pro/signup',
+    populaire: false,
+    fonctionnalites: [
+      { label: 'Tout le plan Gratuit',        ok: true  },
+      { label: 'Dépenses & Notes de frais',   ok: true  },
+      { label: 'Recettes & Clients',          ok: true  },
+      { label: 'Banque & Rapprochement CSV',  ok: true  },
+      { label: 'Contrats & Assurances',       ok: true  },
+      { label: 'Formalités administratives',  ok: true  },
+      { label: 'Gestion équipe',              ok: true  },
+      { label: 'Pointages',                   ok: true  },
+      { label: 'Gestion fournisseurs',        ok: true  },
+      { label: 'Agent email',                 ok: true  },
+      { label: 'Vigil illimité',              ok: true  },
+      { label: 'Générateur de documents',     ok: false },
+      { label: 'Export FEC comptable',        ok: false },
+      { label: 'Business Plan IA',            ok: false },
     ],
   },
   {
     id: 'pro',
     nom: 'Pro',
-    prix: 19,
+    prix: 49,
     couleur: C.blue,
-    icon: Star,
-    description: 'Pour auto-entrepreneurs et freelances',
+    icon: Rocket,
+    description: 'Pour freelances confirmés et TPE',
     cta: 'Choisir Pro',
     ctaLink: '/pro/signup',
     populaire: true,
     fonctionnalites: [
-      { label:'Tout le plan Découverte',      ok:true  },
-      { label:'Dépenses illimitées',          ok:true  },
-      { label:'Devis PDF illimités',          ok:true  },
-      { label:'Recettes & Clients',           ok:true  },
-      { label:'Banque & Rapprochement CSV',   ok:true  },
-      { label:'Contrats & Assurances',        ok:true  },
-      { label:'Formalités obligatoires',      ok:true  },
-      { label:'Alertes email automatiques',   ok:true  },
-      { label:'Analyse fournisseurs IA',      ok:true  },
-      { label:'Détection anomalies IA',       ok:true  },
-      { label:'Graphiques CA',               ok:true  },
-      { label:'Export FEC comptable',         ok:true  },
-      { label:'Vigil illimité',              ok:true  },
-      { label:'Générateur de factures',       ok:false },
-      { label:'Business Plan IA',             ok:false },
+      { label: 'Tout le plan Starter',        ok: true  },
+      { label: 'Générateur de devis PDF',     ok: true  },
+      { label: 'Générateur de factures PDF',  ok: true  },
+      { label: 'Export FEC comptable',        ok: true  },
+      { label: 'OCR reconnaissance factures', ok: true  },
+      { label: 'Détection anomalies financières', ok: true },
+      { label: 'Alertes intelligentes TVA',   ok: true  },
+      { label: 'Prévision trésorerie',        ok: true  },
+      { label: 'Graphiques CA avancés',       ok: true  },
+      { label: 'Export Excel avancé',         ok: true  },
+      { label: 'Notifications in-app',        ok: true  },
+      { label: 'Business Plan IA',            ok: false },
+      { label: 'Étude de marché IA',          ok: false },
+      { label: 'Multi-entreprises',           ok: false },
     ],
   },
   {
     id: 'premium',
     nom: 'Premium',
-    prix: 39,
-    couleur: C.gold,
+    prix: 89,
+    couleur: C.purple,
     icon: Crown,
-    description: 'Pour TPE, EURL, SAS et SARL',
+    description: 'Pour EURL, SAS, SARL et structures en croissance',
     cta: 'Choisir Premium',
     ctaLink: '/pro/signup',
     populaire: false,
     fonctionnalites: [
-      { label:'Tout le plan Pro',             ok:true  },
-      { label:'Générateur de factures',       ok:true  },
-      { label:'Suivi trésorerie prévisionnelle',ok:true },
-      { label:'Simulateur amortissement',     ok:true  },
-      { label:'Seuil de rentabilité',         ok:true  },
-      { label:'Tableau de bord fiscal',       ok:true  },
-      { label:'Business Plan IA',             ok:true  },
-      { label:'Étude de marché IA',           ok:true  },
-      { label:'Comparateur devis fournisseurs',ok:true },
-      { label:'Export Excel avancé',          ok:true  },
-      { label:'Notifications in-app',         ok:true  },
-      { label:'Multi-entreprises',            ok:true, soon:true },
-      { label:'Support prioritaire email',    ok:true  },
-      { label:'Accès anticipé nouveautés',    ok:true  },
+      { label: 'Tout le plan Pro',            ok: true  },
+      { label: 'Business Plan généré par IA', ok: true  },
+      { label: 'Étude de marché IA',          ok: true  },
+      { label: 'Comparateur devis fournisseurs', ok: true },
+      { label: 'Multi-entreprises',           ok: true, soon: true },
+      { label: 'Support prioritaire email',   ok: true  },
+      { label: 'Accès anticipé nouveautés',   ok: true  },
+      { label: 'Onboarding personnalisé',     ok: true  },
     ],
   },
 ];
 
 const FAQ = [
-  { q:'Puis-je changer de plan à tout moment ?',          r:'Oui, vous pouvez passer à un plan supérieur ou inférieur à tout moment. Le changement prend effet immédiatement.' },
-  { q:'Y a-t-il un engagement ?',                         r:'Non. Tous les plans sont sans engagement, résiliables à tout moment depuis votre profil.' },
-  { q:'Mes données sont-elles sécurisées ?',              r:'Oui. Vos données sont chiffrées, hébergées en Europe (Supabase Frankfurt) et jamais partagées à des tiers.' },
-  { q:'Le plan Découverte est-il vraiment gratuit ?',     r:'Oui, sans carte bancaire requise. Les limitations (20 dépenses/mois, 5 devis/mois) disparaissent avec un plan payant.' },
-  { q:'Vigie Pro remplace-t-il un expert-comptable ?',   r:'Non. Vigie Pro est un outil de pré-comptabilité qui vous aide à organiser vos données. Il ne remplace pas un expert-comptable pour vos obligations fiscales.' },
-  { q:'Comment fonctionne la facturation ?',              r:'Les plans payants sont facturés mensuellement via Stripe. Vous recevez une facture par email chaque mois.' },
+  { q: 'Puis-je changer de plan à tout moment ?',        r: 'Oui, vous pouvez passer à un plan supérieur ou inférieur à tout moment. Le changement prend effet immédiatement.' },
+  { q: 'Y a-t-il un engagement ?',                       r: 'Non. Tous les plans sont sans engagement, résiliables à tout moment depuis votre profil.' },
+  { q: 'Mes données sont-elles sécurisées ?',            r: 'Oui. Vos données sont chiffrées, hébergées en Europe (Supabase Frankfurt) et jamais partagées à des tiers.' },
+  { q: 'Le plan Gratuit nécessite-t-il une carte ?',     r: 'Non, aucune carte bancaire requise. Les outils calculateurs sont accessibles sans limite. Les modules de gestion (dépenses, recettes…) nécessitent un plan payant.' },
+  { q: 'Vigie Pro remplace-t-il un expert-comptable ?',  r: 'Non. Vigie Pro est un outil de pré-comptabilité. Il ne remplace pas un expert-comptable pour vos obligations fiscales.' },
+  { q: 'Comment fonctionne la facturation ?',            r: 'Les plans payants sont facturés mensuellement via Stripe. Vous recevez une facture par email chaque mois.' },
 ];
 
 export default function Tarifs() {
   const [faqOpen, setFaqOpen] = useState(null);
 
   return (
-    <div style={{ fontFamily:"'Nunito Sans', sans-serif", background:C.dark, color:C.text, minHeight:'100vh' }}>
+    <div style={{ fontFamily:"'Nunito Sans', sans-serif", background: C.dark, color: C.text, minHeight: '100vh' }}>
 
       {/* Navbar */}
       <nav style={{ position:'sticky', top:0, zIndex:100, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 6%', height:64, background:'rgba(8,9,12,0.95)', backdropFilter:'blur(20px)', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
@@ -125,16 +149,16 @@ export default function Tarifs() {
           Choisissez votre plan
         </h1>
         <p style={{ fontSize:16, color:C.light, maxWidth:480, margin:'0 auto', lineHeight:1.7 }}>
-          Sans engagement · Résiliable à tout moment · Données hébergées en France
+          Sans engagement · Résiliable à tout moment · Données hébergées en Europe
         </p>
       </div>
 
       {/* Cards */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(280px, 1fr))', gap:20, maxWidth:1000, margin:'0 auto', padding:'0 6% 72px' }}>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(240px, 1fr))', gap:16, maxWidth:1100, margin:'0 auto', padding:'0 4% 72px' }}>
         {PLANS.map(plan => {
           const Icon = plan.icon;
           return (
-            <div key={plan.id} style={{ position:'relative', background:plan.populaire?'linear-gradient(135deg, rgba(91,163,199,0.1), rgba(91,163,199,0.04))':C.card, border:`1px solid ${plan.populaire?'rgba(91,163,199,0.3)':C.border}`, borderRadius:20, padding:'32px 28px', display:'flex', flexDirection:'column', boxShadow:plan.populaire?'0 8px 40px rgba(91,163,199,0.15)':'none' }}>
+            <div key={plan.id} style={{ position:'relative', background: plan.populaire ? 'linear-gradient(135deg, rgba(91,163,199,0.1), rgba(91,163,199,0.04))' : C.card, border:`1px solid ${plan.populaire ? 'rgba(91,163,199,0.35)' : C.border}`, borderRadius:20, padding:'28px 24px', display:'flex', flexDirection:'column', boxShadow: plan.populaire ? '0 8px 40px rgba(91,163,199,0.15)' : 'none' }}>
 
               {plan.populaire && (
                 <div style={{ position:'absolute', top:-12, left:'50%', transform:'translateX(-50%)', background:'linear-gradient(135deg, #5BA3C7, #3d7fa8)', borderRadius:20, padding:'4px 16px', fontSize:11, fontWeight:700, color:'#fff', whiteSpace:'nowrap' }}>
@@ -143,38 +167,38 @@ export default function Tarifs() {
               )}
 
               <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16 }}>
-                <div style={{ width:40, height:40, borderRadius:12, background:`${plan.couleur}15`, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                  <Icon size={20} color={plan.couleur}/>
+                <div style={{ width:38, height:38, borderRadius:11, background:`${plan.couleur}15`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <Icon size={18} color={plan.couleur}/>
                 </div>
                 <div>
-                  <div style={{ fontSize:18, fontWeight:700, color:C.text }}>{plan.nom}</div>
-                  <div style={{ fontSize:12, color:C.light }}>{plan.description}</div>
+                  <div style={{ fontSize:17, fontWeight:700, color:C.text }}>{plan.nom}</div>
+                  <div style={{ fontSize:11, color:C.light, lineHeight:1.4 }}>{plan.description}</div>
                 </div>
               </div>
 
-              <div style={{ marginBottom:24 }}>
-                <span style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:48, fontWeight:700, color:plan.couleur }}>
-                  {plan.prix === 0 ? 'Gratuit' : `${plan.prix}€`}
+              <div style={{ marginBottom:20 }}>
+                <span style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:42, fontWeight:700, color:plan.couleur }}>
+                  {plan.prix === 0 ? 'Gratuit' : `${plan.prix} €`}
                 </span>
-                {plan.prix > 0 && <span style={{ fontSize:14, color:C.light }}> / mois</span>}
+                {plan.prix > 0 && <span style={{ fontSize:13, color:C.light }}> / mois</span>}
               </div>
 
-              <Link to={plan.ctaLink} style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:'12px', borderRadius:12, background:plan.populaire?'linear-gradient(135deg, #5BA3C7, #3d7fa8)':plan.prix===0?'rgba(255,255,255,0.06)':'rgba(212,168,83,0.15)', color:plan.populaire?'#fff':plan.prix===0?C.light:C.gold, fontSize:14, fontWeight:700, textDecoration:'none', marginBottom:24, border:plan.prix>0&&!plan.populaire?`1px solid rgba(212,168,83,0.3)`:'none', transition:'all 0.2s ease' }}>
-                {plan.cta} <ArrowRight size={14}/>
+              <Link to={plan.ctaLink} style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:'11px', borderRadius:11, background: plan.populaire ? 'linear-gradient(135deg, #5BA3C7, #3d7fa8)' : `${plan.couleur}18`, color: plan.populaire ? '#fff' : plan.couleur, fontSize:13, fontWeight:700, textDecoration:'none', marginBottom:20, border: plan.populaire ? 'none' : `1px solid ${plan.couleur}35`, transition:'all 0.2s ease' }}>
+                {plan.cta} <ArrowRight size={13}/>
               </Link>
 
-              <div style={{ flex:1, display:'flex', flexDirection:'column', gap:8 }}>
+              <div style={{ flex:1, display:'flex', flexDirection:'column', gap:7 }}>
                 {plan.fonctionnalites.map((f, i) => (
-                  <div key={i} style={{ display:'flex', alignItems:'center', gap:10, opacity:f.ok?1:0.35 }}>
-                    <div style={{ width:18, height:18, borderRadius:'50%', background:f.ok?`${C.green}15`:'rgba(255,255,255,0.05)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <div key={i} style={{ display:'flex', alignItems:'center', gap:9, opacity: f.ok ? 1 : 0.3 }}>
+                    <div style={{ width:17, height:17, borderRadius:'50%', background: f.ok ? `${C.green}15` : 'rgba(255,255,255,0.05)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                       {f.ok
-                        ? <Check size={11} color={C.green} strokeWidth={3}/>
-                        : <X size={10} color='rgba(255,255,255,0.2)' strokeWidth={2.5}/>
+                        ? <Check size={10} color={C.green} strokeWidth={3}/>
+                        : <X size={9} color='rgba(255,255,255,0.2)' strokeWidth={2.5}/>
                       }
                     </div>
-                    <span style={{ fontSize:13, color:f.ok?C.text:C.light }}>
+                    <span style={{ fontSize:12, color: f.ok ? C.text : C.light, lineHeight:1.4 }}>
                       {f.label}
-                      {f.soon && <span style={{ fontSize:10, fontWeight:700, color:C.gold, background:'rgba(212,168,83,0.15)', borderRadius:4, padding:'1px 5px', marginLeft:6 }}>Bientôt</span>}
+                      {f.soon && <span style={{ fontSize:9, fontWeight:700, color:C.purple, background:'rgba(168,91,199,0.15)', borderRadius:4, padding:'1px 5px', marginLeft:5 }}>Bientôt</span>}
                     </span>
                   </div>
                 ))}
@@ -188,10 +212,10 @@ export default function Tarifs() {
       <div style={{ borderTop:'1px solid rgba(255,255,255,0.05)', borderBottom:'1px solid rgba(255,255,255,0.05)', padding:'40px 6%' }}>
         <div style={{ maxWidth:800, margin:'0 auto', display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))', gap:24, textAlign:'center' }}>
           {[
-            { emoji:'🔒', titre:'Données sécurisées',    desc:'Chiffrées, hébergées en Europe' },
-            { emoji:'🚫', titre:'Sans engagement',        desc:'Résiliable à tout moment'       },
-            { emoji:'🇫🇷', titre:'100% français',         desc:'Conforme droit fiscal français' },
-            { emoji:'💳', titre:'Paiement sécurisé',     desc:'Via Stripe, certifié PCI DSS'   },
+            { emoji:'🔒', titre:'Données sécurisées',   desc:'Chiffrées, hébergées en Europe'  },
+            { emoji:'🚫', titre:'Sans engagement',       desc:'Résiliable à tout moment'        },
+            { emoji:'🇫🇷', titre:'100% français',        desc:'Conforme droit fiscal français'  },
+            { emoji:'💳', titre:'Paiement sécurisé',    desc:'Via Stripe, certifié PCI DSS'    },
           ].map(g => (
             <div key={g.titre}>
               <div style={{ fontSize:28, marginBottom:8 }}>{g.emoji}</div>
@@ -211,7 +235,7 @@ export default function Tarifs() {
           <div key={i} style={{ borderBottom:'1px solid rgba(255,255,255,0.06)', marginBottom:4 }}>
             <button onClick={() => setFaqOpen(faqOpen === i ? null : i)} style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'16px 0', background:'none', border:'none', cursor:'pointer', color:C.text, fontSize:14, fontWeight:600, textAlign:'left', fontFamily:'inherit', gap:12 }}>
               {item.q}
-              <span style={{ fontSize:18, color:C.light, flexShrink:0, transition:'transform 200ms', transform:faqOpen===i?'rotate(45deg)':'rotate(0)' }}>+</span>
+              <span style={{ fontSize:18, color:C.light, flexShrink:0, transition:'transform 200ms', transform: faqOpen===i ? 'rotate(45deg)' : 'rotate(0)' }}>+</span>
             </button>
             {faqOpen === i && (
               <p style={{ fontSize:13, color:C.light, lineHeight:1.7, paddingBottom:16, marginTop:0 }}>{item.r}</p>
