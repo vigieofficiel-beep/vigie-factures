@@ -14,6 +14,13 @@ const formatEuro = (n) => n == null ? '—' : new Intl.NumberFormat('fr-FR', { s
 const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 const daysUntil = (dateStr) => { if (!dateStr) return null; return Math.ceil((new Date(dateStr) - new Date()) / (1000 * 60 * 60 * 24)); };
 
+function parseOCRDate(str) {
+  if (!str) return new Date().toISOString().split('T')[0];
+  const p = str.split('/');
+  if (p.length === 3) return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+  return new Date().toISOString().split('T')[0];
+}
+
 const STATUTS = [
   { id: 'brouillon',  label: 'Brouillon',  color: '#9AA0AE', bg: '#F0F2F5' },
   { id: 'envoye',     label: 'Envoyé',      color: '#5BA3C7', bg: 'rgba(91,163,199,0.1)' },
@@ -134,7 +141,6 @@ function LignesPrestation({ lignes, setLignes }) {
         <span style={{fontSize:12,color:'#94A3B8'}}>TVA : <strong style={{color:'#0F172A'}}>{totalTVA.toFixed(2)} €</strong></span>
         <span style={{fontSize:13,color:ACCENT,fontWeight:800}}>TTC : {(totalHT+totalTVA).toFixed(2)} €</span>
       </div>
-    
     </div>
   );
 }
@@ -166,11 +172,25 @@ function ClientForm({ onSave, onCancel }) {
   );
 }
 
-function DevisForm({ clients, onSave, onCancel, editData=null }) {
+function DevisForm({ clients, onSave, onCancel, editData=null, prefill=null }) {
   const today=new Date().toISOString().split('T')[0];
   const in30=new Date(Date.now()+30*86400000).toISOString().split('T')[0];
-  const [form,setForm]=useState(editData||{client_id:'',numero:`DEV-${new Date().getFullYear()}${String(new Date().getMonth()+1).padStart(2,'0')}-001`,date_emission:today,date_validite:in30,date_echeance:in30,statut:'brouillon',notes:''});
-  const [lignes,setLignes]=useState(()=>{if(editData?.description){try{return JSON.parse(editData.description);}catch{}}return[{description:'',quantite:1,prix_unitaire:'',tva_taux:20}];});
+  const [form,setForm]=useState(editData||{
+    client_id:'',
+    numero:`DEV-${new Date().getFullYear()}${String(new Date().getMonth()+1).padStart(2,'0')}-001`,
+    date_emission: prefill?.date ? parseOCRDate(prefill.date) : today,
+    date_validite:in30,
+    date_echeance:in30,
+    statut:'brouillon',
+    notes: prefill?.description ?? '',
+  });
+  const [lignes,setLignes]=useState(()=>{
+    if (prefill?.montant_ttc) {
+      return [{ description: prefill.description || '', quantite:1, prix_unitaire: prefill.montant_ht || prefill.montant_ttc || '', tva_taux: prefill.tva ? Math.round((prefill.tva / (prefill.montant_ht || 1)) * 100) : 20 }];
+    }
+    if(editData?.description){try{return JSON.parse(editData.description);}catch{}}
+    return[{description:'',quantite:1,prix_unitaire:'',tva_taux:20}];
+  });
   const [loading,setLoading]=useState(false);const[error,setError]=useState('');
   const set=(k)=>(e)=>setForm(f=>({...f,[k]:e.target.value}));
   const totalHT=lignes.reduce((s,l)=>s+(Number(l.quantite)||0)*(Number(l.prix_unitaire)||0),0);
@@ -179,7 +199,13 @@ function DevisForm({ clients, onSave, onCancel, editData=null }) {
   const iS={width:'100%',padding:'9px 12px',borderRadius:8,background:'#F8F9FB',border:'1px solid #E8EAF0',color:'#1A1C20',fontSize:13,outline:'none',boxSizing:'border-box'};
   const lS={fontSize:11,fontWeight:600,color:'#5A6070',marginBottom:5,display:'block'};
   return (
-    <form onSubmit={handleSubmit} style={{background:'#fff',border:'1px solid #E8EAF0',borderRadius:14,padding:24,marginBottom:24,boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
+    <form onSubmit={handleSubmit} style={{background:'#fff',border:`1px solid ${prefill?`${ACCENT}40`:'#E8EAF0'}`,borderRadius:14,padding:24,marginBottom:24,boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
+      {prefill && (
+        <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 14px',borderRadius:9,background:`${ACCENT}10`,border:`1px solid ${ACCENT}30`,marginBottom:18}}>
+          <CheckCircle size={14} color={ACCENT}/>
+          <span style={{fontSize:13,fontWeight:600,color:ACCENT}}>Formulaire pré-rempli depuis l'analyse du document</span>
+        </div>
+      )}
       <h3 style={{fontSize:15,fontWeight:700,color:'#1A1C20',marginBottom:20}}>{editData?'Modifier le devis':'Nouveau devis'}</h3>
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14,marginBottom:14}}>
         <div><label style={lS}>Client *</label><select value={form.client_id} onChange={set('client_id')} required style={{...iS,cursor:'pointer'}}><option value="">Sélectionner un client</option>{clients.map(c=><option key={c.id} value={c.id}>{c.nom}</option>)}</select></div>
@@ -212,9 +238,24 @@ export default function RecettesPage() {
   const [editDevis,setEditDevis]=useState(null);
   const [filterStatut,setFilterStatut]=useState('tous');
   const [dateRange, setDateRange] = useState({ debut:'', fin:'' });
+  const [ocrPrefill, setOcrPrefill] = useState(null);
   const navigate=useNavigate();
 
-  useEffect(()=>{fetchAll();},[]);
+  useEffect(()=>{
+    fetchAll();
+    // Lire le prefill OCR depuis le bureau
+    try {
+      const raw = sessionStorage.getItem('ocr_prefill');
+      if (raw) {
+        const data = JSON.parse(raw);
+        if (data.source === 'prohome_ocr' && data.type_document === 'recette') {
+          setOcrPrefill(data);
+          setShowDevisForm(true);
+          sessionStorage.removeItem('ocr_prefill');
+        }
+      }
+    } catch {}
+  },[]);
 
   const fetchAll=async()=>{
     setLoading(true);
@@ -234,24 +275,18 @@ export default function RecettesPage() {
   const envoyerRelance=async(d)=>{const count=(d.relance_count||0)+1;await supabasePro.from('devis').update({relance_count:count,derniere_relance:new Date().toISOString().split('T')[0]}).eq('id',d.id);await supabasePro.from('reminders').insert({user_id:d.user_id,context:'pro',type:'relance',message:`Relance ${count} — ${d.clients?.nom} — devis ${d.numero} (${formatEuro(d.montant_ttc)})`,sent_at:new Date().toISOString()});alert(`Relance ${count} enregistrée pour ${d.clients?.nom}`);fetchAll();};
   const telechargerPDF=(d)=>{if(!profil.company_name&&!profil.first_name){alert('Renseignez votre profil pro avant de générer un devis');return;}let lignes=[{description:d.description||'',quantite:1,prix_unitaire:d.montant_ht||0,tva_taux:d.tva_taux||20}];try{lignes=JSON.parse(d.description);}catch{}genererPDF(d,d.clients||{},profil,lignes);};
 
-let filtered = filterStatut==='tous' ? devis : devis.filter(d => d.statut===filterStatut);
-if (dateRange.debut) filtered = filtered.filter(d => d.date_emission >= dateRange.debut);
-if (dateRange.fin)   filtered = filtered.filter(d => d.date_emission <= dateRange.fin);  const totalSigne=devis.filter(d=>d.statut==='signe').reduce((s,d)=>s+(d.montant_ttc||0),0);
+  let filtered = filterStatut==='tous' ? devis : devis.filter(d => d.statut===filterStatut);
+  if (dateRange.debut) filtered = filtered.filter(d => d.date_emission >= dateRange.debut);
+  if (dateRange.fin)   filtered = filtered.filter(d => d.date_emission <= dateRange.fin);
+  const totalSigne=devis.filter(d=>d.statut==='signe').reduce((s,d)=>s+(d.montant_ttc||0),0);
   const totalEncaisse=devis.filter(d=>d.statut==='encaisse').reduce((s,d)=>s+(d.montant_ttc||0),0);
   const enRetard=devis.filter(d=>(d.statut==='signe'||d.statut==='envoye')&&daysUntil(d.date_echeance)!==null&&daysUntil(d.date_echeance)<0);
   const profilIncomplet=!profil.company_name&&!profil.first_name;
 
-  // Données aplaties pour export
   const devisExport = filtered.map(d => ({
-    numero: d.numero,
-    client: d.clients?.nom || '',
-    date_emission: d.date_emission,
-    date_echeance: d.date_echeance,
-    montant_ht: d.montant_ht,
-    tva_taux: d.tva_taux,
-    montant_ttc: d.montant_ttc,
-    statut: d.statut,
-    relances: d.relance_count || 0,
+    numero: d.numero, client: d.clients?.nom || '', date_emission: d.date_emission,
+    date_echeance: d.date_echeance, montant_ht: d.montant_ht, tva_taux: d.tva_taux,
+    montant_ttc: d.montant_ttc, statut: d.statut, relances: d.relance_count || 0,
   }));
 
   return (
@@ -266,24 +301,15 @@ if (dateRange.fin)   filtered = filtered.filter(d => d.date_emission <= dateRang
         <div style={{display:'flex',gap:10}}>
           <button onClick={()=>navigate('/pro/profil')} style={{display:'flex',alignItems:'center',gap:6,padding:'9px 16px',borderRadius:9,border:'1px solid #E8EAF0',background:'#fff',color:'#5A6070',fontSize:12,fontWeight:600,cursor:'pointer'}}><Settings size={13}/> Mon profil</button>
           <DateFilter onChange={setDateRange} color={ACCENT}/>
-          <ExportButton
-            data={devisExport}
-            filename={`recettes-${new Date().getFullYear()}`}
-            color={ACCENT}
+          <ExportButton data={devisExport} filename={`recettes-${new Date().getFullYear()}`} color={ACCENT}
             columns={[
-              { key:'numero',      label:'N° Devis' },
-              { key:'client',      label:'Client' },
-              { key:'date_emission',label:'Date émission' },
-              { key:'date_echeance',label:'Échéance' },
-              { key:'montant_ht',  label:'HT (€)' },
-              { key:'tva_taux',    label:'TVA %' },
-              { key:'montant_ttc', label:'TTC (€)' },
-              { key:'statut',      label:'Statut' },
-              { key:'relances',    label:'Nb relances' },
-            ]}
-          />
+              { key:'numero', label:'N° Devis' }, { key:'client', label:'Client' },
+              { key:'date_emission', label:'Date émission' }, { key:'date_echeance', label:'Échéance' },
+              { key:'montant_ht', label:'HT (€)' }, { key:'tva_taux', label:'TVA %' },
+              { key:'montant_ttc', label:'TTC (€)' }, { key:'statut', label:'Statut' }, { key:'relances', label:'Nb relances' },
+            ]}/>
           <button onClick={()=>{setShowClientForm(true);setShowDevisForm(false);}} style={{display:'flex',alignItems:'center',gap:6,padding:'9px 16px',borderRadius:9,border:`1px solid ${ACCENT}`,background:'#fff',color:ACCENT,fontSize:12,fontWeight:700,cursor:'pointer'}}><Users size={13}/> Nouveau client</button>
-          <button onClick={()=>{setShowDevisForm(true);setShowClientForm(false);setEditDevis(null);}} style={{display:'flex',alignItems:'center',gap:6,padding:'9px 16px',borderRadius:9,border:'none',background:ACCENT,color:'#fff',fontSize:12,fontWeight:700,cursor:'pointer'}}><Plus size={13}/> Nouveau devis</button>
+          <button onClick={()=>{setShowDevisForm(true);setShowClientForm(false);setEditDevis(null);setOcrPrefill(null);}} style={{display:'flex',alignItems:'center',gap:6,padding:'9px 16px',borderRadius:9,border:'none',background:ACCENT,color:'#fff',fontSize:12,fontWeight:700,cursor:'pointer'}}><Plus size={13}/> Nouveau devis</button>
         </div>
       </div>
 
@@ -292,7 +318,15 @@ if (dateRange.fin)   filtered = filtered.filter(d => d.date_emission <= dateRang
       </div>
 
       {showClientForm&&<ClientForm onSave={()=>{setShowClientForm(false);fetchAll();}} onCancel={()=>setShowClientForm(false)}/>}
-      {(showDevisForm||editDevis)&&<DevisForm clients={clients} editData={editDevis} onSave={()=>{setShowDevisForm(false);setEditDevis(null);fetchAll();}} onCancel={()=>{setShowDevisForm(false);setEditDevis(null);}}/>}
+      {(showDevisForm||editDevis)&&(
+        <DevisForm
+          clients={clients}
+          editData={editDevis}
+          prefill={ocrPrefill}
+          onSave={()=>{setShowDevisForm(false);setEditDevis(null);setOcrPrefill(null);fetchAll();}}
+          onCancel={()=>{setShowDevisForm(false);setEditDevis(null);setOcrPrefill(null);}}
+        />
+      )}
 
       <div style={{display:'flex',gap:4,marginBottom:18,background:'#F0F2F5',borderRadius:10,padding:4,width:'fit-content'}}>
         {[{id:'devis',label:'Devis',icon:FileText},{id:'clients',label:'Clients',icon:Users}].map(t=>{const Icon=t.icon;return(<button key={t.id} onClick={()=>setTab(t.id)} style={{display:'flex',alignItems:'center',gap:6,padding:'7px 16px',borderRadius:8,border:'none',background:tab===t.id?'#fff':'transparent',color:tab===t.id?'#1A1C20':'#9AA0AE',fontSize:13,fontWeight:tab===t.id?700:500,cursor:'pointer',boxShadow:tab===t.id?'0 1px 3px rgba(0,0,0,0.08)':'none',transition:'all 150ms ease'}}><Icon size={13}/> {t.label}</button>);})}

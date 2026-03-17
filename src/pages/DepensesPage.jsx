@@ -19,6 +19,14 @@ const TAUX_KM = 0.529;
 const formatEuro = (n) => n == null ? '—' : new Intl.NumberFormat('fr-FR', { style:'currency', currency:'EUR' }).format(n);
 const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric' }) : '—';
 
+// Convertit JJ/MM/AAAA → AAAA-MM-JJ
+function parseOCRDate(str) {
+  if (!str) return new Date().toISOString().split('T')[0];
+  const p = str.split('/');
+  if (p.length === 3) return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+  return new Date().toISOString().split('T')[0];
+}
+
 function TypeBadge({ type }) {
   const t = TYPES.find(x => x.id === type) || TYPES[4];
   const Icon = t.icon;
@@ -29,12 +37,19 @@ function TypeBadge({ type }) {
   );
 }
 
-function AddExpenseForm({ onSave, onCancel }) {
-  const [form, setForm] = useState({ date: new Date().toISOString().split('T')[0], amount_ttc:'', type:'restauration', etablissement:'', km:'', notes:'' });
+function AddExpenseForm({ onSave, onCancel, prefill=null }) {
+  const [form, setForm] = useState({
+    date:          prefill?.date         ? parseOCRDate(prefill.date) : new Date().toISOString().split('T')[0],
+    amount_ttc:    prefill?.montant_ttc  ?? '',
+    type:          prefill?.categorie    ? (TYPE_MAP[prefill.categorie] ?? 'autre') : 'restauration',
+    etablissement: prefill?.fournisseur  ?? '',
+    km:            '',
+    notes:         prefill?.description  ?? '',
+  });
   const [file,       setFile]       = useState(null);
   const [loading,    setLoading]    = useState(false);
   const [scanning,   setScanning]   = useState(false);
-  const [ocrSuccess, setOcrSuccess] = useState(false);
+  const [ocrSuccess, setOcrSuccess] = useState(!!prefill);
   const [error,      setError]      = useState('');
   const fileRef = useRef();
   const set = (k) => (e) => setForm(f => ({ ...f, [k]:e.target.value }));
@@ -64,11 +79,11 @@ function AddExpenseForm({ onSave, onCancel }) {
       const data = await res.json();
       setForm(f => ({
         ...f,
-        date: data.date ? (() => { const p = data.date.split('/'); return p.length===3?`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`:f.date; })() : f.date,
-        amount_ttc:   data.montant_ttc ?? f.amount_ttc,
-        etablissement:data.fournisseur  ?? f.etablissement,
-        notes:        data.description  ?? f.notes,
-        type:         TYPE_MAP[data.categorie] ?? f.type,
+        date:          data.date ? parseOCRDate(data.date) : f.date,
+        amount_ttc:    data.montant_ttc  ?? f.amount_ttc,
+        etablissement: data.fournisseur  ?? f.etablissement,
+        notes:         data.description  ?? f.notes,
+        type:          TYPE_MAP[data.categorie] ?? f.type,
       }));
       setOcrSuccess(true);
     } catch (err) { setError('Impossible d\'analyser la facture.'); }
@@ -106,14 +121,20 @@ function AddExpenseForm({ onSave, onCancel }) {
   const lS = { fontSize:11, fontWeight:600, color:'#5A6070', marginBottom:5, display:'block' };
 
   return (
-    <form onSubmit={handleSubmit} style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:14, padding:24, marginBottom:24, boxShadow:'0 2px 12px rgba(0,0,0,0.06)' }}>
+    <form onSubmit={handleSubmit} style={{ background:'#fff', border:`1px solid ${ocrSuccess?`${ACCENT}40`:'#E8EAF0'}`, borderRadius:14, padding:24, marginBottom:24, boxShadow:'0 2px 12px rgba(0,0,0,0.06)' }}>
+      {ocrSuccess && prefill && (
+        <div style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 14px', borderRadius:9, background:`${ACCENT}10`, border:`1px solid ${ACCENT}30`, marginBottom:18 }}>
+          <CheckCircle size={14} color={ACCENT}/>
+          <span style={{ fontSize:13, fontWeight:600, color:ACCENT }}>Formulaire pré-rempli depuis l'analyse du document</span>
+        </div>
+      )}
       <h3 style={{ fontSize:15, fontWeight:700, color:'#1A1C20', marginBottom:20 }}>Nouvelle dépense</h3>
       <div style={{ marginBottom:20 }}>
         <label style={lS}>Justificatif (photo ou PDF)</label>
         <div onClick={() => fileRef.current?.click()} style={{ border:`2px dashed ${ocrSuccess?ACCENT:file?'#5BC78A':'#E8EAF0'}`, borderRadius:10, padding:18, textAlign:'center', cursor:'pointer', background:ocrSuccess?`${ACCENT}08`:file?'#FFF9F0':'#F8F9FB', transition:'all 200ms ease' }}>
           <input ref={fileRef} type="file" accept=".pdf,.png,.jpg,.jpeg" style={{ display:'none' }} onChange={handleFileChange}/>
           {scanning ? <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}><Loader size={16} color={ACCENT} style={{ animation:'spin 1s linear infinite' }}/><span style={{ fontSize:13, color:ACCENT, fontWeight:600 }}>Analyse en cours...</span></div>
-          : ocrSuccess ? <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}><CheckCircle size={16} color={ACCENT}/><span style={{ fontSize:13, color:ACCENT, fontWeight:600 }}>✓ Formulaire complété — {file?.name}</span></div>
+          : ocrSuccess ? <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}><CheckCircle size={16} color={ACCENT}/><span style={{ fontSize:13, color:ACCENT, fontWeight:600 }}>✓ Formulaire complété{file ? ` — ${file.name}` : ' depuis le bureau'}</span></div>
           : file ? <span style={{ fontSize:12, color:'#5BC78A', fontWeight:600 }}>📄 {file.name}</span>
           : <div><div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:6, marginBottom:4 }}><Scan size={16} color={ACCENT}/><span style={{ fontSize:13, color:ACCENT, fontWeight:700 }}>Déposer une facture</span></div><span style={{ fontSize:11, color:'#9AA0AE' }}>PDF ou photo — le formulaire se complète automatiquement</span></div>}
         </div>
@@ -155,13 +176,28 @@ function AddExpenseForm({ onSave, onCancel }) {
 }
 
 export default function DepensesPage() {
-  const [expenses,    setExpenses]    = useState([]);
-  const [loading,     setLoading]     = useState(true);
-  const [showForm,    setShowForm]    = useState(false);
-  const [filterType,  setFilterType]  = useState('tous');
-  const [dateRange,   setDateRange]   = useState({ debut:'', fin:'' });
+  const [expenses,   setExpenses]   = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [showForm,   setShowForm]   = useState(false);
+  const [filterType, setFilterType] = useState('tous');
+  const [dateRange,  setDateRange]  = useState({ debut:'', fin:'' });
+  const [ocrPrefill, setOcrPrefill] = useState(null);
 
-  useEffect(() => { fetchExpenses(); }, []);
+  useEffect(() => {
+    fetchExpenses();
+    // Lire le prefill OCR depuis le bureau
+    try {
+      const raw = sessionStorage.getItem('ocr_prefill');
+      if (raw) {
+        const data = JSON.parse(raw);
+        if (data.source === 'prohome_ocr' && data.type_document === 'depense') {
+          setOcrPrefill(data);
+          setShowForm(true);
+          sessionStorage.removeItem('ocr_prefill');
+        }
+      }
+    } catch {}
+  }, []);
 
   const fetchExpenses = async () => {
     setLoading(true);
@@ -205,19 +241,25 @@ export default function DepensesPage() {
               { key:'indemnite_km',  label:'Indemnité Km (€)' },
               { key:'notes',         label:'Remarques' },
             ]}/>
-          <button onClick={() => setShowForm(true)} style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 16px', borderRadius:9, border:'none', background:ACCENT, color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer' }}>
+          <button onClick={() => { setOcrPrefill(null); setShowForm(true); }} style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 16px', borderRadius:9, border:'none', background:ACCENT, color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer' }}>
             <Plus size={13}/> Nouvelle dépense
           </button>
         </div>
       </div>
 
-      {showForm && <AddExpenseForm onSave={() => { setShowForm(false); fetchExpenses(); }} onCancel={() => setShowForm(false)}/>}
+      {showForm && (
+        <AddExpenseForm
+          prefill={ocrPrefill}
+          onSave={() => { setShowForm(false); setOcrPrefill(null); fetchExpenses(); }}
+          onCancel={() => { setShowForm(false); setOcrPrefill(null); }}
+        />
+      )}
 
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))', gap:14, marginBottom:24 }}>
         {[
-          { label:'Total dépenses',    value:formatEuro(totalFiltered), color:ACCENT      },
-          { label:'Indemnités km',     value:formatEuro(totalKm),       color:'#5BA3C7'   },
-          { label:'Nombre dépenses',   value:filtered.length,           color:'#5BC78A'   },
+          { label:'Total dépenses',  value:formatEuro(totalFiltered), color:ACCENT    },
+          { label:'Indemnités km',   value:formatEuro(totalKm),       color:'#5BA3C7' },
+          { label:'Nombre dépenses', value:filtered.length,           color:'#5BC78A' },
         ].map(s => (
           <div key={s.label} style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:12, padding:'16px 18px', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }}>
             <p style={{ fontSize:11, color:'#9AA0AE', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>{s.label}</p>

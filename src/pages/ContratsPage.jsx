@@ -9,6 +9,13 @@ const formatEuro = (n) => n == null ? '—' : new Intl.NumberFormat('fr-FR', { s
 const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric' }) : '—';
 const daysUntil = (dateStr) => { if (!dateStr) return null; return Math.ceil((new Date(dateStr) - new Date()) / (1000*60*60*24)); };
 
+function parseOCRDate(str) {
+  if (!str) return '';
+  const p = str.split('/');
+  if (p.length === 3) return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+  return '';
+}
+
 const TYPES = [
   { id:'bail',        label:'Bail commercial' },
   { id:'assurance',   label:'Assurance'       },
@@ -33,14 +40,27 @@ function StatutBadge({ contrat }) {
   return <span style={{ background:'rgba(91,199,138,0.1)', color:'#5BC78A', fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:20 }}>✓ Actif</span>;
 }
 
-function ContratForm({ onSave, onCancel, editData=null }) {
-  const [form, setForm] = useState(editData || { nom:'', type:'assurance', fournisseur:'', date_debut:'', date_fin:'', montant_periodique:'', periodicite:'mensuel', reconduction_tacite:false, delai_preavis_jours:30, statut:'actif', notes:'' });
+function ContratForm({ onSave, onCancel, editData=null, prefill=null }) {
+  const [form, setForm] = useState(editData || {
+    nom:                  prefill?.nom_contrat   ?? '',
+    type:                 'assurance',
+    fournisseur:          prefill?.fournisseur   ?? '',
+    date_debut:           prefill?.date          ? parseOCRDate(prefill.date) : '',
+    date_fin:             prefill?.date_fin      ? parseOCRDate(prefill.date_fin) : '',
+    montant_periodique:   prefill?.montant_ttc   ?? '',
+    periodicite:          'mensuel',
+    reconduction_tacite:  false,
+    delai_preavis_jours:  30,
+    statut:               'actif',
+    notes:                prefill?.description   ?? '',
+  });
   const [file, setFile]       = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState('');
   const fileRef = useRef();
   const set = (k) => (e) => setForm(f => ({ ...f, [k]:e.target.value }));
   const setCheck = (k) => (e) => setForm(f => ({ ...f, [k]:e.target.checked }));
+
   const handleSubmit = async (e) => {
     e.preventDefault(); setLoading(true);
     try {
@@ -61,10 +81,18 @@ function ContratForm({ onSave, onCancel, editData=null }) {
       onSave();
     } catch (err) { setError(err.message); } finally { setLoading(false); }
   };
+
   const inputStyle = { width:'100%', padding:'9px 12px', borderRadius:8, background:'#F8F9FB', border:'1px solid #E8EAF0', color:'#1A1C20', fontSize:13, outline:'none', boxSizing:'border-box' };
   const labelStyle = { fontSize:11, fontWeight:600, color:'#5A6070', marginBottom:5, display:'block' };
+
   return (
-    <form onSubmit={handleSubmit} style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:14, padding:24, marginBottom:24, boxShadow:'0 2px 12px rgba(0,0,0,0.06)' }}>
+    <form onSubmit={handleSubmit} style={{ background:'#fff', border:`1px solid ${prefill?`${ACCENT}40`:'#E8EAF0'}`, borderRadius:14, padding:24, marginBottom:24, boxShadow:'0 2px 12px rgba(0,0,0,0.06)' }}>
+      {prefill && (
+        <div style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 14px', borderRadius:9, background:`${ACCENT}10`, border:`1px solid ${ACCENT}30`, marginBottom:18 }}>
+          <CheckCircle size={14} color={ACCENT}/>
+          <span style={{ fontSize:13, fontWeight:600, color:ACCENT }}>Formulaire pré-rempli depuis l'analyse du document</span>
+        </div>
+      )}
       <h3 style={{ fontSize:15, fontWeight:700, color:'#1A1C20', marginBottom:20 }}>{editData?'Modifier le contrat':'Ajouter un contrat'}</h3>
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, marginBottom:14 }}>
         <div><label style={labelStyle}>Nom du contrat *</label><input value={form.nom} onChange={set('nom')} required style={inputStyle} placeholder="Ex: Assurance RC Pro"/></div>
@@ -105,9 +133,24 @@ export default function ContratsPage() {
   const [showForm,    setShowForm]    = useState(false);
   const [editContrat, setEditContrat] = useState(null);
   const [filterType,  setFilterType]  = useState('tous');
-const [dateRange, setDateRange] = useState({ debut:'', fin:'' });
+  const [dateRange,   setDateRange]   = useState({ debut:'', fin:'' });
+  const [ocrPrefill,  setOcrPrefill]  = useState(null);
 
-  useEffect(() => { fetchContrats(); }, []);
+  useEffect(() => {
+    fetchContrats();
+    // Lire le prefill OCR depuis le bureau
+    try {
+      const raw = sessionStorage.getItem('ocr_prefill');
+      if (raw) {
+        const data = JSON.parse(raw);
+        if (data.source === 'prohome_ocr' && data.type_document === 'contrat') {
+          setOcrPrefill(data);
+          setShowForm(true);
+          sessionStorage.removeItem('ocr_prefill');
+        }
+      }
+    } catch {}
+  }, []);
 
   const fetchContrats = async () => {
     setLoading(true);
@@ -125,9 +168,11 @@ const [dateRange, setDateRange] = useState({ debut:'', fin:'' });
     fetchContrats();
   };
 
-let filtered = filterType === 'tous' ? contrats : contrats.filter(c => c.type === filterType);
-if (dateRange.debut) filtered = filtered.filter(c => c.date_debut >= dateRange.debut);
-if (dateRange.fin)   filtered = filtered.filter(c => c.date_fin   <= dateRange.fin);  const alertes     = contrats.filter(c => { const d = daysUntil(c.date_fin); return d !== null && d <= 60 && d >= 0; });
+  let filtered = filterType === 'tous' ? contrats : contrats.filter(c => c.type === filterType);
+  if (dateRange.debut) filtered = filtered.filter(c => c.date_debut >= dateRange.debut);
+  if (dateRange.fin)   filtered = filtered.filter(c => c.date_fin   <= dateRange.fin);
+
+  const alertes     = contrats.filter(c => { const d = daysUntil(c.date_fin); return d !== null && d <= 60 && d >= 0; });
   const expires     = contrats.filter(c => { const d = daysUntil(c.date_fin); return d !== null && d < 0; });
   const totalAnnuel = contrats.reduce((s, c) => {
     const m = c.montant_periodique || 0;
@@ -140,7 +185,6 @@ if (dateRange.fin)   filtered = filtered.filter(c => c.date_fin   <= dateRange.f
 
   return (
     <div style={{ fontFamily:"'Nunito Sans', sans-serif", padding:'32px 28px', maxWidth:1000, margin:'0 auto' }}>
-
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24, flexWrap:'wrap', gap:12 }}>
         <div>
           <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:26, fontWeight:600, color:'#1A1C20', margin:0 }}>Contrats & Assurances</h1>
@@ -148,23 +192,15 @@ if (dateRange.fin)   filtered = filtered.filter(c => c.date_fin   <= dateRange.f
         </div>
         <div style={{ display:'flex', gap:10 }}>
           <DateFilter onChange={setDateRange} color={ACCENT}/>
-          <ExportButton
-            data={contratsExport}
-            filename={`contrats-${new Date().getFullYear()}`}
-            color={ACCENT}
+          <ExportButton data={contratsExport} filename={`contrats-${new Date().getFullYear()}`} color={ACCENT}
             columns={[
-              { key:'nom',                label:'Nom' },
-              { key:'type',               label:'Type' },
-              { key:'fournisseur',        label:'Fournisseur' },
-              { key:'date_debut',         label:'Début' },
-              { key:'date_fin',           label:'Fin' },
-              { key:'montant_periodique', label:'Montant (€)' },
-              { key:'periodicite',        label:'Périodicité' },
-              { key:'reconduction_label', label:'Reconduction tacite' },
-              { key:'delai_preavis_jours',label:'Préavis (j)' },
-            ]}
-          />
-          <button onClick={() => { setShowForm(true); setEditContrat(null); }} style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 16px', borderRadius:9, border:'none', background:ACCENT, color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer' }}>
+              { key:'nom', label:'Nom' }, { key:'type', label:'Type' },
+              { key:'fournisseur', label:'Fournisseur' }, { key:'date_debut', label:'Début' },
+              { key:'date_fin', label:'Fin' }, { key:'montant_periodique', label:'Montant (€)' },
+              { key:'periodicite', label:'Périodicité' }, { key:'reconduction_label', label:'Reconduction tacite' },
+              { key:'delai_preavis_jours', label:'Préavis (j)' },
+            ]}/>
+          <button onClick={() => { setShowForm(true); setEditContrat(null); setOcrPrefill(null); }} style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 16px', borderRadius:9, border:'none', background:ACCENT, color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer' }}>
             <Plus size={13}/> Ajouter un contrat
           </button>
         </div>
@@ -192,7 +228,14 @@ if (dateRange.fin)   filtered = filtered.filter(c => c.date_fin   <= dateRange.f
         );})}
       </div>
 
-      {(showForm||editContrat) && <ContratForm editData={editContrat} onSave={()=>{setShowForm(false);setEditContrat(null);fetchContrats();}} onCancel={()=>{setShowForm(false);setEditContrat(null);}}/>}
+      {(showForm || editContrat) && (
+        <ContratForm
+          editData={editContrat}
+          prefill={ocrPrefill}
+          onSave={() => { setShowForm(false); setEditContrat(null); setOcrPrefill(null); fetchContrats(); }}
+          onCancel={() => { setShowForm(false); setEditContrat(null); setOcrPrefill(null); }}
+        />
+      )}
 
       <div style={{ display:'flex', gap:8, marginBottom:16, flexWrap:'wrap' }}>
         {[{id:'tous',label:'Tous'},...TYPES].map(t=>(
