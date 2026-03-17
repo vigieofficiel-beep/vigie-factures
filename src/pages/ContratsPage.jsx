@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { supabasePro } from '../lib/supabasePro';
 import { Plus, Trash2, Edit2, FileCheck, AlertTriangle, CheckCircle, Clock, Download, Upload, Bell } from 'lucide-react';
 import ExportButton from '../components/ExportButton';
+import DateFilter from '../components/DateFilter';
 
 const ACCENT = '#5BC78A';
 const formatEuro = (n) => n == null ? '—' : new Intl.NumberFormat('fr-FR', { style:'currency', currency:'EUR' }).format(n);
@@ -104,6 +105,7 @@ export default function ContratsPage() {
   const [showForm,    setShowForm]    = useState(false);
   const [editContrat, setEditContrat] = useState(null);
   const [filterType,  setFilterType]  = useState('tous');
+const [dateRange, setDateRange] = useState({ debut:'', fin:'' });
 
   useEffect(() => { fetchContrats(); }, []);
 
@@ -123,8 +125,9 @@ export default function ContratsPage() {
     fetchContrats();
   };
 
-  const filtered = filterType === 'tous' ? contrats : contrats.filter(c => c.type === filterType);
-  const alertes     = contrats.filter(c => { const d = daysUntil(c.date_fin); return d !== null && d <= 60 && d >= 0; });
+let filtered = filterType === 'tous' ? contrats : contrats.filter(c => c.type === filterType);
+if (dateRange.debut) filtered = filtered.filter(c => c.date_debut >= dateRange.debut);
+if (dateRange.fin)   filtered = filtered.filter(c => c.date_fin   <= dateRange.fin);  const alertes     = contrats.filter(c => { const d = daysUntil(c.date_fin); return d !== null && d <= 60 && d >= 0; });
   const expires     = contrats.filter(c => { const d = daysUntil(c.date_fin); return d !== null && d < 0; });
   const totalAnnuel = contrats.reduce((s, c) => {
     const m = c.montant_periodique || 0;
@@ -144,6 +147,7 @@ export default function ContratsPage() {
           <p style={{ fontSize:13, color:'#9AA0AE', marginTop:4 }}>Suivi des échéances et reconductions tacites</p>
         </div>
         <div style={{ display:'flex', gap:10 }}>
+          <DateFilter onChange={setDateRange} color={ACCENT}/>
           <ExportButton
             data={contratsExport}
             filename={`contrats-${new Date().getFullYear()}`}

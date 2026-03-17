@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ExportButton from '../components/ExportButton';
+import DateFilter from '../components/DateFilter';
 
 const ACCENT = '#5BA3C7';
 const formatEuro = (n) => n == null ? '—' : new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n);
@@ -133,6 +134,7 @@ function LignesPrestation({ lignes, setLignes }) {
         <span style={{fontSize:12,color:'#94A3B8'}}>TVA : <strong style={{color:'#0F172A'}}>{totalTVA.toFixed(2)} €</strong></span>
         <span style={{fontSize:13,color:ACCENT,fontWeight:800}}>TTC : {(totalHT+totalTVA).toFixed(2)} €</span>
       </div>
+    
     </div>
   );
 }
@@ -209,6 +211,7 @@ export default function RecettesPage() {
   const [showClientForm,setShowClientForm]=useState(false);
   const [editDevis,setEditDevis]=useState(null);
   const [filterStatut,setFilterStatut]=useState('tous');
+  const [dateRange, setDateRange] = useState({ debut:'', fin:'' });
   const navigate=useNavigate();
 
   useEffect(()=>{fetchAll();},[]);
@@ -231,8 +234,9 @@ export default function RecettesPage() {
   const envoyerRelance=async(d)=>{const count=(d.relance_count||0)+1;await supabasePro.from('devis').update({relance_count:count,derniere_relance:new Date().toISOString().split('T')[0]}).eq('id',d.id);await supabasePro.from('reminders').insert({user_id:d.user_id,context:'pro',type:'relance',message:`Relance ${count} — ${d.clients?.nom} — devis ${d.numero} (${formatEuro(d.montant_ttc)})`,sent_at:new Date().toISOString()});alert(`Relance ${count} enregistrée pour ${d.clients?.nom}`);fetchAll();};
   const telechargerPDF=(d)=>{if(!profil.company_name&&!profil.first_name){alert('Renseignez votre profil pro avant de générer un devis');return;}let lignes=[{description:d.description||'',quantite:1,prix_unitaire:d.montant_ht||0,tva_taux:d.tva_taux||20}];try{lignes=JSON.parse(d.description);}catch{}genererPDF(d,d.clients||{},profil,lignes);};
 
-  const filtered=filterStatut==='tous'?devis:devis.filter(d=>d.statut===filterStatut);
-  const totalSigne=devis.filter(d=>d.statut==='signe').reduce((s,d)=>s+(d.montant_ttc||0),0);
+let filtered = filterStatut==='tous' ? devis : devis.filter(d => d.statut===filterStatut);
+if (dateRange.debut) filtered = filtered.filter(d => d.date_emission >= dateRange.debut);
+if (dateRange.fin)   filtered = filtered.filter(d => d.date_emission <= dateRange.fin);  const totalSigne=devis.filter(d=>d.statut==='signe').reduce((s,d)=>s+(d.montant_ttc||0),0);
   const totalEncaisse=devis.filter(d=>d.statut==='encaisse').reduce((s,d)=>s+(d.montant_ttc||0),0);
   const enRetard=devis.filter(d=>(d.statut==='signe'||d.statut==='envoye')&&daysUntil(d.date_echeance)!==null&&daysUntil(d.date_echeance)<0);
   const profilIncomplet=!profil.company_name&&!profil.first_name;
@@ -261,6 +265,7 @@ export default function RecettesPage() {
         </div>
         <div style={{display:'flex',gap:10}}>
           <button onClick={()=>navigate('/pro/profil')} style={{display:'flex',alignItems:'center',gap:6,padding:'9px 16px',borderRadius:9,border:'1px solid #E8EAF0',background:'#fff',color:'#5A6070',fontSize:12,fontWeight:600,cursor:'pointer'}}><Settings size={13}/> Mon profil</button>
+          <DateFilter onChange={setDateRange} color={ACCENT}/>
           <ExportButton
             data={devisExport}
             filename={`recettes-${new Date().getFullYear()}`}

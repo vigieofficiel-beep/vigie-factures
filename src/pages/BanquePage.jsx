@@ -1,18 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabasePro } from '../lib/supabasePro';
-import {
-  Upload, CheckCircle, AlertTriangle, TrendingUp, TrendingDown,
-  Download, RefreshCw, Eye, X
-} from 'lucide-react';
+import { Upload, CheckCircle, AlertTriangle, TrendingUp, TrendingDown, RefreshCw, X } from 'lucide-react';
 import ExportButton from '../components/ExportButton';
+import DateFilter from '../components/DateFilter';
 
 const ACCENT = '#5BA3C7';
-
-const formatEuro = (n) =>
-  n == null ? '—' : new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n);
-
-const formatDate = (d) =>
-  d ? new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+const formatEuro = (n) => n == null ? '—' : new Intl.NumberFormat('fr-FR', { style:'currency', currency:'EUR' }).format(n);
+const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric' }) : '—';
 
 function parseCSV(text) {
   const lines = text.split('\n').filter(l => l.trim());
@@ -41,20 +35,21 @@ function normalizeDate(str) {
 
 function StatutBadge({ rapproche }) {
   return (
-    <span style={{ display:'inline-flex', alignItems:'center', gap:4, background:rapproche?'rgba(91,199,138,0.1)':'rgba(212,168,83,0.1)', color:rapproche?'#5BC78A':'#5BC78A', fontSize:10, fontWeight:700, padding:'3px 9px', borderRadius:20 }}>
+    <span style={{ display:'inline-flex', alignItems:'center', gap:4, background:rapproche?'rgba(91,199,138,0.1)':'rgba(212,168,83,0.1)', color:rapproche?'#5BC78A':'#D4A853', fontSize:10, fontWeight:700, padding:'3px 9px', borderRadius:20 }}>
       {rapproche ? <><CheckCircle size={10}/> Rapproché</> : <><AlertTriangle size={10}/> À rapprocher</>}
     </span>
   );
 }
 
 export default function BanquePage() {
-  const [transactions, setTransactions] = useState([]);
-  const [invoices,     setInvoices]     = useState([]);
-  const [loading,      setLoading]      = useState(true);
-  const [importing,    setImporting]    = useState(false);
-  const [filterType,   setFilterType]   = useState('tous');
-  const [filterRaproche, setFilterRaproche] = useState('tous');
-  const [preview,      setPreview]      = useState(null);
+  const [transactions,     setTransactions]     = useState([]);
+  const [invoices,         setInvoices]         = useState([]);
+  const [loading,          setLoading]          = useState(true);
+  const [importing,        setImporting]        = useState(false);
+  const [filterType,       setFilterType]       = useState('tous');
+  const [filterRaproche,   setFilterRaproche]   = useState('tous');
+  const [preview,          setPreview]          = useState(null);
+  const [dateRange,        setDateRange]        = useState({ debut:'', fin:'' });
   const fileRef = useRef();
 
   useEffect(() => { fetchAll(); }, []);
@@ -96,7 +91,7 @@ export default function BanquePage() {
       return { ...tx, user_id: user.id, invoice_id: matched?.id || null, rapproche: !!matched, statut: matched ? 'rapproche' : 'non_rapproche' };
     });
     const { error } = await supabasePro.from('bank_transactions').insert(withRapprochement);
-    if (error) { alert('Erreur lors de l\'import : ' + error.message); } else { setPreview(null); fetchAll(); }
+    if (error) { alert('Erreur import : ' + error.message); } else { setPreview(null); fetchAll(); }
     setImporting(false);
   };
 
@@ -113,15 +108,16 @@ export default function BanquePage() {
   };
 
   let filtered = [...transactions];
+  if (dateRange.debut) filtered = filtered.filter(t => t.date >= dateRange.debut);
+  if (dateRange.fin)   filtered = filtered.filter(t => t.date <= dateRange.fin);
   if (filterType !== 'tous') filtered = filtered.filter(t => t.type === filterType);
-  if (filterRaproche === 'rapproche') filtered = filtered.filter(t => t.rapproche);
+  if (filterRaproche === 'rapproche')     filtered = filtered.filter(t => t.rapproche);
   if (filterRaproche === 'non_rapproche') filtered = filtered.filter(t => !t.rapproche);
 
   const totalCredits  = transactions.filter(t => t.type === 'credit').reduce((s, t) => s + (t.montant || 0), 0);
   const totalDebits   = transactions.filter(t => t.type === 'debit').reduce((s, t) => s + Math.abs(t.montant || 0), 0);
   const nonRapproches = transactions.filter(t => !t.rapproche).length;
   const rapproches    = transactions.filter(t => t.rapproche).length;
-
   const filteredExport = filtered.map(t => ({ ...t, rapproche_label: t.rapproche ? 'Oui' : 'Non' }));
 
   return (
@@ -132,19 +128,16 @@ export default function BanquePage() {
           <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:26, fontWeight:600, color:'#1A1C20', margin:0 }}>Banque & Prévision</h1>
           <p style={{ fontSize:13, color:'#9AA0AE', marginTop:4 }}>Importez vos relevés et rapprochez vos transactions</p>
         </div>
-        <div style={{ display:'flex', gap:10 }}>
-          <ExportButton
-            data={filteredExport}
-            filename={`banque-${new Date().getFullYear()}`}
-            color={ACCENT}
+        <div style={{ display:'flex', gap:10, flexWrap:'wrap', alignItems:'center' }}>
+          <DateFilter onChange={setDateRange} color={ACCENT}/>
+          <ExportButton data={filteredExport} filename={`banque-${new Date().getFullYear()}`} color={ACCENT}
             columns={[
-              { key:'date',           label:'Date' },
-              { key:'libelle',        label:'Libellé' },
-              { key:'montant',        label:'Montant (€)' },
-              { key:'type',           label:'Type' },
-              { key:'rapproche_label',label:'Rapproché' },
-            ]}
-          />
+              { key:'date',            label:'Date' },
+              { key:'libelle',         label:'Libellé' },
+              { key:'montant',         label:'Montant (€)' },
+              { key:'type',            label:'Type' },
+              { key:'rapproche_label', label:'Rapproché' },
+            ]}/>
           <button onClick={() => fileRef.current?.click()} style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 16px', borderRadius:9, border:'none', background:ACCENT, color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer' }}>
             <Upload size={13}/> Importer relevé
           </button>
@@ -157,7 +150,7 @@ export default function BanquePage() {
           { label:'Crédits',      value:formatEuro(totalCredits),  color:'#5BC78A', icon:TrendingUp   },
           { label:'Débits',       value:formatEuro(totalDebits),   color:'#C75B4E', icon:TrendingDown  },
           { label:'Rapprochés',   value:rapproches,                color:ACCENT,    icon:CheckCircle  },
-          { label:'À rapprocher', value:nonRapproches,             color:'#5BC78A', icon:AlertTriangle, alert:nonRapproches > 0 },
+          { label:'À rapprocher', value:nonRapproches,             color:'#D4A853', icon:AlertTriangle, alert:nonRapproches > 0 },
         ].map(s => { const Icon = s.icon; return (
           <div key={s.label} style={{ background:'#fff', border:`1px solid ${s.alert?'rgba(212,168,83,0.3)':'#E8EAF0'}`, borderRadius:12, padding:'16px 18px', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
@@ -183,7 +176,7 @@ export default function BanquePage() {
               <thead><tr style={{ borderBottom:'1px solid #F0F2F5' }}>{['Date','Libellé','Montant'].map(h=>(<th key={h} style={{ padding:'8px 12px', textAlign:'left', fontSize:10, fontWeight:700, color:'#9AA0AE', textTransform:'uppercase' }}>{h}</th>))}</tr></thead>
               <tbody>
                 {preview.slice(0,10).map((t,i)=>(<tr key={i} style={{ borderBottom:'1px solid #F8F9FB' }}><td style={{ padding:'7px 12px', color:'#5A6070' }}>{formatDate(t.date)}</td><td style={{ padding:'7px 12px', color:'#1A1C20' }}>{t.libelle}</td><td style={{ padding:'7px 12px', fontWeight:700, color:t.montant>=0?'#5BC78A':'#C75B4E' }}>{formatEuro(t.montant)}</td></tr>))}
-                {preview.length > 10 && <tr><td colSpan={3} style={{ padding:'8px 12px', color:'#9AA0AE', fontSize:11, textAlign:'center' }}>... et {preview.length - 10} autres transactions</td></tr>}
+                {preview.length > 10 && <tr><td colSpan={3} style={{ padding:'8px 12px', color:'#9AA0AE', fontSize:11, textAlign:'center' }}>... et {preview.length - 10} autres</td></tr>}
               </tbody>
             </table>
           </div>
@@ -197,7 +190,7 @@ export default function BanquePage() {
       {transactions.length === 0 && !preview && (
         <div style={{ background:'rgba(91,163,199,0.04)', border:'1px solid rgba(91,163,199,0.15)', borderRadius:12, padding:'16px 20px', marginBottom:20 }}>
           <p style={{ fontSize:13, fontWeight:600, color:ACCENT, margin:'0 0 6px' }}>Format CSV attendu</p>
-          <p style={{ fontSize:12, color:'#5A6070', margin:0 }}>Le fichier doit avoir 3 colonnes séparées par <code>;</code> ou <code>,</code> :<br/><strong>Date ; Libellé ; Montant</strong><br/>Exemple : <code>01/03/2026;EDF FACTURE;-124.50</code></p>
+          <p style={{ fontSize:12, color:'#5A6070', margin:0 }}>3 colonnes séparées par <code>;</code> ou <code>,</code> : <strong>Date ; Libellé ; Montant</strong><br/>Ex : <code>01/03/2026;EDF FACTURE;-124.50</code></p>
         </div>
       )}
 
@@ -211,7 +204,7 @@ export default function BanquePage() {
           <div style={{ width:1, height:20, background:'#E8EAF0' }}/>
           <div style={{ display:'flex', gap:6 }}>
             {[{id:'tous',label:'Tous'},{id:'rapproche',label:'Rapprochés'},{id:'non_rapproche',label:'À rapprocher'}].map(f=>(
-              <button key={f.id} onClick={()=>setFilterRaproche(f.id)} style={{ padding:'5px 14px', borderRadius:20, border:`1px solid ${filterRaproche===f.id?'#5BC78A':'#E8EAF0'}`, background:filterRaproche===f.id?'rgba(212,168,83,0.1)':'#fff', color:filterRaproche===f.id?'#5BC78A':'#5A6070', fontSize:12, fontWeight:filterRaproche===f.id?700:500, cursor:'pointer' }}>{f.label}</button>
+              <button key={f.id} onClick={()=>setFilterRaproche(f.id)} style={{ padding:'5px 14px', borderRadius:20, border:`1px solid ${filterRaproche===f.id?'#D4A853':'#E8EAF0'}`, background:filterRaproche===f.id?'rgba(212,168,83,0.1)':'#fff', color:filterRaproche===f.id?'#D4A853':'#5A6070', fontSize:12, fontWeight:filterRaproche===f.id?700:500, cursor:'pointer' }}>{f.label}</button>
             ))}
           </div>
         </div>
@@ -222,7 +215,7 @@ export default function BanquePage() {
         : filtered.length === 0 ? (
           <div style={{ padding:48, textAlign:'center' }}>
             <Upload size={32} color="#E8EAF0" style={{ marginBottom:12 }}/>
-            <p style={{ color:'#9AA0AE', fontSize:13, margin:0 }}>{transactions.length===0?'Aucune transaction — importez votre relevé bancaire CSV':'Aucune transaction pour ce filtre'}</p>
+            <p style={{ color:'#9AA0AE', fontSize:13, margin:0 }}>{transactions.length===0?'Aucune transaction — importez votre relevé CSV':'Aucune transaction pour ce filtre'}</p>
           </div>
         ) : (
           <table style={{ width:'100%', borderCollapse:'collapse' }}>
@@ -236,7 +229,7 @@ export default function BanquePage() {
                   <td style={{ padding:'11px 14px' }}><StatutBadge rapproche={t.rapproche}/></td>
                   <td style={{ padding:'11px 14px' }}>
                     <div style={{ display:'flex', gap:4 }}>
-                      <button onClick={()=>toggleRapprochement(t)} title={t.rapproche?'Marquer non rapproché':'Marquer rapproché'} style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:t.rapproche?'#5BC78A':'#5BC78A' }}><RefreshCw size={13}/></button>
+                      <button onClick={()=>toggleRapprochement(t)} title={t.rapproche?'Marquer non rapproché':'Marquer rapproché'} style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:t.rapproche?'#5BC78A':'#D4A853' }}><RefreshCw size={13}/></button>
                       <button onClick={()=>deleteTransaction(t.id)} style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'#D0D4DC' }} onMouseEnter={ev=>ev.currentTarget.style.color='#C75B4E'} onMouseLeave={ev=>ev.currentTarget.style.color='#D0D4DC'}><X size={13}/></button>
                     </div>
                   </td>
