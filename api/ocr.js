@@ -7,10 +7,27 @@ export default async function handler(req, res) {
     const { fileBase64, mimeType, fileName } = req.body;
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-    const prompt = `Analyse cette facture et extrait en JSON uniquement sans texte autour, sans backticks :
-{"date":"JJ/MM/AAAA","numero_facture":"","fournisseur":"","montant_ht":0,"tva":0,"montant_ttc":0,"categorie":"Fournitures|Transport|Services|Alimentation|Logement|Autre","description":""}`;
+    const prompt = `Analyse ce document et extrait en JSON uniquement sans texte autour, sans backticks :
+{
+  "type_document": "depense|recette|contrat|autre",
+  "date": "JJ/MM/AAAA",
+  "numero_facture": "",
+  "fournisseur": "",
+  "montant_ht": 0,
+  "tva": 0,
+  "montant_ttc": 0,
+  "categorie": "Fournitures|Transport|Services|Alimentation|Logement|Autre",
+  "description": "",
+  "nom_contrat": "",
+  "date_fin": ""
+}
 
-    // Pour les PDF et les images : on reçoit toujours une image base64 (conversion faite côté client)
+Règles de classification type_document :
+- "depense" : facture ou reçu à payer / déjà payé par l'utilisateur (achat, fournisseur, abonnement)
+- "recette" : facture émise par l'utilisateur à un client, bon de commande client
+- "contrat" : contrat, bail, accord, convention, CGV
+- "autre" : tout le reste`;
+
     const imageType = mimeType === "application/pdf" ? "image/png" : mimeType;
 
     const response = await client.chat.completions.create({

@@ -11,6 +11,7 @@ import { supabasePro } from '../lib/supabasePro';
 import Footer from '../components/Footer';
 import { ProfileAvatar } from '../components/ProfileAvatar';
 import Vigil from './Vigil';
+import AnalyseDocumentFlottant from '../components/AnalyseDocumentFlottant';
 import NotificationsPanel from '../components/NotificationsPanel';
 const NAV = [
   {
@@ -261,6 +262,7 @@ export default function ProLayout() {
         <Footer />
       </div>
 
+      <AnalyseDocumentFlottant />
       <Vigil />
       <style>{`
         nav::-webkit-scrollbar { width: 4px; }
