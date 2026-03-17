@@ -5,7 +5,7 @@ import Footer from '../components/Footer';
 
 const FEATURES = [
   { emoji: '🧾', label: 'Dépenses & Recettes' },
-  { emoji: '🤖', label: 'Détection d\'anomalies IA' },
+  { emoji: '🤖', label: 'Détection d\'anomalies' },
   { emoji: '📊', label: 'Graphiques CA' },
   { emoji: '⚖️', label: 'Calculateur TVA' },
   { emoji: '📋', label: 'Devis PDF automatiques' },
@@ -16,7 +16,6 @@ const FEATURES = [
 
 const STATS = [
   { value: '10+', label: 'Modules métier' },
-  { value: '5',   label: 'Agents IA' },
   { value: '100%', label: 'Données en Europe' },
 ];
 

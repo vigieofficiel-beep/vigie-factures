@@ -26,6 +26,7 @@ import TableauFiscal from './pages/TableauFiscal';
 import Tarifs  from './pages/Tarifs';
 import CGU     from './pages/CGU';
 import Contact from './pages/Contact';
+import NouveauMotDePasse from './pages/NouveauMotDePasse';
 
 // Pages publiques
 import HomeHub    from './pages/HomeHub';
@@ -60,6 +61,7 @@ const router = createBrowserRouter([
   { path: '/contact',           element: <Contact /> },
   { path: '/mentions-legales',  element: <MentionsLegales /> },
   { path: '/confidentialite',   element: <Confidentialite /> },
+  { path: '/pro/nouveau-mot-de-passe', element: <NouveauMotDePasse /> },
 
   // ═══ Espace Perso ═══
   {
