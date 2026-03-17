@@ -5,7 +5,7 @@ import {
   Wallet, Receipt, TrendingUp,
   FileCheck, AlertCircle, Mail,
   Users, ShoppingCart, Download,
-  Clock, FileText, Calculator, UserCircle,
+  Clock, FileText, Calculator, UserCircle, FilePlus,
 } from 'lucide-react';
 import { supabasePro } from '../lib/supabasePro';
 import Footer from '../components/Footer';
@@ -33,6 +33,14 @@ const NAV = [
       { id: 'mail-agent', label: 'Mail Agent', icon: Mail,        color: '#5BC78A', route: '/pro/mail-agent', active: true },
     ],
   },
+  // ═══ NOUVEAU MODULE DOCUMENTS ═══
+  {
+    id: 'documents', label: 'Documents', icon: FilePlus, color: '#5BA3C7', active: true,
+    children: [
+      { id: 'doc-factures', label: 'Factures', icon: FileText,  color: '#5BA3C7', route: '/pro/documents?tab=factures', active: true },
+      { id: 'doc-devis',    label: 'Devis',    icon: FilePlus,  color: '#5BA3C7', route: '/pro/documents?tab=devis',    active: true },
+    ],
+  },
   {
     id: 'outils', label: 'Outils', icon: Calculator, color: '#5BA3C7', active: true,
     children: [
@@ -45,7 +53,6 @@ const NAV = [
       { id:'salaire', label:'Simulateur salaire', icon:Calculator, color:'#5BA3C7', route:'/pro/salaire', active:true },
       { id:'seuil', label:'Seuil de rentabilité', icon:Calculator, color:'#5BA3C7', route:'/pro/seuil', active:true },
       { id:'fiscal', label:'Tableau fiscal', icon:Calculator, color:'#5BA3C7', route:'/pro/fiscal', active:true },
-
     ],
   },
   {
@@ -78,7 +85,7 @@ export default function ProLayout() {
   useEffect(() => {
     NAV.forEach(item => {
       if (item.children) {
-        const isGroupActive = item.children.some(c => location.pathname.startsWith(c.route));
+        const isGroupActive = item.children.some(c => location.pathname.startsWith(c.route?.split('?')[0]));
         if (isGroupActive) setOpenGroups(prev => ({ ...prev, [item.id]: true }));
       }
     });
@@ -163,7 +170,7 @@ export default function ProLayout() {
               }
 
               const isGroupOpen   = openGroups[item.id];
-              const isGroupActive = item.children.some(c => location.pathname.startsWith(c.route));
+              const isGroupActive = item.children.some(c => location.pathname.startsWith(c.route?.split('?')[0]));
 
               return (
                 <div key={item.id} style={{ marginBottom:2 }}>
@@ -181,6 +188,7 @@ export default function ProLayout() {
                     <div style={{ paddingLeft:16, marginTop:2 }}>
                       {item.children.map(child => {
                         const ChildIcon = child.icon;
+                        const childPath = child.route?.split('?')[0];
                         return (
                           <NavLink key={child.id} to={child.route} onClick={() => { if (isMobile) setMobileOpen(false); }}
                             style={({ isActive }) => ({ display:'flex', alignItems:'center', gap:10, padding:'8px 8px', borderRadius:8, marginBottom:1, textDecoration:'none', background:isActive?`${child.color}15`:'transparent', borderLeft:isActive?`2px solid ${child.color}`:'2px solid transparent', transition:'background 150ms ease' })}>

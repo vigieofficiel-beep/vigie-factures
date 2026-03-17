@@ -48,6 +48,9 @@ import RequireAuthPro from './RequireAuthPro';
 import VigieFacturesWrapper from './pages/VigieFacturesWrapper';
 import ProHome from './pages/ProHome';
 
+// Module Documents (nouveau)
+import DocumentsPage from './pages/DocumentsPage';
+
 const router = createBrowserRouter([
 
   // ═══ Pages publiques ═══
@@ -88,6 +91,7 @@ const router = createBrowserRouter([
     children: [
       { index: true,           element: <ProHome /> },
       { path: 'factures',      element: <VigieFacturesWrapper /> },
+      { path: 'documents',     element: <DocumentsPage /> },   // ← NOUVEAU
       { path: 'depenses',      element: <DepensesPage /> },
       { path: 'recettes',      element: <RecettesPage /> },
       { path: 'banque',        element: <BanquePage /> },
