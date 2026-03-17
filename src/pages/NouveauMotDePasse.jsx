@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { supabasePro } from './lib/supabasePro';
+import { supabasePro } from '../lib/supabasePro';
 
 function scoreMdp(mdp) {
   if (!mdp) return { pct:0, label:'', color:'transparent' };
