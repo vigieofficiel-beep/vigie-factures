@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { AE, SOCIETES, TRANCHES_IR, IS, SEUILS_FRANCHISE_TVA } from "../constants";
+import Tooltip from '../components/Tooltip';
+import { TIPS } from '../utils/tooltips';
 
 const C = { blue:'#5BA3C7', purple:'#A85BC7', dark:'#1A1C20', light:'#9AA0AE', border:'#E8EAF0', red:'#C75B4E', orange:'#D4A853', green:'#5BC78A' };
 const iS = { width:'100%', padding:'10px 14px', borderRadius:9, background:'#F8F9FB', border:'1px solid #E8EAF0', color:'#1A1C20', fontSize:14, outline:'none', boxSizing:'border-box', fontFamily:'inherit' };
-const lS = { fontSize:11, fontWeight:700, color:'#5A6070', marginBottom:6, display:'block', textTransform:'uppercase', letterSpacing:'0.05em' };
+const lS = { fontSize:11, fontWeight:700, color:'#5A6070', marginBottom:6, display:'flex', alignItems:'center', gap:6, textTransform:'uppercase', letterSpacing:'0.05em' };
+
 function fmt(n) { return new Intl.NumberFormat('fr-FR', { style:'currency', currency:'EUR', maximumFractionDigits:0 }).format(n||0); }
 function fmtPct(n) { return `${n.toFixed(1)}%`; }
 
@@ -16,7 +19,6 @@ function calculerIR(revenuImposable) {
   return Math.max(0, ir);
 }
 
-// Tous les statuts regroupés
 const TOUS_STATUTS = {
   ...Object.fromEntries(Object.entries(AE).map(([k,v]) => [`ae_${k}`, { ...v, isAE: true }])),
   ...Object.fromEntries(Object.entries(SOCIETES).map(([k,v]) => [k, { ...v, isAE: false }])),
@@ -32,11 +34,7 @@ function calculerAE(ca, statut) {
   const resteVivreBareme = revenuNet - ir;
   const resteVivreVL = revenuNet - vlOption;
   const txEffectif = (cotisations + ir) / ca * 100;
-  // Mensuel
-  const cotisationsMensuelle = cotisations / 12;
-  const irMensuel = ir / 12;
-  const aMettreDeCote = cotisationsMensuelle + irMensuel;
-  return { ca, cotisations, cotisationsMensuelle, irMensuel, aMettreDeCote, revenuNet, revenuImposable, ir, vlOption, resteVivreBareme, resteVivreVL, txEffectif, depassePlafond: ca > s.plafond_ca, plafond: s.plafond_ca };
+  return { ca, cotisations, cotisationsMensuelle:cotisations/12, irMensuel:ir/12, aMettreDeCote:(cotisations/12)+(ir/12), revenuNet, revenuImposable, ir, vlOption, resteVivreBareme, resteVivreVL, txEffectif, depassePlafond:ca>s.plafond_ca, plafond:s.plafond_ca };
 }
 
 function calculerSociete(remuneration, statut) {
@@ -46,10 +44,7 @@ function calculerSociete(remuneration, statut) {
   const ir = calculerIR(remuneration * 0.9);
   const resteVivre = remuneration - ir;
   const txEffectif = (charges + ir) / coutTotal * 100;
-  const chargesMensuelles = charges / 12;
-  const irMensuel = ir / 12;
-  const aMettreDeCote = chargesMensuelles + irMensuel;
-  return { remuneration, charges, chargesMensuelles, irMensuel, aMettreDeCote, coutTotal, ir, resteVivre, txEffectif };
+  return { remuneration, charges, chargesMensuelles:charges/12, irMensuel:ir/12, aMettreDeCote:(charges/12)+(ir/12), coutTotal, ir, resteVivre, txEffectif };
 }
 
 function Bloc({ label, value, color=C.dark, sub=false, highlight=false }) {
@@ -61,8 +56,7 @@ function Bloc({ label, value, color=C.dark, sub=false, highlight=false }) {
   );
 }
 
-// Bloc "à mettre de côté"
-function AlerteMiseDeCoté({ cotisations, ir, label = "charges sociales" }) {
+function AlerteMiseDeCoté({ cotisations, ir, label="charges sociales" }) {
   const total = cotisations + ir;
   return (
     <div style={{ background:'rgba(199,91,78,0.06)', border:'1px solid rgba(199,91,78,0.2)', borderRadius:12, padding:'14px 16px', marginTop:8 }}>
@@ -99,17 +93,18 @@ export default function SimulateurCharges() {
   const resAE  = isAE && m > 0 ? calculerAE(m, statut) : null;
   const resSoc = !isAE && m > 0 ? calculerSociete(m, statut) : null;
 
-  // Groupes pour l'affichage
   const groupes = [
-    { label: 'Auto-entrepreneurs', items: Object.entries(TOUS_STATUTS).filter(([k]) => k.startsWith('ae_')) },
-    { label: 'Sociétés',           items: Object.entries(TOUS_STATUTS).filter(([k]) => !k.startsWith('ae_')) },
+    { label:'Auto-entrepreneurs', items:Object.entries(TOUS_STATUTS).filter(([k])=>k.startsWith('ae_')) },
+    { label:'Sociétés',           items:Object.entries(TOUS_STATUTS).filter(([k])=>!k.startsWith('ae_')) },
   ];
 
   return (
     <div style={{ fontFamily:"'Nunito Sans', sans-serif", padding:'32px 28px', maxWidth:900, margin:'0 auto' }}>
 
       <div style={{ marginBottom:28 }}>
-        <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:26, fontWeight:600, color:C.dark, margin:0 }}>Simulateur de charges sociales</h1>
+        <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:26, fontWeight:600, color:C.dark, margin:0, display:'flex', alignItems:'center', gap:10 }}>
+          Simulateur de charges sociales <Tooltip text={TIPS.charges_sociales} size={16}/>
+        </h1>
         <p style={{ fontSize:13, color:C.light, marginTop:4 }}>Estimation 2025 — à titre indicatif, consultez un expert-comptable pour validation</p>
       </div>
 
@@ -120,13 +115,13 @@ export default function SimulateurCharges() {
 
           <div style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:14, padding:24, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
             <label style={lS}>Votre statut juridique</label>
-            {groupes.map(g => (
+            {groupes.map(g=>(
               <div key={g.label}>
                 <div style={{ fontSize:10, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:'0.08em', padding:'8px 0 4px', marginTop:4 }}>{g.label}</div>
-                {g.items.map(([key, val]) => (
-                  <div key={key} onClick={() => setStatut(key)} style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'10px 12px', borderRadius:9, marginBottom:4, cursor:'pointer', background:statut===key?`${C.blue}10`:'transparent', border:`1px solid ${statut===key?C.blue:'transparent'}`, transition:'all 150ms' }}>
+                {g.items.map(([key,val])=>(
+                  <div key={key} onClick={()=>setStatut(key)} style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'10px 12px', borderRadius:9, marginBottom:4, cursor:'pointer', background:statut===key?`${C.blue}10`:'transparent', border:`1px solid ${statut===key?C.blue:'transparent'}`, transition:'all 150ms' }}>
                     <div style={{ width:16, height:16, borderRadius:'50%', border:`2px solid ${statut===key?C.blue:'#D0D4DC'}`, background:statut===key?C.blue:'transparent', flexShrink:0, marginTop:2, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                      {statut===key && <div style={{ width:6, height:6, borderRadius:'50%', background:'#fff' }}/>}
+                      {statut===key&&<div style={{ width:6, height:6, borderRadius:'50%', background:'#fff' }}/>}
                     </div>
                     <div>
                       <div style={{ fontSize:12, fontWeight:statut===key?700:500, color:statut===key?C.blue:C.dark, lineHeight:1.4 }}>{val.label}</div>
@@ -139,39 +134,40 @@ export default function SimulateurCharges() {
           </div>
 
           <div style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:14, padding:24, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
-            <label style={lS}>{isAE ? "Chiffre d'affaires annuel (€)" : "Rémunération annuelle souhaitée (€)"}</label>
-            <input type="number" value={montant} onChange={e => setMontant(e.target.value)} placeholder="0" min="0" step="100"
+            <label style={lS}>
+              {isAE ? "Chiffre d'affaires annuel (€)" : "Rémunération annuelle souhaitée (€)"}
+              <Tooltip text={TIPS.charges_sociales}/>
+            </label>
+            <input type="number" value={montant} onChange={e=>setMontant(e.target.value)} placeholder="0" min="0" step="100"
               style={{ ...iS, fontSize:22, fontWeight:700, textAlign:'right', color:C.blue }}/>
             {isAE && s.plafond_ca && (
               <div style={{ marginTop:10, fontSize:12, color:C.light }}>
                 Plafond AE : <strong style={{ color:m>s.plafond_ca?C.red:C.green }}>{fmt(s.plafond_ca)}/an</strong>
-                {m > s.plafond_ca && <span style={{ color:C.red, fontWeight:700, marginLeft:8 }}>⚠️ DÉPASSÉ</span>}
+                {m>s.plafond_ca&&<span style={{ color:C.red, fontWeight:700, marginLeft:8 }}>⚠️ DÉPASSÉ</span>}
               </div>
             )}
           </div>
 
           <div style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:14, padding:20, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
-            <div style={{ fontSize:12, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:12 }}>Taux applicables 2025</div>
-            {isAE ? (
-              <>
-                <Bloc label="Cotisations sociales" value={fmtPct(s.cotisations * 100)} sub/>
-                <Bloc label="Abattement fiscal" value={fmtPct(s.abattement * 100)} sub/>
-                <Bloc label="Versement libératoire (option)" value={fmtPct(s.versement_liberatoire * 100)} sub/>
-              </>
-            ) : (
-              <>
-                <Bloc label="Charges sociales (sur rémunération)" value={fmtPct(s.cotisations_base * 100)} sub/>
-                <Bloc label="IS taux réduit (≤ 42 500€)" value="15%" sub/>
-                <Bloc label="IS taux normal" value="25%" sub/>
-              </>
-            )}
+            <div style={{ fontSize:12, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:12, display:'flex', alignItems:'center', gap:6 }}>
+              Taux applicables 2025 <Tooltip text={TIPS.charges_sociales} size={11}/>
+            </div>
+            {isAE ? (<>
+              <Bloc label="Cotisations sociales" value={fmtPct(s.cotisations*100)} sub/>
+              <Bloc label="Abattement fiscal" value={fmtPct(s.abattement*100)} sub/>
+              <Bloc label="Versement libératoire (option)" value={fmtPct(s.versement_liberatoire*100)} sub/>
+            </>) : (<>
+              <Bloc label="Charges sociales (sur rémunération)" value={fmtPct(s.cotisations_base*100)} sub/>
+              <Bloc label="IS taux réduit (≤ 42 500€)" value="15%" sub/>
+              <Bloc label="IS taux normal" value="25%" sub/>
+            </>)}
           </div>
         </div>
 
         {/* Colonne droite */}
         <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
 
-          {m === 0 && (
+          {m===0 && (
             <div style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:14, padding:40, boxShadow:'0 1px 6px rgba(0,0,0,0.05)', display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:12, flex:1 }}>
               <span style={{ fontSize:32 }}>🧮</span>
               <p style={{ color:C.light, fontSize:13, textAlign:'center', margin:0 }}>Saisissez un montant pour voir la simulation</p>
