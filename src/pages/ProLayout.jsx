@@ -13,6 +13,7 @@ import { ProfileAvatar } from '../components/ProfileAvatar';
 import Vigil from './Vigil';
 import AnalyseDocumentFlottant from '../components/AnalyseDocumentFlottant';
 import NotificationsPanel from '../components/NotificationsPanel';
+import { PlanProvider } from '../hooks/usePlan';
 const NAV = [
   {
     id: 'accueil', label: 'Bureau', icon: Home, color: '#5BA3C7',
@@ -110,6 +111,7 @@ export default function ProLayout() {
   const handleLogout = async () => { await supabasePro.auth.signOut(); window.location.href = '/'; };
 
   return (
+    <PlanProvider>
     <div style={{ display:'flex', minHeight:'100vh', background:'linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 50%, #E2E8F0 100%)', fontFamily:"'Nunito Sans', sans-serif", position:'relative' }}>
 
       {isMobile && mobileOpen && (
@@ -271,5 +273,6 @@ export default function ProLayout() {
         nav::-webkit-scrollbar-thumb:hover { background: rgba(91,163,199,0.6); }
       `}</style>
     </div>
+    </PlanProvider>
   );
 }

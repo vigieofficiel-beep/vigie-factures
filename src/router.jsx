@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import DepensesPage from './pages/DepensesPage';
 import RecettesPage from './pages/RecettesPage';
 import BanquePage from './pages/BanquePage';
@@ -9,7 +9,6 @@ import PointagesPro    from "./pages/PointagesPro";
 import FournisseursPro from "./pages/FournisseursPro";
 import ExportsFEC from './pages/ExportsFEC';
 import MailAgent from './pages/MailAgent';
-import LandingPage from './pages/LandingPage';
 import MentionsLegales from './pages/MentionsLegales';
 import Confidentialite from './pages/Confidentialite';
 import NotFound from './pages/NotFound';
@@ -27,29 +26,20 @@ import Tarifs  from './pages/Tarifs';
 import CGU     from './pages/CGU';
 import Contact from './pages/Contact';
 import NouveauMotDePasse from './pages/NouveauMotDePasse';
-
-// Pages publiques
 import HomeHub    from './pages/HomeHub';
 import Login      from './pages/Login';
 import Signup     from './pages/Signup';
 import ProLogin   from './ProLogin';
 import ProSignup  from './pages/ProSignup';
-
-// Layouts avec sidebar
 import PersoLayout    from './pages/PersoLayout';
 import PersoDashboard from './pages/PersoDashboard';
 import ProLayout      from './pages/ProLayout';
-
-// Guards
 import ProtectedRoute from './components/ProtectedRoute';
 import RequireAuthPro from './RequireAuthPro';
-
-// Module Factures
 import VigieFacturesWrapper from './pages/VigieFacturesWrapper';
 import ProHome from './pages/ProHome';
-
-// Module Documents (nouveau)
 import DocumentsPage from './pages/DocumentsPage';
+import ModuleLock from './components/ModuleLock';
 
 const router = createBrowserRouter([
 
@@ -89,20 +79,12 @@ const router = createBrowserRouter([
       </RequireAuthPro>
     ),
     children: [
-      { index: true,           element: <ProHome /> },
-      { path: 'factures',      element: <VigieFacturesWrapper /> },
-      { path: 'documents',     element: <DocumentsPage /> },   // ← NOUVEAU
-      { path: 'depenses',      element: <DepensesPage /> },
-      { path: 'recettes',      element: <RecettesPage /> },
-      { path: 'banque',        element: <BanquePage /> },
-      { path: 'contrats',      element: <ContratsPage /> },
-      { path: 'formalites',    element: <FormalitesPage /> },
-      { path: 'mail-agent',    element: <MailAgent /> },
-      { path: 'equipe',        element: <EquipePro /> },
-      { path: 'pointages',     element: <PointagesPro /> },
-      { path: 'fournisseurs',  element: <FournisseursPro /> },
-      { path: 'exports',       element: <ExportsFEC /> },
-      { path: 'profil',        element: <ProfilPro /> },
+
+      // ── Accès libre (auth suffisante) ──
+      { index: true,    element: <ProHome /> },
+      { path: 'profil', element: <ProfilPro /> },
+
+      // ── Plan GRATUIT — outils calculateurs ──
       { path: 'tva',           element: <CalculateurTVA /> },
       { path: 'charges',       element: <SimulateurCharges /> },
       { path: 'devises',       element: <ConvertisseurDevises /> },
@@ -112,7 +94,24 @@ const router = createBrowserRouter([
       { path: 'salaire',       element: <SimulateurSalaire /> },
       { path: 'seuil',         element: <CalculateurSeuilRentabilite /> },
       { path: 'fiscal',        element: <TableauFiscal /> },
-      { path: '*',             element: <NotFound /> },
+
+      // ── Plan STARTER ──
+      { path: 'depenses',     element: <ModuleLock module="depenses"><DepensesPage /></ModuleLock> },
+      { path: 'recettes',     element: <ModuleLock module="recettes"><RecettesPage /></ModuleLock> },
+      { path: 'banque',       element: <ModuleLock module="banque"><BanquePage /></ModuleLock> },
+      { path: 'contrats',     element: <ModuleLock module="contrats"><ContratsPage /></ModuleLock> },
+      { path: 'formalites',   element: <ModuleLock module="formalites"><FormalitesPage /></ModuleLock> },
+      { path: 'mail-agent',   element: <ModuleLock module="mail-agent"><MailAgent /></ModuleLock> },
+      { path: 'equipe',       element: <ModuleLock module="equipe"><EquipePro /></ModuleLock> },
+      { path: 'pointages',    element: <ModuleLock module="pointages"><PointagesPro /></ModuleLock> },
+      { path: 'fournisseurs', element: <ModuleLock module="fournisseurs"><FournisseursPro /></ModuleLock> },
+
+      // ── Plan PRO ──
+      { path: 'documents', element: <ModuleLock module="documents"><DocumentsPage /></ModuleLock> },
+      { path: 'factures',  element: <ModuleLock module="factures"><VigieFacturesWrapper /></ModuleLock> },
+      { path: 'exports',   element: <ModuleLock module="exports"><ExportsFEC /></ModuleLock> },
+
+      { path: '*', element: <NotFound /> },
     ],
   },
 
