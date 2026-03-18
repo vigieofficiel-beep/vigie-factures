@@ -3,23 +3,10 @@ import { useState, useEffect, useRef } from 'react';
 /**
  * Composant Tooltip universel Vigie Pro
  *
- * Usage simple :
- *   <Tooltip text="Explication du terme" />
- *
- * Usage avec label inline :
- *   <Tooltip label="TVA" text={TIPS.tva} />
- *
- * Usage autour d'un enfant :
- *   <Tooltip text={TIPS.tva}><span>Mon contenu</span></Tooltip>
- *
- * Props :
- *   text      {string}  - Texte de l'infobulle (obligatoire)
- *   label     {string}  - Texte affiché à côté de l'icône (optionnel)
- *   position  {string}  - 'top'|'bottom'|'left'|'right' (défaut: 'top')
- *   size      {number}  - Taille de l'icône en px (défaut: 14)
- *   color     {string}  - Couleur de l'icône (défaut: '#5BA3C7')
- *   maxWidth  {number}  - Largeur max de la bulle en px (défaut: 280)
- *   children  {node}    - Si fourni, wrappé avec l'icône à côté
+ * Usage :
+ *   <Tooltip text="Explication" />
+ *   <Tooltip text={TIPS.tva} size={12} />
+ *   <label>Mon label <Tooltip text="..." /></label>
  */
 export default function Tooltip({
   text,
@@ -32,72 +19,71 @@ export default function Tooltip({
 }) {
   const [visible, setVisible] = useState(false);
   const [coords,  setCoords]  = useState({ top: 0, left: 0 });
-  const iconRef = useRef(null);
+  const iconRef   = useRef(null);
   const bubbleRef = useRef(null);
-  const hideTimer = useRef(null);
+  const timer     = useRef(null);
 
-  const show = () => {
-    clearTimeout(hideTimer.current);
+  const compute = () => {
     if (!iconRef.current) return;
-    const rect = iconRef.current.getBoundingClientRect();
-    const scrollY = window.scrollY;
-    const scrollX = window.scrollX;
+    const r  = iconRef.current.getBoundingClientRect();
     const bw = maxWidth;
-    const bh = 80; // hauteur estimée
-
+    const bh = 90;
+    const vw = window.innerWidth;
     let top, left;
+
     switch (position) {
       case 'bottom':
-        top  = rect.bottom + scrollY + 8;
-        left = rect.left + scrollX + rect.width / 2 - bw / 2;
+        top  = r.bottom + 8;
+        left = r.left + r.width / 2 - bw / 2;
         break;
       case 'left':
-        top  = rect.top + scrollY + rect.height / 2 - bh / 2;
-        left = rect.left + scrollX - bw - 10;
+        top  = r.top + r.height / 2 - bh / 2;
+        left = r.left - bw - 10;
         break;
       case 'right':
-        top  = rect.top + scrollY + rect.height / 2 - bh / 2;
-        left = rect.right + scrollX + 10;
+        top  = r.top + r.height / 2 - bh / 2;
+        left = r.right + 10;
         break;
       default: // top
-        top  = rect.top + scrollY - bh - 10;
-        left = rect.left + scrollX + rect.width / 2 - bw / 2;
+        top  = r.top - bh - 8;
+        left = r.left + r.width / 2 - bw / 2;
     }
 
-    // Garde la bulle dans le viewport horizontalement
-    const vw = window.innerWidth;
-    if (left < 8) left = 8;
+    if (left < 8)           left = 8;
     if (left + bw > vw - 8) left = vw - bw - 8;
+    if (top < 8)            top  = r.bottom + 8;
 
     setCoords({ top, left });
+  };
+
+  const show = () => {
+    clearTimeout(timer.current);
+    compute();
     setVisible(true);
   };
 
-  const hide = (delay = 150) => {
-    hideTimer.current = setTimeout(() => setVisible(false), delay);
+  const hide = (delay = 120) => {
+    timer.current = setTimeout(() => setVisible(false), delay);
   };
 
   const toggle = (e) => {
     e.stopPropagation();
-    if (visible) hide(0);
-    else show();
+    visible ? hide(0) : show();
   };
 
-  // Fermer en cliquant ailleurs
   useEffect(() => {
     if (!visible) return;
     const handler = (e) => {
-      if (iconRef.current && !iconRef.current.contains(e.target) &&
-          bubbleRef.current && !bubbleRef.current.contains(e.target)) {
-        setVisible(false);
-      }
+      if (iconRef.current?.contains(e.target) || bubbleRef.current?.contains(e.target)) return;
+      setVisible(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [visible]);
 
-  useEffect(() => () => clearTimeout(hideTimer.current), []);
+  useEffect(() => () => clearTimeout(timer.current), []);
 
+  // ── Icône ─────────────────────────────────────────────────────────
   const iconEl = (
     <span
       ref={iconRef}
@@ -108,138 +94,90 @@ export default function Tooltip({
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
-        width: size + 4,
-        height: size + 4,
+        width:  size + 6,
+        height: size + 6,
         borderRadius: '50%',
-        background: visible ? `${color}20` : `${color}12`,
-        border: `1px solid ${color}30`,
+        background: visible ? `${color}22` : `${color}14`,
+        border: `1.5px solid ${color}40`,
         color,
-        fontSize: size - 3,
-        fontWeight: 700,
-        cursor: 'pointer',
+        fontSize: Math.max(size - 2, 9),
+        fontWeight: 800,
+        cursor: 'help',
         flexShrink: 0,
-        transition: 'background 150ms ease, transform 150ms ease',
-        transform: visible ? 'scale(1.1)' : 'scale(1)',
+        transition: 'all 150ms ease',
+        transform: visible ? 'scale(1.12)' : 'scale(1)',
         userSelect: 'none',
         lineHeight: 1,
         verticalAlign: 'middle',
-        marginLeft: children || label ? 5 : 0,
+        fontFamily: 'serif',
       }}
-      title=""
       aria-label="Information"
     >
       i
     </span>
   );
 
-  const bubble = visible && (
+  // ── Bulle fixed ───────────────────────────────────────────────────
+  const bubbleEl = visible && (
     <div
       ref={bubbleRef}
-      onMouseEnter={() => clearTimeout(hideTimer.current)}
+      onMouseEnter={() => clearTimeout(timer.current)}
       onMouseLeave={() => hide()}
       style={{
-        position: 'absolute',
-        top: coords.top,
+        position: 'fixed',
+        top:  coords.top,
         left: coords.left,
         width: maxWidth,
-        zIndex: 9999,
+        zIndex: 99999,
         background: '#0F172A',
-        color: '#F8FAFC',
+        color: '#F1F5F9',
         fontSize: 12,
-        lineHeight: 1.6,
+        lineHeight: 1.65,
         padding: '10px 14px',
         borderRadius: 10,
-        boxShadow: '0 8px 32px rgba(15,23,42,0.25)',
+        boxShadow: '0 8px 32px rgba(15,23,42,0.3), 0 0 0 1px rgba(255,255,255,0.06)',
         pointerEvents: 'auto',
-        animation: 'tooltipIn 150ms ease',
         fontFamily: "'Nunito Sans', sans-serif",
         fontWeight: 400,
+        animation: 'tipIn 140ms ease',
       }}
     >
       {text}
-      {/* Petite flèche */}
-      <div style={{
+      <span style={{
         position: 'absolute',
-        ...(position === 'top'    && { bottom: -5, left: '50%', transform: 'translateX(-50%) rotate(45deg)' }),
-        ...(position === 'bottom' && { top: -5,    left: '50%', transform: 'translateX(-50%) rotate(45deg)' }),
-        ...(position === 'left'   && { right: -5,  top: '50%',  transform: 'translateY(-50%) rotate(45deg)' }),
-        ...(position === 'right'  && { left: -5,   top: '50%',  transform: 'translateY(-50%) rotate(45deg)' }),
+        display: 'block',
         width: 10, height: 10,
         background: '#0F172A',
+        transform: 'rotate(45deg)',
         borderRadius: 2,
+        ...(position === 'top'    && { bottom: -5, left: 'calc(50% - 5px)' }),
+        ...(position === 'bottom' && { top:    -5, left: 'calc(50% - 5px)' }),
+        ...(position === 'left'   && { right:  -5, top:  'calc(50% - 5px)' }),
+        ...(position === 'right'  && { left:   -5, top:  'calc(50% - 5px)' }),
       }} />
-    </div>
-  );
-
-  // Portail simplifié : on appende au body via un div fixe
-  const portal = visible && (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 9998, pointerEvents: 'none' }}>
-      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
-        {bubble}
-      </div>
     </div>
   );
 
   return (
     <>
-      {/* Rendu inline */}
       {children ? (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-          {children}
-          {iconEl}
+        <span style={{ display:'inline-flex', alignItems:'center', gap:4 }}>
+          {children}{iconEl}
         </span>
       ) : label ? (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-          <span>{label}</span>
-          {iconEl}
+        <span style={{ display:'inline-flex', alignItems:'center', gap:4 }}>
+          <span>{label}</span>{iconEl}
         </span>
       ) : (
         iconEl
       )}
 
-      {/* Bulle rendue hors du flux via position fixed */}
-      {visible && (
-        <div
-          ref={bubbleRef}
-          onMouseEnter={() => clearTimeout(hideTimer.current)}
-          onMouseLeave={() => hide()}
-          style={{
-            position: 'fixed',
-            top: coords.top - window.scrollY,
-            left: coords.left,
-            width: maxWidth,
-            zIndex: 9999,
-            background: '#0F172A',
-            color: '#F8FAFC',
-            fontSize: 12,
-            lineHeight: 1.6,
-            padding: '10px 14px',
-            borderRadius: 10,
-            boxShadow: '0 8px 32px rgba(15,23,42,0.25)',
-            pointerEvents: 'auto',
-            animation: 'tooltipIn 150ms ease',
-            fontFamily: "'Nunito Sans', sans-serif",
-            fontWeight: 400,
-          }}
-        >
-          {text}
-          <div style={{
-            position: 'absolute',
-            ...(position === 'top'    && { bottom: -5, left: 'calc(50% - 5px)', transform: 'rotate(45deg)' }),
-            ...(position === 'bottom' && { top: -5,    left: 'calc(50% - 5px)', transform: 'rotate(45deg)' }),
-            ...(position === 'left'   && { right: -5,  top: 'calc(50% - 5px)', transform: 'rotate(45deg)' }),
-            ...(position === 'right'  && { left: -5,   top: 'calc(50% - 5px)', transform: 'rotate(45deg)' }),
-            width: 10, height: 10,
-            background: '#0F172A',
-            borderRadius: 2,
-          }} />
-        </div>
-      )}
+      {bubbleEl}
 
       <style>{`
-        @keyframes tooltipIn {
-          from { opacity: 0; transform: translateY(4px); }
-          to   { opacity: 1; transform: translateY(0); }
+        @keyframes tipIn {
+          from { opacity:0; transform:translateY(4px); }
+          to   { opacity:1; transform:translateY(0); }
         }
       `}</style>
     </>
