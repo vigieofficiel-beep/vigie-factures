@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Plus, Trash2, Download, FileText, Building2, User, Hash, AlertCircle, CheckCircle, Printer } from 'lucide-react';
+import { Plus, Trash2, FileText, Building2, User, Hash, AlertCircle, Printer } from 'lucide-react';
+import Tooltip from '../components/Tooltip';
+import { TIPS } from '../utils/tooltips';
 
 const TVA_TAUX = [0, 5.5, 10, 20];
 
@@ -7,12 +9,13 @@ function newLigne() {
   return { id: Date.now() + Math.random(), description: '', quantite: 1, prixUnitaire: 0, tva: 20 };
 }
 
-function CardSection({ title, icon: Icon, children }) {
+function CardSection({ title, icon: Icon, tooltip, children }) {
   return (
     <div style={{ background: '#fff', borderRadius: 16, padding: 24, boxShadow: '0 1px 4px rgba(15,23,42,0.06)', marginBottom: 20, border: '1px solid rgba(15,23,42,0.06)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
         <Icon size={16} color="#5BA3C7" strokeWidth={2} />
         <span style={{ fontSize: 14, fontWeight: 700, color: '#1E293B' }}>{title}</span>
+        {tooltip && <Tooltip text={tooltip} />}
       </div>
       {children}
     </div>
@@ -26,7 +29,7 @@ function FieldRow({ children }) {
 function Field({ label, required, children }) {
   return (
     <div>
-      <label style={{ fontSize: 12, fontWeight: 600, color: '#64748B', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+      <label style={{ fontSize: 12, fontWeight: 600, color: '#64748B', display: 'flex', alignItems: 'center', gap: 4, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
         {label}{required && <span style={{ color: '#EF4444', marginLeft: 2 }}>*</span>}
       </label>
       {children}
@@ -78,7 +81,6 @@ export default function DocumentsFactures() {
   const fmt = (n) => Number(n).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const fmtDate = (d) => { if (!d) return ''; const [y, m, j] = d.split('-'); return `${j}/${m}/${y}`; };
 
-  // Regrouper TVA par taux
   const tvaDetails = {};
   lignes.forEach(l => {
     const t = parseFloat(l.tva);
@@ -127,10 +129,7 @@ export default function DocumentsFactures() {
   .mentions { font-size:9px; color:#94A3B8; line-height:1.7; border-top:1px solid #E2E8F0; padding-top:14px; margin-top:8px; }
   .mentions p { margin-bottom:4px; }
   .footer-page { margin-top:20px; text-align:center; font-size:9px; color:#CBD5E1; border-top:1px solid #F1F5F9; padding-top:10px; }
-  @media print {
-    body { padding:20px 28px; }
-    @page { margin:10mm; size:A4; }
-  }
+  @media print { body { padding:20px 28px; } @page { margin:10mm; size:A4; } }
 </style>
 </head>
 <body>
@@ -156,7 +155,6 @@ export default function DocumentsFactures() {
     </div>
   </div>
 </div>
-
 <div class="parties">
   <div class="partie">
     <div class="partie-title">Émetteur</div>
@@ -178,9 +176,7 @@ export default function DocumentsFactures() {
     </div>
   </div>
 </div>
-
 ${form.objet ? `<div class="objet"><strong>Objet :</strong> ${form.objet}</div>` : ''}
-
 <table class="lignes">
   <thead>
     <tr>
@@ -193,41 +189,24 @@ ${form.objet ? `<div class="objet"><strong>Objet :</strong> ${form.objet}</div>`
     </tr>
   </thead>
   <tbody>
-    ${lignes.map(l => {
-      const c = calcLigne(l);
-      return `<tr>
-        <td>${l.description || '—'}</td>
-        <td class="r">${l.quantite}</td>
-        <td class="r">${fmt(l.prixUnitaire)} €</td>
-        <td class="r">${l.tva}%</td>
-        <td class="r">${fmt(c.ht)} €</td>
-        <td class="r">${fmt(c.ttc)} €</td>
-      </tr>`;
-    }).join('')}
+    ${lignes.map(l => { const c = calcLigne(l); return `<tr><td>${l.description || '—'}</td><td class="r">${l.quantite}</td><td class="r">${fmt(l.prixUnitaire)} €</td><td class="r">${l.tva}%</td><td class="r">${fmt(c.ht)} €</td><td class="r">${fmt(c.ttc)} €</td></tr>`; }).join('')}
   </tbody>
 </table>
-
 <div class="totaux">
   <div class="totaux-box">
     <div class="tot-row"><span class="tl">Total HT</span><span class="tv">${fmt(totaux.ht)} €</span></div>
-    ${Object.entries(tvaDetails).filter(([, d]) => d.base > 0).map(([taux, d]) =>
-      `<div class="tot-row"><span class="tl">TVA ${taux}% (base ${fmt(d.base)} €)</span><span class="tv">${fmt(d.montant)} €</span></div>`
-    ).join('')}
+    ${Object.entries(tvaDetails).filter(([, d]) => d.base > 0).map(([taux, d]) => `<div class="tot-row"><span class="tl">TVA ${taux}% (base ${fmt(d.base)} €)</span><span class="tv">${fmt(d.montant)} €</span></div>`).join('')}
     <div class="tot-row ttc"><span class="tl">Total TTC</span><span class="tv">${fmt(totaux.ttc)} €</span></div>
   </div>
 </div>
-
 ${form.notes ? `<div style="margin-bottom:16px;padding:10px 12px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:6px;font-size:10px;color:#92400E"><strong>Note :</strong> ${form.notes}</div>` : ''}
-
 <div class="mentions">
   ${form.mentionPenalites ? `<p>${form.mentionPenalites}</p>` : ''}
   ${form.mentionEscompte ? `<p>${form.mentionEscompte}</p>` : ''}
 </div>
-
 <div class="footer-page">
   ${form.emetteurNom}${form.emetteurSiret ? ' — SIRET ' + form.emetteurSiret : ''} — Facture ${form.numeroFacture} — ${fmt(totaux.ttc)} € TTC
 </div>
-
 </body>
 </html>`;
 
@@ -236,7 +215,6 @@ ${form.notes ? `<div style="margin-bottom:16px;padding:10px 12px;background:#FFF
     w.document.close();
     w.onload = () => { w.focus(); w.print(); };
 
-    // Auto-incrémenter le numéro
     const match = form.numeroFacture.match(/(\d+)$/);
     if (match) {
       const next = String(parseInt(match[1]) + 1).padStart(match[1].length, '0');
@@ -250,56 +228,103 @@ ${form.notes ? `<div style="margin-bottom:16px;padding:10px 12px;background:#FFF
 
         {/* FORMULAIRE */}
         <div>
+
+          {/* Section émetteur */}
           <CardSection title="Votre entreprise (émetteur)" icon={Building2}>
             <FieldRow>
-              <Field label="Raison sociale / Nom" required><input style={inp} value={form.emetteurNom} onChange={e => set('emetteurNom', e.target.value)} placeholder="Ma Société SAS" /></Field>
-              <Field label="SIRET"><input style={inp} value={form.emetteurSiret} onChange={e => set('emetteurSiret', e.target.value)} placeholder="888 362 118 00026" /></Field>
+              <Field label="Raison sociale / Nom" required>
+                <input style={inp} value={form.emetteurNom} onChange={e => set('emetteurNom', e.target.value)} placeholder="Ma Société SAS" />
+              </Field>
+              <Field label={<>SIRET <Tooltip text={TIPS.siret} /></>}>
+                <input style={inp} value={form.emetteurSiret} onChange={e => set('emetteurSiret', e.target.value)} placeholder="888 362 118 00026" />
+              </Field>
             </FieldRow>
             <FieldRow>
-              <Field label="N° TVA intracommunautaire"><input style={inp} value={form.emetteurTvaIntra} onChange={e => set('emetteurTvaIntra', e.target.value)} placeholder="FR12345678901" /></Field>
-              <Field label="Email"><input style={inp} type="email" value={form.emetteurEmail} onChange={e => set('emetteurEmail', e.target.value)} placeholder="contact@masociete.fr" /></Field>
+              <Field label={<>N° TVA intracommunautaire <Tooltip text={TIPS.tva_intra} /></>}>
+                <input style={inp} value={form.emetteurTvaIntra} onChange={e => set('emetteurTvaIntra', e.target.value)} placeholder="FR12345678901" />
+              </Field>
+              <Field label="Email">
+                <input style={inp} type="email" value={form.emetteurEmail} onChange={e => set('emetteurEmail', e.target.value)} placeholder="contact@masociete.fr" />
+              </Field>
             </FieldRow>
-            <Field label="Adresse"><input style={{ ...inp, marginBottom: 8 }} value={form.emetteurAdresse} onChange={e => set('emetteurAdresse', e.target.value)} placeholder="37 bis rue du 13 octobre 1918" /></Field>
+            <Field label="Adresse">
+              <input style={{ ...inp, marginBottom: 8 }} value={form.emetteurAdresse} onChange={e => set('emetteurAdresse', e.target.value)} placeholder="37 bis rue du 13 octobre 1918" />
+            </Field>
             <FieldRow>
-              <Field label="Code postal"><input style={inp} value={form.emetteurCodePostal} onChange={e => set('emetteurCodePostal', e.target.value)} placeholder="02000" /></Field>
-              <Field label="Ville"><input style={inp} value={form.emetteurVille} onChange={e => set('emetteurVille', e.target.value)} placeholder="Laon" /></Field>
+              <Field label="Code postal">
+                <input style={inp} value={form.emetteurCodePostal} onChange={e => set('emetteurCodePostal', e.target.value)} placeholder="02000" />
+              </Field>
+              <Field label="Ville">
+                <input style={inp} value={form.emetteurVille} onChange={e => set('emetteurVille', e.target.value)} placeholder="Laon" />
+              </Field>
             </FieldRow>
-            <Field label="Téléphone"><input style={inp} value={form.emetteurTel} onChange={e => set('emetteurTel', e.target.value)} placeholder="06 00 00 00 00" /></Field>
+            <Field label="Téléphone">
+              <input style={inp} value={form.emetteurTel} onChange={e => set('emetteurTel', e.target.value)} placeholder="06 00 00 00 00" />
+            </Field>
           </CardSection>
 
+          {/* Section client */}
           <CardSection title="Client" icon={User}>
             <FieldRow>
-              <Field label="Nom / Raison sociale" required><input style={inp} value={form.clientNom} onChange={e => set('clientNom', e.target.value)} placeholder="Client SAS" /></Field>
-              <Field label="SIRET"><input style={inp} value={form.clientSiret} onChange={e => set('clientSiret', e.target.value)} placeholder="123 456 789 00010" /></Field>
+              <Field label="Nom / Raison sociale" required>
+                <input style={inp} value={form.clientNom} onChange={e => set('clientNom', e.target.value)} placeholder="Client SAS" />
+              </Field>
+              <Field label={<>SIRET <Tooltip text={TIPS.siret} /></>}>
+                <input style={inp} value={form.clientSiret} onChange={e => set('clientSiret', e.target.value)} placeholder="123 456 789 00010" />
+              </Field>
             </FieldRow>
-            <Field label="Adresse"><input style={{ ...inp, marginBottom: 8 }} value={form.clientAdresse} onChange={e => set('clientAdresse', e.target.value)} placeholder="10 rue de la Paix" /></Field>
+            <Field label="Adresse">
+              <input style={{ ...inp, marginBottom: 8 }} value={form.clientAdresse} onChange={e => set('clientAdresse', e.target.value)} placeholder="10 rue de la Paix" />
+            </Field>
             <FieldRow>
-              <Field label="Code postal"><input style={inp} value={form.clientCodePostal} onChange={e => set('clientCodePostal', e.target.value)} placeholder="75001" /></Field>
-              <Field label="Ville"><input style={inp} value={form.clientVille} onChange={e => set('clientVille', e.target.value)} placeholder="Paris" /></Field>
+              <Field label="Code postal">
+                <input style={inp} value={form.clientCodePostal} onChange={e => set('clientCodePostal', e.target.value)} placeholder="75001" />
+              </Field>
+              <Field label="Ville">
+                <input style={inp} value={form.clientVille} onChange={e => set('clientVille', e.target.value)} placeholder="Paris" />
+              </Field>
             </FieldRow>
-            <Field label="Email"><input style={inp} type="email" value={form.clientEmail} onChange={e => set('clientEmail', e.target.value)} placeholder="contact@client.fr" /></Field>
+            <Field label="Email">
+              <input style={inp} type="email" value={form.clientEmail} onChange={e => set('clientEmail', e.target.value)} placeholder="contact@client.fr" />
+            </Field>
           </CardSection>
 
+          {/* Section infos facture */}
           <CardSection title="Informations de la facture" icon={Hash}>
             <FieldRow>
-              <Field label="Numéro de facture" required><input style={inp} value={form.numeroFacture} onChange={e => set('numeroFacture', e.target.value)} /></Field>
-              <Field label="Objet"><input style={inp} value={form.objet} onChange={e => set('objet', e.target.value)} placeholder="Prestation de service..." /></Field>
+              <Field label={<>Numéro de facture <Tooltip text={TIPS.numero_facture} /></>} required>
+                <input style={inp} value={form.numeroFacture} onChange={e => set('numeroFacture', e.target.value)} />
+              </Field>
+              <Field label="Objet">
+                <input style={inp} value={form.objet} onChange={e => set('objet', e.target.value)} placeholder="Prestation de service..." />
+              </Field>
             </FieldRow>
             <FieldRow>
-              <Field label="Date d'émission" required><input style={inp} type="date" value={form.dateEmission} onChange={e => set('dateEmission', e.target.value)} /></Field>
-              <Field label="Date d'échéance"><input style={inp} type="date" value={form.dateEcheance} onChange={e => set('dateEcheance', e.target.value)} /></Field>
+              <Field label="Date d'émission" required>
+                <input style={inp} type="date" value={form.dateEmission} onChange={e => set('dateEmission', e.target.value)} />
+              </Field>
+              <Field label={<>Date d'échéance <Tooltip text={TIPS.date_echeance} /></>}>
+                <input style={inp} type="date" value={form.dateEcheance} onChange={e => set('dateEcheance', e.target.value)} />
+              </Field>
             </FieldRow>
-            <Field label="Conditions de paiement">
+            <Field label={<>Conditions de paiement <Tooltip text={TIPS.conditions_paiement} /></>}>
               <select style={{ ...inp, cursor: 'pointer' }} value={form.conditionsPaiement} onChange={e => set('conditionsPaiement', e.target.value)}>
                 {['Comptant', '15 jours', '30 jours', '45 jours', '60 jours', 'Fin de mois'].map(v => <option key={v} value={v}>{v}</option>)}
               </select>
             </Field>
           </CardSection>
 
+          {/* Section prestations */}
           <CardSection title="Prestations / Produits" icon={FileText}>
             <div style={{ display: 'grid', gridTemplateColumns: '3fr 70px 100px 70px 85px 32px', gap: 8, marginBottom: 8 }}>
-              {['Description', 'Qté', 'Prix HT', 'TVA', 'Total HT', ''].map(h => (
-                <span key={h} style={{ fontSize: 11, fontWeight: 600, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</span>
+              {[
+                'Description', 'Qté',
+                <span key="ht" style={{ display:'flex', alignItems:'center', gap:3 }}>Prix HT <Tooltip text={TIPS.ht} size={11} /></span>,
+                <span key="tva" style={{ display:'flex', alignItems:'center', gap:3 }}>TVA <Tooltip text={TIPS.taux_tva} size={11} /></span>,
+                <span key="totalht" style={{ display:'flex', alignItems:'center', gap:3 }}>Total HT <Tooltip text={TIPS.montant_ht} size={11} /></span>,
+                '',
+              ].map((h, i) => (
+                <span key={i} style={{ fontSize: 11, fontWeight: 600, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</span>
               ))}
             </div>
             {lignes.map(l => (
@@ -321,11 +346,12 @@ ${form.notes ? `<div style="margin-bottom:16px;padding:10px 12px;background:#FFF
             </button>
           </CardSection>
 
+          {/* Section mentions légales */}
           <CardSection title="Mentions légales" icon={AlertCircle}>
-            <Field label="Pénalités de retard">
+            <Field label={<>Pénalités de retard <Tooltip text={TIPS.penalites_retard} position="bottom" /></>}>
               <textarea style={{ ...inp, minHeight: 72, resize: 'vertical', lineHeight: 1.5 }} value={form.mentionPenalites} onChange={e => set('mentionPenalites', e.target.value)} />
             </Field>
-            <Field label="Escompte">
+            <Field label={<>Escompte <Tooltip text={TIPS.escompte} position="bottom" /></>}>
               <textarea style={{ ...inp, minHeight: 48, resize: 'vertical', lineHeight: 1.5 }} value={form.mentionEscompte} onChange={e => set('mentionEscompte', e.target.value)} />
             </Field>
             <Field label="Notes complémentaires">
@@ -347,14 +373,20 @@ ${form.notes ? `<div style="margin-bottom:16px;padding:10px 12px;background:#FFF
             ))}
 
             <div style={{ borderTop: '1px solid #F1F5F9', margin: '12px 0' }} />
-            {[['Total HT', totaux.ht], ['Total TVA', totaux.tva]].map(([l, v]) => (
-              <div key={l} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#64748B', marginBottom: 8 }}>
-                <span>{l}</span><span>{fmt(v)} €</span>
-              </div>
-            ))}
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#64748B', marginBottom: 8, alignItems: 'center' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>Total HT <Tooltip text={TIPS.ht} size={12} /></span>
+              <span>{fmt(totaux.ht)} €</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#64748B', marginBottom: 8, alignItems: 'center' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>Total TVA <Tooltip text={TIPS.tva} size={12} /></span>
+              <span>{fmt(totaux.tva)} €</span>
+            </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', borderRadius: 10, marginTop: 8, background: 'linear-gradient(135deg, rgba(91,163,199,0.12), rgba(91,163,199,0.06))', border: '1px solid rgba(91,163,199,0.2)' }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: '#1E293B' }}>Total TTC</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 700, color: '#1E293B' }}>
+                Total TTC <Tooltip text={TIPS.ttc} size={13} />
+              </span>
               <span style={{ fontSize: 18, fontWeight: 800, color: '#5BA3C7' }}>{fmt(totaux.ttc)} €</span>
             </div>
           </div>

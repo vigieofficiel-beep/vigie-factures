@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabasePro } from '../lib/supabasePro';
-import { Plus, Trash2, Edit2, FileCheck, AlertTriangle, CheckCircle, Clock, Download, Upload, Bell } from 'lucide-react';
+import { Plus, Trash2, Edit2, FileCheck, AlertTriangle, CheckCircle, Clock, Bell } from 'lucide-react';
 import ExportButton from '../components/ExportButton';
 import DateFilter from '../components/DateFilter';
+import Tooltip from '../components/Tooltip';
+import { TIPS } from '../utils/tooltips';
 
 const ACCENT = '#5BC78A';
 const formatEuro = (n) => n == null ? '—' : new Intl.NumberFormat('fr-FR', { style:'currency', currency:'EUR' }).format(n);
@@ -83,7 +85,7 @@ function ContratForm({ onSave, onCancel, editData=null, prefill=null }) {
   };
 
   const inputStyle = { width:'100%', padding:'9px 12px', borderRadius:8, background:'#F8F9FB', border:'1px solid #E8EAF0', color:'#1A1C20', fontSize:13, outline:'none', boxSizing:'border-box' };
-  const labelStyle = { fontSize:11, fontWeight:600, color:'#5A6070', marginBottom:5, display:'block' };
+  const labelStyle = { fontSize:11, fontWeight:600, color:'#5A6070', marginBottom:5, display:'flex', alignItems:'center', gap:4 };
 
   return (
     <form onSubmit={handleSubmit} style={{ background:'#fff', border:`1px solid ${prefill?`${ACCENT}40`:'#E8EAF0'}`, borderRadius:14, padding:24, marginBottom:24, boxShadow:'0 2px 12px rgba(0,0,0,0.06)' }}>
@@ -93,23 +95,30 @@ function ContratForm({ onSave, onCancel, editData=null, prefill=null }) {
           <span style={{ fontSize:13, fontWeight:600, color:ACCENT }}>Formulaire pré-rempli depuis l'analyse du document</span>
         </div>
       )}
-      <h3 style={{ fontSize:15, fontWeight:700, color:'#1A1C20', marginBottom:20 }}>{editData?'Modifier le contrat':'Ajouter un contrat'}</h3>
+      <h3 style={{ fontSize:15, fontWeight:700, color:'#1A1C20', marginBottom:20, display:'flex', alignItems:'center', gap:8 }}>
+        {editData?'Modifier le contrat':'Ajouter un contrat'} <Tooltip text={TIPS.contrats} size={14}/>
+      </h3>
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, marginBottom:14 }}>
         <div><label style={labelStyle}>Nom du contrat *</label><input value={form.nom} onChange={set('nom')} required style={inputStyle} placeholder="Ex: Assurance RC Pro"/></div>
         <div><label style={labelStyle}>Type *</label><select value={form.type} onChange={set('type')} style={{ ...inputStyle, cursor:'pointer' }}>{TYPES.map(t=><option key={t.id} value={t.id}>{t.label}</option>)}</select></div>
         <div><label style={labelStyle}>Fournisseur / Prestataire</label><input value={form.fournisseur} onChange={set('fournisseur')} style={inputStyle} placeholder="Ex: AXA, Orange..."/></div>
         <div><label style={labelStyle}>Périodicité</label><select value={form.periodicite} onChange={set('periodicite')} style={{ ...inputStyle, cursor:'pointer' }}>{PERIODICITES.map(p=><option key={p.id} value={p.id}>{p.label}</option>)}</select></div>
         <div><label style={labelStyle}>Date de début</label><input type="date" value={form.date_debut} onChange={set('date_debut')} style={{ ...inputStyle, colorScheme:'light' }}/></div>
-        <div><label style={labelStyle}>Date de fin / Échéance</label><input type="date" value={form.date_fin} onChange={set('date_fin')} style={{ ...inputStyle, colorScheme:'light' }}/></div>
+        <div><label style={labelStyle}>Date de fin / Échéance <Tooltip text={TIPS.date_echeance}/></label><input type="date" value={form.date_fin} onChange={set('date_fin')} style={{ ...inputStyle, colorScheme:'light' }}/></div>
         <div><label style={labelStyle}>Montant périodique (€)</label><input type="number" step="0.01" min="0" value={form.montant_periodique} onChange={set('montant_periodique')} style={inputStyle} placeholder="0.00"/></div>
-        <div><label style={labelStyle}>Délai de préavis (jours)</label><input type="number" min="0" value={form.delai_preavis_jours} onChange={set('delai_preavis_jours')} style={inputStyle} placeholder="30"/></div>
+        <div><label style={labelStyle}>Délai de préavis (jours) <Tooltip text={TIPS.delai_preavis}/></label><input type="number" min="0" value={form.delai_preavis_jours} onChange={set('delai_preavis_jours')} style={inputStyle} placeholder="30"/></div>
       </div>
+
+      {/* Reconduction tacite */}
       <div style={{ background:form.reconduction_tacite?'rgba(199,91,78,0.04)':'#F8F9FB', border:`1px solid ${form.reconduction_tacite?'rgba(199,91,78,0.2)':'#E8EAF0'}`, borderRadius:10, padding:'12px 16px', marginBottom:14, display:'flex', alignItems:'center', gap:12 }}>
         <input type="checkbox" id="reconduction" checked={form.reconduction_tacite} onChange={setCheck('reconduction_tacite')} style={{ width:16, height:16, cursor:'pointer', accentColor:'#C75B4E' }}/>
-        <label htmlFor="reconduction" style={{ fontSize:13, color:form.reconduction_tacite?'#C75B4E':'#5A6070', fontWeight:form.reconduction_tacite?600:400, cursor:'pointer' }}>
-          Reconduction tacite{form.reconduction_tacite&&<span style={{ fontSize:11, marginLeft:8, opacity:0.7 }}>— Alerte {form.delai_preavis_jours}j avant</span>}
+        <label htmlFor="reconduction" style={{ fontSize:13, color:form.reconduction_tacite?'#C75B4E':'#5A6070', fontWeight:form.reconduction_tacite?600:400, cursor:'pointer', display:'flex', alignItems:'center', gap:6 }}>
+          Reconduction tacite
+          <Tooltip text={TIPS.reconduction_tacite} />
+          {form.reconduction_tacite&&<span style={{ fontSize:11, opacity:0.7 }}>— Alerte {form.delai_preavis_jours}j avant</span>}
         </label>
       </div>
+
       <div style={{ marginBottom:14 }}><label style={labelStyle}>Notes</label><textarea value={form.notes} onChange={set('notes')} rows={2} style={{ ...inputStyle, resize:'vertical', fontFamily:'inherit' }} placeholder="Conditions particulières..."/></div>
       <div style={{ marginBottom:20 }}>
         <label style={labelStyle}>Document contractuel (PDF)</label>
@@ -138,7 +147,6 @@ export default function ContratsPage() {
 
   useEffect(() => {
     fetchContrats();
-    // Lire le prefill OCR depuis le bureau
     try {
       const raw = sessionStorage.getItem('ocr_prefill');
       if (raw) {
@@ -187,7 +195,9 @@ export default function ContratsPage() {
     <div style={{ fontFamily:"'Nunito Sans', sans-serif", padding:'32px 28px', maxWidth:1000, margin:'0 auto' }}>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24, flexWrap:'wrap', gap:12 }}>
         <div>
-          <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:26, fontWeight:600, color:'#1A1C20', margin:0 }}>Contrats & Assurances</h1>
+          <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:26, fontWeight:600, color:'#1A1C20', margin:0, display:'flex', alignItems:'center', gap:8 }}>
+            Contrats & Assurances <Tooltip text={TIPS.contrats} size={16}/>
+          </h1>
           <p style={{ fontSize:13, color:'#9AA0AE', marginTop:4 }}>Suivi des échéances et reconductions tacites</p>
         </div>
         <div style={{ display:'flex', gap:10 }}>
@@ -216,13 +226,16 @@ export default function ContratsPage() {
 
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))', gap:14, marginBottom:24 }}>
         {[
-          { label:'Contrats actifs',  value:contrats.length,        color:ACCENT,    icon:FileCheck    },
-          { label:'Alertes',          value:alertes.length,         color:'#5BC78A', icon:Clock,        alert:alertes.length>0 },
-          { label:'Expirés',          value:expires.length,         color:'#C75B4E', icon:AlertTriangle,alert:expires.length>0 },
-          { label:'Coût annuel est.', value:formatEuro(totalAnnuel),color:'#5BC78A', icon:CheckCircle  },
-        ].map(s => { const Icon = s.icon; return (
-          <div key={s.label} style={{ background:'#fff', border:`1px solid ${s.alert?'rgba(199,91,78,0.3)':'#E8EAF0'}`, borderRadius:12, padding:'16px 18px', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}><p style={{ fontSize:11, color:'#9AA0AE', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.06em', margin:0 }}>{s.label}</p><Icon size={14} color={s.color}/></div>
+          { label:'Contrats actifs',  value:contrats.length,        color:ACCENT,    icon:FileCheck   },
+          { label:'Alertes',          value:alertes.length,         color:'#5BC78A', icon:Clock,       alert:alertes.length>0 },
+          { label:'Expirés',          value:expires.length,         color:'#C75B4E', icon:AlertTriangle, alert:expires.length>0 },
+          { label:<span style={{display:'flex',alignItems:'center',gap:4}}>Coût annuel est. <Tooltip text={TIPS.amortissement} size={11}/></span>, value:formatEuro(totalAnnuel), color:'#5BC78A', icon:CheckCircle },
+        ].map((s,idx) => { const Icon = s.icon; return (
+          <div key={idx} style={{ background:'#fff', border:`1px solid ${s.alert?'rgba(199,91,78,0.3)':'#E8EAF0'}`, borderRadius:12, padding:'16px 18px', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+              <p style={{ fontSize:11, color:'#9AA0AE', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.06em', margin:0 }}>{s.label}</p>
+              <Icon size={14} color={s.color}/>
+            </div>
             <p style={{ fontSize:22, fontWeight:700, color:s.alert?'#C75B4E':s.color, margin:0 }}>{s.value}</p>
           </div>
         );})}
@@ -249,11 +262,27 @@ export default function ContratsPage() {
           <div style={{ padding:48, textAlign:'center' }}><FileCheck size={32} color="#E8EAF0" style={{ marginBottom:12 }}/><p style={{ color:'#9AA0AE', fontSize:13, margin:0 }}>{contrats.length===0?'Aucun contrat — cliquez sur "Ajouter un contrat"':'Aucun contrat pour ce filtre'}</p></div>
         ) : (
           <table style={{ width:'100%', borderCollapse:'collapse' }}>
-            <thead><tr style={{ borderBottom:'1px solid #F0F2F5' }}>{['Contrat','Fournisseur','Type','Montant','Échéance','Statut',''].map(h=>(<th key={h} style={{ padding:'11px 14px', textAlign:'left', fontSize:10, fontWeight:700, color:'#9AA0AE', textTransform:'uppercase', letterSpacing:'0.06em' }}>{h}</th>))}</tr></thead>
+            <thead>
+              <tr style={{ borderBottom:'1px solid #F0F2F5' }}>
+                {[
+                  'Contrat','Fournisseur','Type','Montant',
+                  <span key="ech" style={{display:'flex',alignItems:'center',gap:4}}>Échéance <Tooltip text={TIPS.date_echeance} size={11}/></span>,
+                  'Statut','',
+                ].map((h,i)=>(<th key={i} style={{ padding:'11px 14px', textAlign:'left', fontSize:10, fontWeight:700, color:'#9AA0AE', textTransform:'uppercase', letterSpacing:'0.06em' }}>{h}</th>))}
+              </tr>
+            </thead>
             <tbody>
               {filtered.map((c,i)=>(
                 <tr key={c.id||i} style={{ borderBottom:'1px solid #F8F9FB' }} onMouseEnter={ev=>ev.currentTarget.style.background='#FAFBFC'} onMouseLeave={ev=>ev.currentTarget.style.background='transparent'}>
-                  <td style={{ padding:'11px 14px' }}><p style={{ fontSize:13, fontWeight:600, color:'#1A1C20', margin:0 }}>{c.nom}</p>{c.reconduction_tacite&&<p style={{ fontSize:10, color:'#C75B4E', margin:'2px 0 0' }}>Reconduction tacite — préavis {c.delai_preavis_jours}j</p>}</td>
+                  <td style={{ padding:'11px 14px' }}>
+                    <p style={{ fontSize:13, fontWeight:600, color:'#1A1C20', margin:0 }}>{c.nom}</p>
+                    {c.reconduction_tacite&&(
+                      <p style={{ fontSize:10, color:'#C75B4E', margin:'2px 0 0', display:'flex', alignItems:'center', gap:4 }}>
+                        Reconduction tacite — préavis {c.delai_preavis_jours}j
+                        <Tooltip text={TIPS.reconduction_tacite} size={10}/>
+                      </p>
+                    )}
+                  </td>
                   <td style={{ padding:'11px 14px', fontSize:12, color:'#5A6070' }}>{c.fournisseur||'—'}</td>
                   <td style={{ padding:'11px 14px', fontSize:12, color:'#5A6070' }}>{TYPES.find(t=>t.id===c.type)?.label||c.type}</td>
                   <td style={{ padding:'11px 14px', fontSize:13, fontWeight:600, color:ACCENT }}>{formatEuro(c.montant_periodique)}{c.periodicite&&<span style={{ fontSize:10, color:'#9AA0AE', fontWeight:400, marginLeft:4 }}>/{c.periodicite}</span>}</td>

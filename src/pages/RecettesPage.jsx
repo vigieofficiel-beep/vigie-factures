@@ -8,6 +8,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import ExportButton from '../components/ExportButton';
 import DateFilter from '../components/DateFilter';
+import Tooltip from '../components/Tooltip';
+import { TIPS } from '../utils/tooltips';
 
 const ACCENT = '#5BA3C7';
 const formatEuro = (n) => n == null ? '—' : new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n);
@@ -29,6 +31,16 @@ const STATUTS = [
   { id: 'en_retard',  label: 'En retard',   color: '#C75B4E', bg: 'rgba(199,91,78,0.1)' },
   { id: 'annule',     label: 'Annulé',      color: '#D0D4DC', bg: '#F8F9FB' },
 ];
+
+// Tooltips pour chaque statut devis
+const STATUT_TIPS = {
+  brouillon: TIPS.statut_brouillon,
+  envoye:    TIPS.statut_envoye,
+  signe:     TIPS.statut_signe,
+  encaisse:  TIPS.statut_encaisse,
+  en_retard: TIPS.statut_en_retard,
+  annule:    TIPS.statut_annule,
+};
 
 function genererPDF(devis, client, profil, lignes) {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -119,7 +131,13 @@ function LignesPrestation({ lignes, setLignes }) {
         </button>
       </div>
       <div style={{display:'grid',gridTemplateColumns:'3fr 0.6fr 1fr 0.8fr 1fr 28px',gap:6,marginBottom:6,padding:'0 4px'}}>
-        {['Description','Qté','P.U. HT (€)','TVA (%)','Total TTC',''].map(h => <span key={h} style={{fontSize:10,fontWeight:700,color:'#94A3B8',textTransform:'uppercase',letterSpacing:'0.05em'}}>{h}</span>)}
+        {[
+          'Description','Qté',
+          <span key="ht" style={{display:'flex',alignItems:'center',gap:3}}>P.U. HT <Tooltip text={TIPS.ht} size={11}/></span>,
+          <span key="tva" style={{display:'flex',alignItems:'center',gap:3}}>TVA % <Tooltip text={TIPS.taux_tva} size={11}/></span>,
+          <span key="ttc" style={{display:'flex',alignItems:'center',gap:3}}>Total TTC <Tooltip text={TIPS.ttc} size={11}/></span>,
+          '',
+        ].map((h,i) => <span key={i} style={{fontSize:10,fontWeight:700,color:'#94A3B8',textTransform:'uppercase',letterSpacing:'0.05em'}}>{h}</span>)}
       </div>
       {lignes.map((l,i) => {
         const ht=(Number(l.quantite)||0)*(Number(l.prix_unitaire)||0); const ttc=ht*(1+(Number(l.tva_taux)||20)/100);
@@ -137,9 +155,9 @@ function LignesPrestation({ lignes, setLignes }) {
         );
       })}
       <div style={{marginTop:10,padding:'10px 14px',background:'#F8FAFC',borderRadius:9,border:'1px solid #E2E8F0',display:'flex',justifyContent:'flex-end',gap:24}}>
-        <span style={{fontSize:12,color:'#94A3B8'}}>HT : <strong style={{color:'#0F172A'}}>{totalHT.toFixed(2)} €</strong></span>
-        <span style={{fontSize:12,color:'#94A3B8'}}>TVA : <strong style={{color:'#0F172A'}}>{totalTVA.toFixed(2)} €</strong></span>
-        <span style={{fontSize:13,color:ACCENT,fontWeight:800}}>TTC : {(totalHT+totalTVA).toFixed(2)} €</span>
+        <span style={{fontSize:12,color:'#94A3B8',display:'flex',alignItems:'center',gap:4}}>HT <Tooltip text={TIPS.ht} size={11}/> : <strong style={{color:'#0F172A'}}>{totalHT.toFixed(2)} €</strong></span>
+        <span style={{fontSize:12,color:'#94A3B8',display:'flex',alignItems:'center',gap:4}}>TVA <Tooltip text={TIPS.tva} size={11}/> : <strong style={{color:'#0F172A'}}>{totalTVA.toFixed(2)} €</strong></span>
+        <span style={{fontSize:13,color:ACCENT,fontWeight:800,display:'flex',alignItems:'center',gap:4}}>TTC <Tooltip text={TIPS.ttc} size={11}/> : {(totalHT+totalTVA).toFixed(2)} €</span>
       </div>
     </div>
   );
@@ -151,7 +169,7 @@ function ClientForm({ onSave, onCancel }) {
   const [error, setError] = useState('');
   const set=(k)=>(e)=>setForm(f=>({...f,[k]:e.target.value}));
   const iS={width:'100%',padding:'9px 12px',borderRadius:8,background:'#F8F9FB',border:'1px solid #E8EAF0',color:'#1A1C20',fontSize:13,outline:'none',boxSizing:'border-box'};
-  const lS={fontSize:11,fontWeight:600,color:'#5A6070',marginBottom:5,display:'block'};
+  const lS={fontSize:11,fontWeight:600,color:'#5A6070',marginBottom:5,display:'flex',alignItems:'center',gap:4};
   const handleSubmit=async(e)=>{e.preventDefault();setLoading(true);try{const{data:{user}}=await supabasePro.auth.getUser();const{error:err}=await supabasePro.from('clients').insert({...form,user_id:user.id});if(err)throw err;onSave();}catch(err){setError(err.message);}setLoading(false);};
   return (
     <form onSubmit={handleSubmit} style={{background:'#fff',border:'1px solid #E8EAF0',borderRadius:14,padding:24,marginBottom:24,boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
@@ -160,7 +178,7 @@ function ClientForm({ onSave, onCancel }) {
         <div><label style={lS}>Nom / Raison sociale *</label><input value={form.nom} onChange={set('nom')} required style={iS} placeholder="Ex: SARL Dupont"/></div>
         <div><label style={lS}>Email *</label><input type="email" value={form.email} onChange={set('email')} required style={iS} placeholder="contact@client.fr"/></div>
         <div><label style={lS}>Téléphone</label><input value={form.telephone} onChange={set('telephone')} style={iS} placeholder="06 00 00 00 00"/></div>
-        <div><label style={lS}>SIRET</label><input value={form.siret} onChange={set('siret')} style={iS} placeholder="000 000 000 00000"/></div>
+        <div><label style={lS}>SIRET <Tooltip text={TIPS.siret} /></label><input value={form.siret} onChange={set('siret')} style={iS} placeholder="000 000 000 00000"/></div>
       </div>
       <div style={{marginBottom:16}}><label style={lS}>Adresse</label><input value={form.adresse} onChange={set('adresse')} style={iS} placeholder="1 rue de la Paix, 75001 Paris"/></div>
       {error&&<div style={{color:'#C75B4E',fontSize:12,marginBottom:12}}>{error}</div>}
@@ -197,7 +215,7 @@ function DevisForm({ clients, onSave, onCancel, editData=null, prefill=null }) {
   const totalTVA=lignes.reduce((s,l)=>s+(Number(l.quantite)||0)*(Number(l.prix_unitaire)||0)*(Number(l.tva_taux)||20)/100,0);
   const handleSubmit=async(e)=>{e.preventDefault();setLoading(true);try{const{data:{user}}=await supabasePro.auth.getUser();const payload={...form,user_id:user.id,montant_ht:totalHT,tva_taux:lignes[0]?.tva_taux||20,montant_ttc:totalHT+totalTVA,description:JSON.stringify(lignes)};if(editData?.id){const{error:err}=await supabasePro.from('devis').update(payload).eq('id',editData.id);if(err)throw err;}else{const{error:err}=await supabasePro.from('devis').insert(payload);if(err)throw err;}onSave();}catch(err){setError(err.message);}setLoading(false);};
   const iS={width:'100%',padding:'9px 12px',borderRadius:8,background:'#F8F9FB',border:'1px solid #E8EAF0',color:'#1A1C20',fontSize:13,outline:'none',boxSizing:'border-box'};
-  const lS={fontSize:11,fontWeight:600,color:'#5A6070',marginBottom:5,display:'block'};
+  const lS={fontSize:11,fontWeight:600,color:'#5A6070',marginBottom:5,display:'flex',alignItems:'center',gap:4};
   return (
     <form onSubmit={handleSubmit} style={{background:'#fff',border:`1px solid ${prefill?`${ACCENT}40`:'#E8EAF0'}`,borderRadius:14,padding:24,marginBottom:24,boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
       {prefill && (
@@ -206,13 +224,15 @@ function DevisForm({ clients, onSave, onCancel, editData=null, prefill=null }) {
           <span style={{fontSize:13,fontWeight:600,color:ACCENT}}>Formulaire pré-rempli depuis l'analyse du document</span>
         </div>
       )}
-      <h3 style={{fontSize:15,fontWeight:700,color:'#1A1C20',marginBottom:20}}>{editData?'Modifier le devis':'Nouveau devis'}</h3>
+      <h3 style={{fontSize:15,fontWeight:700,color:'#1A1C20',marginBottom:20,display:'flex',alignItems:'center',gap:8}}>
+        {editData?'Modifier le devis':'Nouveau devis'} <Tooltip text={TIPS.devis} size={14}/>
+      </h3>
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14,marginBottom:14}}>
         <div><label style={lS}>Client *</label><select value={form.client_id} onChange={set('client_id')} required style={{...iS,cursor:'pointer'}}><option value="">Sélectionner un client</option>{clients.map(c=><option key={c.id} value={c.id}>{c.nom}</option>)}</select></div>
         <div><label style={lS}>Numéro de devis *</label><input value={form.numero} onChange={set('numero')} required style={iS}/></div>
         <div><label style={lS}>Date d'émission *</label><input type="date" value={form.date_emission} onChange={set('date_emission')} required style={{...iS,colorScheme:'light'}}/></div>
-        <div><label style={lS}>Date de validité</label><input type="date" value={form.date_validite} onChange={set('date_validite')} style={{...iS,colorScheme:'light'}}/></div>
-        <div><label style={lS}>Échéance paiement</label><input type="date" value={form.date_echeance} onChange={set('date_echeance')} style={{...iS,colorScheme:'light'}}/></div>
+        <div><label style={lS}>Date de validité <Tooltip text={TIPS.date_validite}/></label><input type="date" value={form.date_validite} onChange={set('date_validite')} style={{...iS,colorScheme:'light'}}/></div>
+        <div><label style={lS}>Échéance paiement <Tooltip text={TIPS.date_echeance}/></label><input type="date" value={form.date_echeance} onChange={set('date_echeance')} style={{...iS,colorScheme:'light'}}/></div>
         <div><label style={lS}>Statut</label><select value={form.statut} onChange={set('statut')} style={{...iS,cursor:'pointer'}}>{STATUTS.map(s=><option key={s.id} value={s.id}>{s.label}</option>)}</select></div>
       </div>
       <LignesPrestation lignes={lignes} setLignes={setLignes}/>
@@ -243,7 +263,6 @@ export default function RecettesPage() {
 
   useEffect(()=>{
     fetchAll();
-    // Lire le prefill OCR depuis le bureau
     try {
       const raw = sessionStorage.getItem('ocr_prefill');
       if (raw) {
@@ -295,7 +314,9 @@ export default function RecettesPage() {
 
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:24,flexWrap:'wrap',gap:12}}>
         <div>
-          <h1 style={{fontFamily:"'Cormorant Garamond', serif",fontSize:26,fontWeight:600,color:'#1A1C20',margin:0}}>Recettes</h1>
+          <h1 style={{fontFamily:"'Cormorant Garamond', serif",fontSize:26,fontWeight:600,color:'#1A1C20',margin:0,display:'flex',alignItems:'center',gap:8}}>
+            Recettes <Tooltip text={TIPS.recettes} size={16}/>
+          </h1>
           <p style={{fontSize:13,color:'#9AA0AE',marginTop:4}}>Devis, clients et suivi des encaissements</p>
         </div>
         <div style={{display:'flex',gap:10}}>
@@ -314,7 +335,23 @@ export default function RecettesPage() {
       </div>
 
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))',gap:14,marginBottom:24}}>
-        {[{label:'Devis signés',value:formatEuro(totalSigne),color:'#5BC78A',icon:CheckCircle},{label:'Encaissé',value:formatEuro(totalEncaisse),color:'#A85BC7',icon:TrendingUp},{label:'En retard',value:enRetard.length,color:'#C75B4E',icon:AlertTriangle,alert:enRetard.length>0},{label:'Clients',value:clients.length,color:ACCENT,icon:Users}].map(s=>{const Icon=s.icon;return(<div key={s.label} style={{background:'#fff',border:`1px solid ${s.alert?'rgba(199,91,78,0.3)':'#E8EAF0'}`,borderRadius:12,padding:'16px 18px',boxShadow:'0 1px 4px rgba(0,0,0,0.05)'}}><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}><p style={{fontSize:11,color:'#9AA0AE',fontWeight:600,textTransform:'uppercase',letterSpacing:'0.06em',margin:0}}>{s.label}</p><Icon size={14} color={s.color}/></div><p style={{fontSize:22,fontWeight:700,color:s.alert?'#C75B4E':s.color,margin:0}}>{s.value}</p></div>);})}
+        {[
+          {label:'Devis signés',  value:formatEuro(totalSigne),   color:'#5BC78A', icon:CheckCircle, tip:TIPS.statut_signe},
+          {label:'Encaissé',      value:formatEuro(totalEncaisse), color:'#A85BC7', icon:TrendingUp,  tip:TIPS.statut_encaisse},
+          {label:'En retard',     value:enRetard.length,           color:'#C75B4E', icon:AlertTriangle, alert:enRetard.length>0, tip:TIPS.statut_en_retard},
+          {label:'Clients',       value:clients.length,            color:ACCENT,    icon:Users},
+        ].map(s=>{const Icon=s.icon;return(
+          <div key={s.label} style={{background:'#fff',border:`1px solid ${s.alert?'rgba(199,91,78,0.3)':'#E8EAF0'}`,borderRadius:12,padding:'16px 18px',boxShadow:'0 1px 4px rgba(0,0,0,0.05)'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+              <div style={{display:'flex',alignItems:'center',gap:4}}>
+                <p style={{fontSize:11,color:'#9AA0AE',fontWeight:600,textTransform:'uppercase',letterSpacing:'0.06em',margin:0}}>{s.label}</p>
+                {s.tip && <Tooltip text={s.tip} size={11}/>}
+              </div>
+              <Icon size={14} color={s.color}/>
+            </div>
+            <p style={{fontSize:22,fontWeight:700,color:s.alert?'#C75B4E':s.color,margin:0}}>{s.value}</p>
+          </div>
+        );})}
       </div>
 
       {showClientForm&&<ClientForm onSave={()=>{setShowClientForm(false);fetchAll();}} onCancel={()=>setShowClientForm(false)}/>}
@@ -333,14 +370,28 @@ export default function RecettesPage() {
       </div>
 
       {tab==='devis'&&(<>
-        <div style={{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap'}}>
-          {[{id:'tous',label:'Tous',color:'#9AA0AE'},...STATUTS].map(s=>(<button key={s.id} onClick={()=>setFilterStatut(s.id)} style={{padding:'5px 14px',borderRadius:20,border:`1px solid ${filterStatut===s.id?s.color:'#E8EAF0'}`,background:filterStatut===s.id?`${s.color}15`:'#fff',color:filterStatut===s.id?s.color:'#5A6070',fontSize:12,fontWeight:filterStatut===s.id?700:500,cursor:'pointer'}}>{s.label}</button>))}
+        <div style={{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap',alignItems:'center'}}>
+          {[{id:'tous',label:'Tous',color:'#9AA0AE'},...STATUTS].map(s=>(
+            <div key={s.id} style={{display:'flex',alignItems:'center',gap:4}}>
+              <button onClick={()=>setFilterStatut(s.id)} style={{padding:'5px 14px',borderRadius:20,border:`1px solid ${filterStatut===s.id?s.color:'#E8EAF0'}`,background:filterStatut===s.id?`${s.color}15`:'#fff',color:filterStatut===s.id?s.color:'#5A6070',fontSize:12,fontWeight:filterStatut===s.id?700:500,cursor:'pointer'}}>{s.label}</button>
+              {STATUT_TIPS[s.id] && <Tooltip text={STATUT_TIPS[s.id]} size={11}/>}
+            </div>
+          ))}
         </div>
         <div style={{background:'#fff',border:'1px solid #E8EAF0',borderRadius:14,overflow:'hidden',boxShadow:'0 1px 4px rgba(0,0,0,0.06)'}}>
           {loading?<div style={{padding:40,textAlign:'center',color:'#9AA0AE',fontSize:13}}>Chargement...</div>
           :filtered.length===0?<div style={{padding:48,textAlign:'center'}}><FileText size={32} color="#E8EAF0" style={{marginBottom:12}}/><p style={{color:'#9AA0AE',fontSize:13,margin:0}}>{devis.length===0?'Aucun devis — cliquez sur "Nouveau devis"':'Aucun devis pour ce filtre'}</p></div>
           :<table style={{width:'100%',borderCollapse:'collapse'}}>
-            <thead><tr style={{borderBottom:'1px solid #F0F2F5'}}>{['N° Devis','Client','Émission','Échéance','Montant TTC','Statut','Relances',''].map(h=>(<th key={h} style={{padding:'11px 14px',textAlign:'left',fontSize:10,fontWeight:700,color:'#9AA0AE',textTransform:'uppercase',letterSpacing:'0.06em'}}>{h}</th>))}</tr></thead>
+            <thead>
+              <tr style={{borderBottom:'1px solid #F0F2F5'}}>
+                {[
+                  'N° Devis','Client','Émission',
+                  <span key="ech" style={{display:'flex',alignItems:'center',gap:4}}>Échéance <Tooltip text={TIPS.date_echeance} size={11}/></span>,
+                  <span key="ttc" style={{display:'flex',alignItems:'center',gap:4}}>Montant TTC <Tooltip text={TIPS.ttc} size={11}/></span>,
+                  'Statut','Relances','',
+                ].map((h,i)=>(<th key={i} style={{padding:'11px 14px',textAlign:'left',fontSize:10,fontWeight:700,color:'#9AA0AE',textTransform:'uppercase',letterSpacing:'0.06em'}}>{h}</th>))}
+              </tr>
+            </thead>
             <tbody>
               {filtered.map((d,i)=>{
                 const days=daysUntil(d.date_echeance);const isLate=(d.statut==='signe'||d.statut==='envoye')&&days!==null&&days<0;
@@ -371,7 +422,14 @@ export default function RecettesPage() {
         <div style={{background:'#fff',border:'1px solid #E8EAF0',borderRadius:14,overflow:'hidden',boxShadow:'0 1px 4px rgba(0,0,0,0.06)'}}>
           {clients.length===0?<div style={{padding:48,textAlign:'center'}}><Users size={32} color="#E8EAF0" style={{marginBottom:12}}/><p style={{color:'#9AA0AE',fontSize:13,margin:0}}>Aucun client — cliquez sur "Nouveau client"</p></div>
           :<table style={{width:'100%',borderCollapse:'collapse'}}>
-            <thead><tr style={{borderBottom:'1px solid #F0F2F5'}}>{['Nom','Email','Téléphone','SIRET',''].map(h=>(<th key={h} style={{padding:'11px 14px',textAlign:'left',fontSize:10,fontWeight:700,color:'#9AA0AE',textTransform:'uppercase',letterSpacing:'0.06em'}}>{h}</th>))}</tr></thead>
+            <thead>
+              <tr style={{borderBottom:'1px solid #F0F2F5'}}>
+                {['Nom','Email','Téléphone',
+                  <span key="siret" style={{display:'flex',alignItems:'center',gap:4}}>SIRET <Tooltip text={TIPS.siret} size={11}/></span>,
+                  '',
+                ].map((h,i)=>(<th key={i} style={{padding:'11px 14px',textAlign:'left',fontSize:10,fontWeight:700,color:'#9AA0AE',textTransform:'uppercase',letterSpacing:'0.06em'}}>{h}</th>))}
+              </tr>
+            </thead>
             <tbody>{clients.map((c,i)=>(<tr key={c.id||i} style={{borderBottom:'1px solid #F8F9FB'}} onMouseEnter={ev=>ev.currentTarget.style.background='#FAFBFC'} onMouseLeave={ev=>ev.currentTarget.style.background='transparent'}><td style={{padding:'11px 14px',fontSize:13,fontWeight:600,color:'#1A1C20'}}>{c.nom}</td><td style={{padding:'11px 14px',fontSize:12,color:'#5A6070'}}>{c.email}</td><td style={{padding:'11px 14px',fontSize:12,color:'#5A6070'}}>{c.telephone||'—'}</td><td style={{padding:'11px 14px',fontSize:12,color:'#5A6070'}}>{c.siret||'—'}</td><td style={{padding:'11px 14px'}}><button onClick={()=>deleteClient(c.id)} style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'#D0D4DC'}} onMouseEnter={ev=>ev.currentTarget.style.color='#C75B4E'} onMouseLeave={ev=>ev.currentTarget.style.color='#D0D4DC'}><Trash2 size={13}/></button></td></tr>))}</tbody>
           </table>}
         </div>

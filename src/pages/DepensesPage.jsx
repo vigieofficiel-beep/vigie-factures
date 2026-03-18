@@ -3,6 +3,8 @@ import { supabasePro } from '../lib/supabasePro';
 import { Plus, Trash2, FileText, Car, Coffee, Hotel, Package, CheckCircle, Loader, Scan } from 'lucide-react';
 import ExportButton from '../components/ExportButton';
 import DateFilter from '../components/DateFilter';
+import Tooltip from '../components/Tooltip';
+import { TIPS } from '../utils/tooltips';
 
 const ACCENT = '#5BC78A';
 
@@ -19,7 +21,6 @@ const TAUX_KM = 0.529;
 const formatEuro = (n) => n == null ? '—' : new Intl.NumberFormat('fr-FR', { style:'currency', currency:'EUR' }).format(n);
 const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric' }) : '—';
 
-// Convertit JJ/MM/AAAA → AAAA-MM-JJ
 function parseOCRDate(str) {
   if (!str) return new Date().toISOString().split('T')[0];
   const p = str.split('/');
@@ -118,7 +119,7 @@ function AddExpenseForm({ onSave, onCancel, prefill=null }) {
   };
 
   const iS = { width:'100%', padding:'9px 12px', borderRadius:8, background:'#F8F9FB', border:'1px solid #E8EAF0', color:'#1A1C20', fontSize:13, outline:'none', boxSizing:'border-box' };
-  const lS = { fontSize:11, fontWeight:600, color:'#5A6070', marginBottom:5, display:'block' };
+  const lS = { fontSize:11, fontWeight:600, color:'#5A6070', marginBottom:5, display:'flex', alignItems:'center', gap:4 };
 
   return (
     <form onSubmit={handleSubmit} style={{ background:'#fff', border:`1px solid ${ocrSuccess?`${ACCENT}40`:'#E8EAF0'}`, borderRadius:14, padding:24, marginBottom:24, boxShadow:'0 2px 12px rgba(0,0,0,0.06)' }}>
@@ -129,8 +130,10 @@ function AddExpenseForm({ onSave, onCancel, prefill=null }) {
         </div>
       )}
       <h3 style={{ fontSize:15, fontWeight:700, color:'#1A1C20', marginBottom:20 }}>Nouvelle dépense</h3>
+
+      {/* Zone scan */}
       <div style={{ marginBottom:20 }}>
-        <label style={lS}>Justificatif (photo ou PDF)</label>
+        <label style={lS}>Justificatif (photo ou PDF) <Tooltip text={TIPS.ocr} /></label>
         <div onClick={() => fileRef.current?.click()} style={{ border:`2px dashed ${ocrSuccess?ACCENT:file?'#5BC78A':'#E8EAF0'}`, borderRadius:10, padding:18, textAlign:'center', cursor:'pointer', background:ocrSuccess?`${ACCENT}08`:file?'#FFF9F0':'#F8F9FB', transition:'all 200ms ease' }}>
           <input ref={fileRef} type="file" accept=".pdf,.png,.jpg,.jpeg" style={{ display:'none' }} onChange={handleFileChange}/>
           {scanning ? <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}><Loader size={16} color={ACCENT} style={{ animation:'spin 1s linear infinite' }}/><span style={{ fontSize:13, color:ACCENT, fontWeight:600 }}>Analyse en cours...</span></div>
@@ -139,10 +142,15 @@ function AddExpenseForm({ onSave, onCancel, prefill=null }) {
           : <div><div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:6, marginBottom:4 }}><Scan size={16} color={ACCENT}/><span style={{ fontSize:13, color:ACCENT, fontWeight:700 }}>Déposer une facture</span></div><span style={{ fontSize:11, color:'#9AA0AE' }}>PDF ou photo — le formulaire se complète automatiquement</span></div>}
         </div>
       </div>
+
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, marginBottom:14 }}>
         <div><label style={lS}>Date *</label><input type="date" value={form.date} onChange={set('date')} required style={{ ...iS, colorScheme:'light' }}/></div>
-        <div><label style={lS}>Montant TTC (€) *</label><input type="number" step="0.01" min="0" value={form.amount_ttc} onChange={set('amount_ttc')} placeholder="0,00" required style={iS}/></div>
+        <div>
+          <label style={lS}>Montant TTC (€) * <Tooltip text={TIPS.montant_ttc} /></label>
+          <input type="number" step="0.01" min="0" value={form.amount_ttc} onChange={set('amount_ttc')} placeholder="0,00" required style={iS}/>
+        </div>
       </div>
+
       <div style={{ marginBottom:14 }}>
         <label style={lS}>Catégorie *</label>
         <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
@@ -153,16 +161,19 @@ function AddExpenseForm({ onSave, onCancel, prefill=null }) {
           })}
         </div>
       </div>
+
       <div style={{ marginBottom:14 }}><label style={lS}>Fournisseur</label><input type="text" value={form.etablissement} onChange={set('etablissement')} placeholder="ex : EDF, Amazon..." style={iS}/></div>
+
       {form.type === 'transport' && (
         <div style={{ marginBottom:14, background:'rgba(91,163,199,0.06)', border:'1px solid rgba(91,163,199,0.2)', borderRadius:10, padding:'12px 14px' }}>
-          <label style={{ ...lS, color:'#5BA3C7' }}>Kilométrage (facultatif)</label>
+          <label style={{ ...lS, color:'#5BA3C7' }}>Kilométrage (facultatif) <Tooltip text={TIPS.indemnite_km} /></label>
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
             <input type="number" min="0" value={form.km} onChange={set('km')} placeholder="ex : 150" style={{ ...iS, maxWidth:140 }}/>
             <span style={{ fontSize:12, color:'#5BA3C7', fontWeight:500 }}>{form.km?`= ${(parseFloat(form.km)*TAUX_KM).toFixed(2)} €`:'km × 0,529 €/km'}</span>
           </div>
         </div>
       )}
+
       <div style={{ marginBottom:14 }}><label style={lS}>Remarques</label><input type="text" value={form.notes} onChange={set('notes')} placeholder="Informations complémentaires..." style={iS}/></div>
       {error && <div style={{ background:'rgba(199,91,78,0.08)', border:'1px solid rgba(199,91,78,0.2)', borderRadius:8, padding:'10px 14px', color:'#C75B4E', fontSize:12, marginBottom:14 }}>{error}</div>}
       <div style={{ display:'flex', gap:10 }}>
@@ -185,7 +196,6 @@ export default function DepensesPage() {
 
   useEffect(() => {
     fetchExpenses();
-    // Lire le prefill OCR depuis le bureau
     try {
       const raw = sessionStorage.getItem('ocr_prefill');
       if (raw) {
@@ -226,7 +236,9 @@ export default function DepensesPage() {
     <div style={{ fontFamily:"'Nunito Sans', sans-serif", padding:'32px 28px', maxWidth:900, margin:'0 auto' }}>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24, flexWrap:'wrap', gap:12 }}>
         <div>
-          <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:26, fontWeight:600, color:'#1A1C20', margin:0 }}>Dépenses & Notes de frais</h1>
+          <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:26, fontWeight:600, color:'#1A1C20', margin:0, display:'flex', alignItems:'center', gap:8 }}>
+            Dépenses & Notes de frais <Tooltip text={TIPS.depenses} size={16} />
+          </h1>
           <p style={{ fontSize:13, color:'#9AA0AE', marginTop:4 }}>Suivez vos dépenses professionnelles</p>
         </div>
         <div style={{ display:'flex', gap:10, flexWrap:'wrap', alignItems:'center' }}>
@@ -257,12 +269,15 @@ export default function DepensesPage() {
 
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))', gap:14, marginBottom:24 }}>
         {[
-          { label:'Total dépenses',  value:formatEuro(totalFiltered), color:ACCENT    },
-          { label:'Indemnités km',   value:formatEuro(totalKm),       color:'#5BA3C7' },
-          { label:'Nombre dépenses', value:filtered.length,           color:'#5BC78A' },
+          { label:'Total dépenses',  value:formatEuro(totalFiltered), color:ACCENT,    tip: TIPS.depenses },
+          { label:'Indemnités km',   value:formatEuro(totalKm),       color:'#5BA3C7', tip: TIPS.indemnite_km },
+          { label:'Nombre dépenses', value:filtered.length,           color:'#5BC78A', tip: null },
         ].map(s => (
           <div key={s.label} style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:12, padding:'16px 18px', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }}>
-            <p style={{ fontSize:11, color:'#9AA0AE', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>{s.label}</p>
+            <div style={{ display:'flex', alignItems:'center', gap:4, marginBottom:8 }}>
+              <p style={{ fontSize:11, color:'#9AA0AE', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.06em', margin:0 }}>{s.label}</p>
+              {s.tip && <Tooltip text={s.tip} size={11} />}
+            </div>
             <p style={{ fontSize:22, fontWeight:700, color:s.color, margin:0 }}>{s.value}</p>
           </div>
         ))}
@@ -285,7 +300,18 @@ export default function DepensesPage() {
           </div>
         ) : (
           <table style={{ width:'100%', borderCollapse:'collapse' }}>
-            <thead><tr style={{ borderBottom:'1px solid #F0F2F5' }}>{['Date','Catégorie','Fournisseur','Montant TTC','Indemnité km','Justificatif',''].map(h=>(<th key={h} style={{ padding:'11px 14px', textAlign:'left', fontSize:10, fontWeight:700, color:'#9AA0AE', textTransform:'uppercase', letterSpacing:'0.06em' }}>{h}</th>))}</tr></thead>
+            <thead>
+              <tr style={{ borderBottom:'1px solid #F0F2F5' }}>
+                {[
+                  'Date', 'Catégorie', 'Fournisseur',
+                  <span key="ttc" style={{ display:'flex', alignItems:'center', gap:4 }}>Montant TTC <Tooltip text={TIPS.montant_ttc} size={11} /></span>,
+                  <span key="km" style={{ display:'flex', alignItems:'center', gap:4 }}>Indemnité km <Tooltip text={TIPS.indemnite_km} size={11} /></span>,
+                  'Justificatif', '',
+                ].map((h, i) => (
+                  <th key={i} style={{ padding:'11px 14px', textAlign:'left', fontSize:10, fontWeight:700, color:'#9AA0AE', textTransform:'uppercase', letterSpacing:'0.06em' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
             <tbody>
               {filtered.map((e,i) => (
                 <tr key={e.id||i} style={{ borderBottom:'1px solid #F8F9FB' }} onMouseEnter={ev=>ev.currentTarget.style.background='#FAFBFC'} onMouseLeave={ev=>ev.currentTarget.style.background='transparent'}>

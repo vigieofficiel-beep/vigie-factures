@@ -37,7 +37,7 @@ export default function DocumentsPage() {
           </div>
           <div>
             <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: '#0F172A', fontFamily: "'Cormorant Garamond', serif" }}>
-              Documents
+              Générateur de documents
             </h1>
             <p style={{ margin: 0, fontSize: 13, color: '#64748B' }}>Générez vos devis et factures</p>
           </div>
