@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
-import { Lock, Zap, ArrowRight, CheckCircle } from 'lucide-react';
-import { usePlan, hasAccess, PLANS, MODULE_ACCESS } from '../hooks/usePlan.jsx';
+import { Lock, Zap, ArrowRight, CheckCircle, Loader } from 'lucide-react';
+import { usePlan, hasAccess, PLANS, MODULE_ACCESS } from '../hooks/usePlan';
+import { useStripe } from '../hooks/useStripe';
 
 // Contenu affiché selon le plan requis
 const UPGRADE_CONTENT = {
@@ -66,6 +67,7 @@ const UPGRADE_CONTENT = {
 export default function ModuleLock({ children, module, requiredPlan }) {
   const { plan, loading } = usePlan();
   const navigate = useNavigate();
+  const { startCheckout, loading: stripeLoading, error: stripeError } = useStripe();
 
   // Déterminer le plan requis
   const needed = requiredPlan || MODULE_ACCESS[module] || 'gratuit';
@@ -157,39 +159,53 @@ export default function ModuleLock({ children, module, requiredPlan }) {
           ))}
         </div>
 
-        {/* Bouton upgrade */}
+        {/* Bouton upgrade direct Stripe */}
         <button
-          onClick={() => navigate('/tarifs')}
+          onClick={() => startCheckout(needed)}
+          disabled={stripeLoading}
           style={{
             width: '100%', padding: '14px 20px',
             borderRadius: 12, border: 'none',
-            background: `linear-gradient(135deg, ${content.color}, ${content.color}CC)`,
+            background: stripeLoading ? `${content.color}80` : `linear-gradient(135deg, ${content.color}, ${content.color}CC)`,
             color: '#fff', fontSize: 14, fontWeight: 700,
-            cursor: 'pointer', display: 'flex',
-            alignItems: 'center', justifyContent: 'center', gap: 8,
+            cursor: stripeLoading ? 'wait' : 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             boxShadow: `0 4px 16px ${content.color}40`,
             fontFamily: "'Nunito Sans', sans-serif",
-            marginBottom: 12,
+            marginBottom: 8,
             transition: 'transform 150ms ease, box-shadow 150ms ease',
           }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
+          onMouseEnter={e => { if (!stripeLoading) e.currentTarget.style.transform = 'translateY(-1px)'; }}
           onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
         >
-          {content.cta} <ArrowRight size={16} />
+          {stripeLoading
+            ? <><Loader size={15} style={{ animation: 'spin 1s linear infinite' }}/> Redirection…</>
+            : <>{content.cta} <ArrowRight size={16}/></>
+          }
         </button>
 
-        {/* Lien retour */}
+        {stripeError && (
+          <div style={{ fontSize: 12, color: '#C75B4E', textAlign: 'center', marginBottom: 8 }}>
+            {stripeError}
+          </div>
+        )}
+
+        {/* Lien voir les tarifs */}
+        <button
+          onClick={() => navigate('/tarifs')}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#94A3B8', fontFamily: "'Nunito Sans', sans-serif", display: 'block', width: '100%', textAlign: 'center' }}
+        >
+          Voir tous les tarifs
+        </button>
+      {/* Lien retour */}
         <button
           onClick={() => navigate('/pro')}
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            fontSize: 13, color: '#94A3B8',
-            fontFamily: "'Nunito Sans', sans-serif",
-          }}
+          style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#94A3B8', fontFamily:"'Nunito Sans', sans-serif", marginTop: 4 }}
         >
           ← Retour au bureau
         </button>
       </div>
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

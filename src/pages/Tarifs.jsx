@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Check, X, ArrowRight, Zap, Star, Crown, Rocket } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Check, X, ArrowRight, Zap, Star, Crown, Rocket, Loader } from 'lucide-react';
 import Footer from '../components/Footer';
+import { useStripe } from '../hooks/useStripe';
+import { supabasePro } from '../lib/supabasePro';
 
 const C = {
   blue:'#5BA3C7', green:'#5BC78A', purple:'#A85BC7',
@@ -126,6 +128,16 @@ const FAQ = [
 
 export default function Tarifs() {
   const [faqOpen, setFaqOpen] = useState(null);
+  const { startCheckout, loading: stripeLoading, error: stripeError } = useStripe();
+  const navigate = useNavigate();
+
+  const handlePlanClick = async (plan, prix) => {
+    if (prix === 0) { navigate('/pro/signup'); return; }
+    // Vérifier si connecté
+    const { data: { user } } = await supabasePro.auth.getUser();
+    if (!user) { navigate('/pro/signup'); return; }
+    startCheckout(plan);
+  };
 
   return (
     <div style={{ fontFamily:"'Nunito Sans', sans-serif", background: C.dark, color: C.text, minHeight: '100vh' }}>
@@ -183,9 +195,16 @@ export default function Tarifs() {
                 {plan.prix > 0 && <span style={{ fontSize:13, color:C.light }}> / mois</span>}
               </div>
 
-              <Link to={plan.ctaLink} style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:'11px', borderRadius:11, background: plan.populaire ? 'linear-gradient(135deg, #5BA3C7, #3d7fa8)' : `${plan.couleur}18`, color: plan.populaire ? '#fff' : plan.couleur, fontSize:13, fontWeight:700, textDecoration:'none', marginBottom:20, border: plan.populaire ? 'none' : `1px solid ${plan.couleur}35`, transition:'all 0.2s ease' }}>
-                {plan.cta} <ArrowRight size={13}/>
-              </Link>
+              <button
+                onClick={() => handlePlanClick(plan.id, plan.prix)}
+                disabled={stripeLoading}
+                style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:'11px', borderRadius:11, background: plan.populaire ? 'linear-gradient(135deg, #5BA3C7, #3d7fa8)' : `${plan.couleur}18`, color: plan.populaire ? '#fff' : plan.couleur, fontSize:13, fontWeight:700, marginBottom:20, border: plan.populaire ? 'none' : `1px solid ${plan.couleur}35`, transition:'all 0.2s ease', cursor: stripeLoading ? 'wait' : 'pointer', width:'100%', fontFamily:"'Nunito Sans', sans-serif" }}
+              >
+                {stripeLoading
+                  ? <><Loader size={13} style={{ animation:'spin 1s linear infinite' }}/> Redirection…</>
+                  : <>{plan.cta} <ArrowRight size={13}/></>
+                }
+              </button>
 
               <div style={{ flex:1, display:'flex', flexDirection:'column', gap:7 }}>
                 {plan.fonctionnalites.map((f, i) => (
@@ -254,6 +273,7 @@ export default function Tarifs() {
       </div>
 
       <Footer/>
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

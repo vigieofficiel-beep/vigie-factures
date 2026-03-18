@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabasePro } from '../lib/supabasePro';
-import { Save, User, Building2, CreditCard, MapPin, CheckCircle, Camera, Upload } from 'lucide-react';
+import { Save, User, Building2, CreditCard, MapPin, CheckCircle, Camera, Upload, Zap, ExternalLink, Loader } from 'lucide-react';
+import { useStripe } from '../hooks/useStripe';
+import { usePlan, PLANS } from '../hooks/usePlan';
 
 const C = {
   blue:   '#5BA3C7',
@@ -25,6 +27,8 @@ const labelStyle = {
 };
 
 export default function ProfilPro() {
+  const { startCheckout, openPortal, loading: stripeLoading, error: stripeError } = useStripe();
+  const { plan: currentPlan } = usePlan();
   const [form, setForm] = useState({
     first_name: '', last_name: '', phone: '',
     company_name: '', siret: '', forme_juridique: '',
@@ -286,6 +290,72 @@ export default function ProfilPro() {
         <p style={{ fontSize: 11, color: C.light, marginTop: 8 }}>ℹ️ L'IBAN apparaîtra en bas de vos devis pour faciliter le paiement.</p>
       </div>
 
+      {/* ── Abonnement ── */}
+      <div style={{ background: '#fff', border: `1px solid ${C.border}`, borderRadius: 16, padding: 24, marginBottom: 24, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: `${C.blue}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Zap size={13} color={C.blue}/>
+          </div>
+          <span style={{ fontSize: 12, fontWeight: 700, color: C.dark, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Mon abonnement</span>
+        </div>
+
+        {/* Plan actuel */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: C.bg, borderRadius: 10, border: `1px solid ${C.border}`, marginBottom: 16 }}>
+          <div>
+            <div style={{ fontSize: 12, color: C.light, marginBottom: 3 }}>Plan actuel</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: C.dark }}>
+              {PLANS[currentPlan]?.label || 'Gratuit'}
+              <span style={{ fontSize: 12, fontWeight: 400, color: C.light, marginLeft: 8 }}>
+                {PLANS[currentPlan]?.price || '0 €/mois'}
+              </span>
+            </div>
+          </div>
+          <div style={{ width: 10, height: 10, borderRadius: '50%', background: currentPlan === 'gratuit' ? '#9AA0AE' : C.green }}/>
+        </div>
+
+        {/* Boutons selon le plan */}
+        {currentPlan === 'gratuit' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <p style={{ fontSize: 12, color: C.light, marginBottom: 8 }}>Passez à un plan payant pour accéder aux modules de gestion.</p>
+            {['starter', 'pro', 'premium'].map(p => (
+              <button
+                key={p}
+                onClick={() => startCheckout(p)}
+                disabled={stripeLoading}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', borderRadius: 9, border: `1px solid ${PLANS[p]?.color}40`, background: `${PLANS[p]?.color}08`, color: PLANS[p]?.color, fontSize: 13, fontWeight: 700, cursor: stripeLoading ? 'wait' : 'pointer', fontFamily: 'inherit' }}
+              >
+                <span>{PLANS[p]?.label} — {PLANS[p]?.price}</span>
+                {stripeLoading ? <Loader size={13} style={{ animation: 'spin 1s linear infinite' }}/> : <ExternalLink size={13}/>}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {currentPlan !== 'gratuit' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <button
+              onClick={openPortal}
+              disabled={stripeLoading}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '11px 16px', borderRadius: 9, border: `1px solid ${C.blue}`, background: `${C.blue}10`, color: C.blue, fontSize: 13, fontWeight: 700, cursor: stripeLoading ? 'wait' : 'pointer', fontFamily: 'inherit' }}
+            >
+              {stripeLoading
+                ? <><Loader size={13} style={{ animation: 'spin 1s linear infinite' }}/> Redirection…</>
+                : <><ExternalLink size={13}/> Gérer mon abonnement (CB, factures, annulation)</>
+              }
+            </button>
+            <p style={{ fontSize: 11, color: C.light, textAlign: 'center' }}>
+              Vous serez redirigé vers le portail sécurisé Stripe.
+            </p>
+          </div>
+        )}
+
+        {stripeError && (
+          <div style={{ fontSize: 12, color: C.red, marginTop: 8, padding: '8px 12px', background: 'rgba(199,91,78,0.07)', borderRadius: 8 }}>
+            {stripeError}
+          </div>
+        )}
+      </div>
+
       {error && <div style={{ color: C.red, fontSize: 12, marginBottom: 12, padding: '8px 12px', background: 'rgba(199,91,78,0.07)', borderRadius: 8, border: '1px solid rgba(199,91,78,0.2)' }}>{error}</div>}
 
       <button
@@ -299,6 +369,7 @@ export default function ProfilPro() {
           : <><Save size={16}/> Enregistrer mon profil</>
         }
       </button>
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
