@@ -3,12 +3,19 @@
   "devCommand": "vite --port $PORT",
   "outputDirectory": "dist",
   "framework": "vite",
-  "functions": {
-    "api/**/*.js": {
-      "runtime": "nodejs20.x"
-    }
-  },
   "rewrites": [
+    {
+      "source": "/api/stripe/checkout",
+      "destination": "/api/stripe/checkout.cjs"
+    },
+    {
+      "source": "/api/stripe/webhook",
+      "destination": "/api/stripe/webhook.cjs"
+    },
+    {
+      "source": "/api/stripe/portal",
+      "destination": "/api/stripe/portal.cjs"
+    },
     {
       "source": "/api/(.*)",
       "destination": "/api/$1"
