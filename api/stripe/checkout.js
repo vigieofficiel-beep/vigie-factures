@@ -1,4 +1,4 @@
-import Stripe from 'stripe';
+const Stripe = require('stripe');
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -8,7 +8,7 @@ const PRICE_MAP = {
   premium: process.env.STRIPE_PRICE_PREMIUM,
 };
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -33,7 +33,6 @@ export default async function handler(req, res) {
       locale: 'fr',
     };
 
-    // Si le client Stripe existe déjà, on le réutilise
     if (customerId) {
       sessionParams.customer = customerId;
     } else if (userEmail) {
@@ -47,4 +46,4 @@ export default async function handler(req, res) {
     console.error('Stripe checkout error:', err);
     return res.status(500).json({ error: err.message });
   }
-}
+};
