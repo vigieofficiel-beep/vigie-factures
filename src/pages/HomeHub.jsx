@@ -66,18 +66,22 @@ export default function HomeHub() {
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(260px, 1fr))', gap:20, maxWidth:620, width:'100%', animation:'fadeUp 0.6s 0.3s ease both' }}>
 
           {/* Vigie Perso — EN CONSTRUCTION */}
-          <div style={{ position:'relative', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:20, padding:'36px 28px', opacity:0.5, cursor:'not-allowed', backdropFilter:'blur(10px)' }}>
-            <div style={{ position:'absolute', top:14, right:14, display:'flex', alignItems:'center', gap:4, background:'rgba(212,168,83,0.1)', border:'1px solid rgba(212,168,83,0.25)', borderRadius:20, padding:'3px 10px' }}>
-              <Lock size={9} color="#5BC78A"/>
-              <span style={{ fontSize:10, fontWeight:700, color:'#5BC78A' }}>Bientôt</span>
-            </div>
-            <div style={{ width:56, height:56, borderRadius:16, background:'rgba(212,168,83,0.1)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:18 }}>
-              <User size={24} color="#5BC78A" strokeWidth={2}/>
-            </div>
-            <h2 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:22, fontWeight:700, color:'#EDE8DB', marginBottom:8, textAlign:'left' }}>Vigie Perso</h2>
-            <p style={{ fontSize:13, color:'rgba(237,232,219,0.4)', lineHeight:1.6, textAlign:'left', marginBottom:14 }}>Gestion personnelle, factures, démarches, foyer</p>
-            <span style={{ fontSize:11, color:'rgba(237,232,219,0.25)', fontStyle:'italic' }}>🚧 En cours de développement</span>
-          </div>
+            <div style={{ position:'relative', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:20, padding:'36px 28px', opacity:0.6, cursor:'not-allowed', backdropFilter:'blur(10px)' }}>
+            <div style={{ position:'absolute', top:-12, left:'50%', transform:'translateX(-50%)', display:'flex', alignItems:'center', gap:6, background:'rgba(212,168,83,0.15)', border:'1px solid rgba(212,168,83,0.35)', borderRadius:20, padding:'4px 14px', whiteSpace:'nowrap' }}>
+    <span style={{ fontSize:11 }}>🚧</span>
+    <span style={{ fontSize:11, fontWeight:700, color:'#D4A853', letterSpacing:'0.06em' }}>En construction</span>
+  </div>
+
+  <div style={{ width:56, height:56, borderRadius:16, background:'rgba(212,168,83,0.1)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:18, marginTop:8 }}>
+    <User size={24} color="#D4A853" strokeWidth={2}/>
+  </div>
+  <h2 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:22, fontWeight:700, color:'#EDE8DB', marginBottom:8, textAlign:'left' }}>Vigie Perso</h2>
+  <p style={{ fontSize:13, color:'rgba(237,232,219,0.4)', lineHeight:1.6, textAlign:'left', marginBottom:14 }}>Gestion personnelle, factures, démarches, foyer</p>
+  <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, color:'rgba(237,232,219,0.25)', fontStyle:'italic' }}>
+    <Lock size={10} color="rgba(237,232,219,0.25)"/>
+    Disponible prochainement
+  </div>
+</div>
 
           {/* Vigie Pro */}
           <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
