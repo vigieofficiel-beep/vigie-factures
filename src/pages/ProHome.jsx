@@ -45,7 +45,7 @@ function BandeauAlertes({ alertes, onDismiss }) {
     try { sessionStorage.setItem('alertes_dismissed', JSON.stringify(next)); } catch {}
     if (onDismiss) onDismiss();
   };
-
+const [profil, setProfil] = useState({});
   if (visibles.length === 0) return null;
 
   return (
@@ -120,11 +120,13 @@ export default function ProHome() {
     setLoading(true);
     const { data: { user } } = await supabasePro.auth.getUser();
     if (!user) return;
-const [{ data: exp }, { data: dev }, { data: cont }, { data: form }, { data: prof }] = await Promise.all([      supabasePro.from('devis').select('*, clients(nom)').eq('user_id', user.id),
-      supabasePro.from('contrats').select('*').eq('user_id', user.id),
-      supabasePro.from('formalites').select('*').eq('user_id', user.id),
-      supabasePro.from('user_profiles').select('company_name, first_name').eq('id', user.id).single(),
-    ]);
+const [{ data: exp }, { data: dev }, { data: cont }, { data: form }, { data: prof }] = await Promise.all([
+  supabasePro.from('expenses').select('amount_ttc, type, etablissement, date, notes').eq('user_id', user.id).order('date', { ascending: false }).limit(50),
+  supabasePro.from('devis').select('*, clients(nom)').eq('user_id', user.id),
+  supabasePro.from('contrats').select('*').eq('user_id', user.id),
+  supabasePro.from('formalites').select('*').eq('user_id', user.id),
+  supabasePro.from('user_profiles').select('company_name, first_name').eq('id', user.id).single(),
+]);
     const expData = exp || []; const devData = dev || []; const contData = cont || []; const formData = form || [];
     setExpenses(expData); setDevis(devData); setContrats(contData); setFormalites(formData);
     setAnomalies(detecterAnomalies(expData));
