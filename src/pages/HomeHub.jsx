@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Briefcase, ArrowRight, Lock, ChevronDown } from 'lucide-react';
 import Footer from '../components/Footer';
-
+import ExitIntent from '../components/ExitIntent';
 const FEATURES = [
   { emoji: '🧾', label: 'Dépenses & Recettes' },
   { emoji: '🤖', label: 'Détection d\'anomalies' },
@@ -157,7 +157,7 @@ export default function HomeHub() {
           <Link to="/pro/login" style={{ padding:'13px 28px', borderRadius:10, border:'1px solid rgba(255,255,255,0.1)', color:'rgba(237,232,219,0.6)', fontSize:14, fontWeight:600, textDecoration:'none' }}>Se connecter</Link>
         </div>
       </section>
-
+<ExitIntent />
       <Footer />
       <style>{`
         @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
