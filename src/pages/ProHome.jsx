@@ -45,7 +45,6 @@ function BandeauAlertes({ alertes, onDismiss }) {
     try { sessionStorage.setItem('alertes_dismissed', JSON.stringify(next)); } catch {}
     if (onDismiss) onDismiss();
   };
-const [profil, setProfil] = useState({});
   if (visibles.length === 0) return null;
 
   return (
@@ -112,6 +111,7 @@ export default function ProHome() {
   const [anomalies,     setAnomalies]     = useState([]);
   const [showAnomalies, setShowAnomalies] = useState(true);
   const [loading,       setLoading]       = useState(true);
+  const [profil, setProfil] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => { fetchAll(); }, []);
