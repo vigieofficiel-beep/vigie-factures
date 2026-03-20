@@ -7,7 +7,11 @@ const PRICE_MAP = {
   pro:     process.env.STRIPE_PRICE_PRO,
   premium: process.env.STRIPE_PRICE_PREMIUM,
 };
-
+console.log('PRICE IDs chargés:', {
+  starter: process.env.STRIPE_PRICE_STARTER,
+  pro: process.env.STRIPE_PRICE_PRO,
+  premium: process.env.STRIPE_PRICE_PREMIUM,
+});
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
