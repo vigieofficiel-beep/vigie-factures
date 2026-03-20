@@ -120,17 +120,17 @@ export default function ProHome() {
     setLoading(true);
     const { data: { user } } = await supabasePro.auth.getUser();
     if (!user) return;
-    const [{ data: exp }, { data: dev }, { data: cont }, { data: form }] = await Promise.all([
-      supabasePro.from('expenses').select('amount_ttc, type, etablissement, date, notes').eq('user_id', user.id).order('date', { ascending: false }).limit(50),
-      supabasePro.from('devis').select('*, clients(nom)').eq('user_id', user.id),
+const [{ data: exp }, { data: dev }, { data: cont }, { data: form }, { data: prof }] = await Promise.all([      supabasePro.from('devis').select('*, clients(nom)').eq('user_id', user.id),
       supabasePro.from('contrats').select('*').eq('user_id', user.id),
       supabasePro.from('formalites').select('*').eq('user_id', user.id),
+      supabasePro.from('user_profiles').select('company_name, first_name').eq('id', user.id).single(),
     ]);
     const expData = exp || []; const devData = dev || []; const contData = cont || []; const formData = form || [];
     setExpenses(expData); setDevis(devData); setContrats(contData); setFormalites(formData);
     setAnomalies(detecterAnomalies(expData));
     setAlertes(analyserTout({ contrats: contData, devis: devData, formalites: formData, regimeTVA: 'mensuel' }));
     setLoading(false);
+    setProfil(prof || {});
   };
 
   const totalDepenses  = expenses.reduce((s, e) => s + (e.amount_ttc || 0), 0);
@@ -150,9 +150,9 @@ export default function ProHome() {
       {/* En-tête */}
       <div style={{ marginBottom: 28 }}>
         <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 28, fontWeight: 600, color: '#1A1C20', margin: 0 }}>
-          Bureau
-        </h1>
-        <p style={{ fontSize: 13, color: '#9AA0AE', marginTop: 4 }}>
+  {profil.company_name || (profil.first_name ? `Bureau de ${profil.first_name}` : 'Bureau')}
+</h1>
+<p style={{ fontSize: 13, color: '#9AA0AE', marginTop: 4 }}>
           Vue d'ensemble de votre activité
           {critiques > 0 && <span style={{ marginLeft: 10, color: '#C75B4E', fontWeight: 700 }}>· {critiques} alerte{critiques > 1 ? 's' : ''} urgente{critiques > 1 ? 's' : ''}</span>}
         </p>
