@@ -12,58 +12,54 @@ import Footer from '../components/Footer';
 import { ProfileAvatar } from '../components/ProfileAvatar';
 import Vigil from './Vigil';
 import AnalyseDocumentFlottant from '../components/AnalyseDocumentFlottant';
-import NotificationsPanel from '../components/NotificationsPanel';
 import { PlanProvider } from '../hooks/usePlan.jsx';
+
 const NAV = [
+  { id:'accueil', label:'Bureau', icon:Home, color:'#5BA3C7', route:'/pro', exact:true, active:true },
   {
-    id: 'accueil', label: 'Bureau', icon: Home, color: '#5BA3C7',
-    route: '/pro', exact: true, active: true,
-  },
-  {
-    id: 'tresorerie', label: 'Trésorerie', icon: Wallet, color: '#5BC78A', active: true,
-    children: [
-      { id: 'depenses', label: 'Dépenses', icon: Receipt,    color: '#5BC78A', route: '/pro/depenses', active: true },
-      { id: 'recettes', label: 'Recettes', icon: TrendingUp, color: '#5BC78A', route: '/pro/recettes', active: true },
-      { id: 'banque',   label: 'Banque',   icon: Wallet,     color: '#5BC78A', route: '/pro/banque',   active: true },
+    id:'tresorerie', label:'Trésorerie', icon:Wallet, color:'#5BC78A', active:true,
+    children:[
+      { id:'depenses', label:'Dépenses', icon:Receipt,    color:'#5BC78A', route:'/pro/depenses', active:true },
+      { id:'recettes', label:'Recettes', icon:TrendingUp, color:'#5BC78A', route:'/pro/recettes', active:true },
+      { id:'banque',   label:'Banque',   icon:Wallet,     color:'#5BC78A', route:'/pro/banque',   active:true },
     ],
   },
   {
-    id: 'juridique', label: 'Juridique', icon: FileCheck, color: '#5BC78A', active: true,
-    children: [
-      { id: 'contrats',   label: 'Contrats',   icon: FileCheck,   color: '#5BC78A', route: '/pro/contrats',   active: true },
-      { id: 'formalites', label: 'Formalités', icon: AlertCircle, color: '#5BC78A', route: '/pro/formalites', active: true },
-      { id: 'mail-agent', label: 'Mail Agent', icon: Mail,        color: '#5BC78A', route: '/pro/mail-agent', active: true },
-    ],
-  },
-  // ═══ NOUVEAU MODULE DOCUMENTS ═══
-  {
-    id: 'documents', label: 'Documents', icon: FilePlus, color: '#5BA3C7', active: true,
-    children: [
-      { id: 'doc-factures', label: 'Factures', icon: FileText,  color: '#5BA3C7', route: '/pro/documents?tab=factures', active: true },
-      { id: 'doc-devis',    label: 'Devis',    icon: FilePlus,  color: '#5BA3C7', route: '/pro/documents?tab=devis',    active: true },
+    id:'juridique', label:'Juridique', icon:FileCheck, color:'#5BC78A', active:true,
+    children:[
+      { id:'contrats',   label:'Contrats',   icon:FileCheck,   color:'#5BC78A', route:'/pro/contrats',   active:true },
+      { id:'formalites', label:'Formalités', icon:AlertCircle, color:'#5BC78A', route:'/pro/formalites', active:true },
+      { id:'mail-agent', label:'Mail Agent', icon:Mail,        color:'#5BC78A', route:'/pro/mail-agent', active:true },
     ],
   },
   {
-    id: 'outils', label: 'Outils', icon: Calculator, color: '#5BA3C7', active: true,
-    children: [
-      { id: 'tva',         label: 'Calculateur TVA',      icon: Calculator, color: '#5BA3C7', route: '/pro/tva',         active: true },
-      { id: 'charges',     label: 'Charges sociales',     icon: Calculator, color: '#5BA3C7', route: '/pro/charges',     active: true },
-      { id: 'devises',     label: 'Convertisseur devises',icon: Calculator, color: '#5BA3C7', route: '/pro/devises',     active: true },
-      { id: 'rentabilite', label: 'Rentabilité clients',  icon: Calculator, color: '#5BA3C7', route: '/pro/rentabilite', active: true },
-      { id: 'graphiques',  label: 'Graphiques',           icon: Calculator, color: '#5BA3C7', route: '/pro/graphiques',  active: true },
-      { id:'amortissement', label:'Amortissement', icon:Calculator, color:'#5BA3C7', route:'/pro/amortissement', active:true },
-      { id:'salaire', label:'Simulateur salaire', icon:Calculator, color:'#5BA3C7', route:'/pro/salaire', active:true },
-      { id:'seuil', label:'Seuil de rentabilité', icon:Calculator, color:'#5BA3C7', route:'/pro/seuil', active:true },
-      { id:'fiscal', label:'Tableau fiscal', icon:Calculator, color:'#5BA3C7', route:'/pro/fiscal', active:true },
+    id:'documents', label:'Documents', icon:FilePlus, color:'#5BA3C7', active:true,
+    children:[
+      { id:'doc-factures', label:'Factures', icon:FileText, color:'#5BA3C7', route:'/pro/documents?tab=factures', active:true },
+      { id:'doc-devis',    label:'Devis',    icon:FilePlus, color:'#5BA3C7', route:'/pro/documents?tab=devis',    active:true },
     ],
   },
   {
-    id: 'operations', label: 'Opérations', icon: Users, color: '#A85BC7', active: true,
-    children: [
-      { id: 'equipe',       label: 'Équipe',       icon: Users,        color: '#A85BC7', route: '/pro/equipe',       active: true },
-      { id: 'pointages',    label: 'Pointages',    icon: Clock,        color: '#A85BC7', route: '/pro/pointages',    active: true },
-      { id: 'fournisseurs', label: 'Fournisseurs', icon: ShoppingCart, color: '#A85BC7', route: '/pro/fournisseurs', active: true },
-      { id: 'exports',      label: 'Exports',      icon: Download,     color: '#A85BC7', route: '/pro/exports',      active: true },
+    id:'outils', label:'Outils', icon:Calculator, color:'#5BA3C7', active:true,
+    children:[
+      { id:'tva',           label:'Calculateur TVA',       icon:Calculator, color:'#5BA3C7', route:'/pro/tva',           active:true },
+      { id:'charges',       label:'Charges sociales',      icon:Calculator, color:'#5BA3C7', route:'/pro/charges',       active:true },
+      { id:'devises',       label:'Convertisseur devises', icon:Calculator, color:'#5BA3C7', route:'/pro/devises',       active:true },
+      { id:'rentabilite',   label:'Rentabilité clients',   icon:Calculator, color:'#5BA3C7', route:'/pro/rentabilite',   active:true },
+      { id:'graphiques',    label:'Graphiques',            icon:Calculator, color:'#5BA3C7', route:'/pro/graphiques',    active:true },
+      { id:'amortissement', label:'Amortissement',         icon:Calculator, color:'#5BA3C7', route:'/pro/amortissement', active:true },
+      { id:'salaire',       label:'Simulateur salaire',    icon:Calculator, color:'#5BA3C7', route:'/pro/salaire',       active:true },
+      { id:'seuil',         label:'Seuil de rentabilité',  icon:Calculator, color:'#5BA3C7', route:'/pro/seuil',         active:true },
+      { id:'fiscal',        label:'Tableau fiscal',        icon:Calculator, color:'#5BA3C7', route:'/pro/fiscal',        active:true },
+    ],
+  },
+  {
+    id:'operations', label:'Opérations', icon:Users, color:'#A85BC7', active:true,
+    children:[
+      { id:'equipe',       label:'Équipe',       icon:Users,        color:'#A85BC7', route:'/pro/equipe',       active:true },
+      { id:'pointages',    label:'Pointages',    icon:Clock,        color:'#A85BC7', route:'/pro/pointages',    active:true },
+      { id:'fournisseurs', label:'Fournisseurs', icon:ShoppingCart, color:'#A85BC7', route:'/pro/fournisseurs', active:true },
+      { id:'exports',      label:'Exports',      icon:Download,     color:'#A85BC7', route:'/pro/exports',      active:true },
     ],
   },
 ];
@@ -105,9 +101,9 @@ export default function ProLayout() {
     hoverTimeout.current = setTimeout(() => setExpanded(false), 120);
   };
 
-  const isOpen = isMobile ? mobileOpen : (pinned || expanded);
+  const isOpen       = isMobile ? mobileOpen : (pinned || expanded);
   const sidebarWidth = isOpen ? 240 : 64;
-  const toggleGroup = (id) => { if (!isOpen) return; setOpenGroups(prev => ({ ...prev, [id]: !prev[id] })); };
+  const toggleGroup  = (id) => { if (!isOpen) return; setOpenGroups(prev => ({ ...prev, [id]: !prev[id] })); };
   const handleLogout = async () => { await supabasePro.auth.signOut(); window.location.href = '/'; };
 
   return (
@@ -157,7 +153,6 @@ export default function ProLayout() {
           <nav style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding:'12px 4px 12px 8px' }}>
             {NAV.map((item) => {
               const Icon = item.icon;
-
               if (!item.children) {
                 return (
                   <NavLink key={item.id} to={item.route} end={item.exact} onClick={() => { if (isMobile) setMobileOpen(false); }}
@@ -191,7 +186,6 @@ export default function ProLayout() {
                     <div style={{ paddingLeft:16, marginTop:2 }}>
                       {item.children.map(child => {
                         const ChildIcon = child.icon;
-                        const childPath = child.route?.split('?')[0];
                         return (
                           <NavLink key={child.id} to={child.route} onClick={() => { if (isMobile) setMobileOpen(false); }}
                             style={({ isActive }) => ({ display:'flex', alignItems:'center', gap:10, padding:'8px 8px', borderRadius:8, marginBottom:1, textDecoration:'none', background:isActive?`${child.color}15`:'transparent', borderLeft:isActive?`2px solid ${child.color}`:'2px solid transparent', transition:'background 150ms ease' })}>
@@ -211,9 +205,9 @@ export default function ProLayout() {
             })}
           </nav>
 
-          {/* FOOTER — Mon compte + Déconnexion */}
+          {/* FOOTER */}
           <div style={{ borderTop:'1px solid rgba(255,255,255,0.05)', padding:'8px 8px 4px' }}>
-          <NotificationsPanel isOpen={isOpen} />
+
             {/* Mon compte */}
             <div style={{ marginBottom:4 }}>
               <button onClick={() => { if (!isOpen) return; setCompteOpen(v => !v); }} style={{ width:'100%', display:'flex', alignItems:'center', gap:12, padding:'9px 8px', borderRadius:10, border:'none', background:compteOpen&&isOpen?'rgba(91,163,199,0.1)':'transparent', cursor:'pointer', transition:'background 150ms ease' }}
