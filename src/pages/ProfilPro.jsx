@@ -84,16 +84,15 @@ export default function ProfilPro() {
     try {
       const { data: { user } } = await supabasePro.auth.getUser();
       const ext  = file.name.split('.').pop();
-      const path = `avatars/${user.id}/profil.${ext}`;
+const path = `${user.id}/avatar.${ext}`;
 
       // Upload dans le bucket invoices (déjà existant)
       const { error: upErr } = await supabasePro.storage
-        .from('invoices')
+        .from('avatars')
         .upload(path, file, { upsert: true });
       if (upErr) throw upErr;
-
       const { data: urlData } = supabasePro.storage
-        .from('invoices')
+        .from('avatars')
         .getPublicUrl(path);
 
       const avatar_url = urlData.publicUrl + '?t=' + Date.now(); // cache-bust
