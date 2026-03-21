@@ -40,14 +40,19 @@ export default function NotificationsPanel({ isOpen: sidebarOpen }) {
   const computeCoords = () => {
     if (!btnRef.current) return;
     const r  = btnRef.current.getBoundingClientRect();
-    const pw = 320; // largeur du panel
-    // Positionner à droite du bouton, aligné en bas
+    const pw = 320;
+    const ph = 460;
+    
+    // Toujours à droite de la sidebar
     let left = r.right + 8;
-    let top  = r.bottom - 460; // hauteur max panel
-    // Si dépasse à droite, mettre à gauche
-    if (left + pw > window.innerWidth - 8) left = r.left - pw - 8;
-    // Pas trop haut
+    // Centré verticalement sur le bouton, mais pas hors écran
+    let top  = r.top + r.height / 2 - ph / 2;
+    
+    // Garder dans le viewport
     if (top < 8) top = 8;
+    if (top + ph > window.innerHeight - 8) top = window.innerHeight - ph - 8;
+    if (left + pw > window.innerWidth - 8) left = r.left - pw - 8;
+    
     setCoords({ top, left });
   };
 
