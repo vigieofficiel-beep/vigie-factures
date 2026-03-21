@@ -107,6 +107,8 @@ const path = `${user.id}/avatar.${ext}`;
       setUploadingPhoto(false);
       e.target.value = '';
     }
+    // Notifier ProfileAvatar de se rafraîchir
+window.dispatchEvent(new CustomEvent('avatar_updated', { detail: { url: avatar_url } }));
   };
 
   // ── Sauvegarde profil ────────────────────────────────────────────

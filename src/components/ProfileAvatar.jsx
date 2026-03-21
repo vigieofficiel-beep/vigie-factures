@@ -28,19 +28,24 @@ export function ProfileAvatar({ mode, size = 32 }) {
 
   // Charge user + avatar depuis DB
   useEffect(() => {
-    sb.auth.getUser().then(({ data }) => {
-      const u = data?.user;
-      if (!u) return;
-      setUser(u);
-      sb.from('user_profiles')
-        .select('avatar_url')
-        .eq('id', u.id)
-        .single()
-        .then(({ data: profile }) => {
-          if (profile?.avatar_url) setAvatarUrl(profile.avatar_url);
-        });
-    });
-  }, []);
+  sb.auth.getUser().then(({ data }) => {
+    const u = data?.user;
+    if (!u) return;
+    setUser(u);
+    sb.from('user_profiles')
+      .select('avatar_url')
+      .eq('id', u.id)
+      .single()
+      .then(({ data: profile }) => {
+        if (profile?.avatar_url) setAvatarUrl(profile.avatar_url);
+      });
+  });
+
+  // Écouter les mises à jour depuis ProfilPro
+  const onUpdate = (e) => setAvatarUrl(e.detail.url);
+  window.addEventListener('avatar_updated', onUpdate);
+  return () => window.removeEventListener('avatar_updated', onUpdate);
+}, []);
 
   const accentColor = mode === 'pro' ? '#5BA3C7' : '#5BC78A';
   const gradientBg  = mode === 'pro'
