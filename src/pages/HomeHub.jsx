@@ -52,7 +52,7 @@ const TEMOIGNAGES = [
   {
     nom: 'Sophia M.',
     metier: 'Photographe freelance',
-    texte: 'L\'interface est belle et intuitive. J\'ai tout configuré en 10 minutes et mes données sont sécurisées en France.',
+    texte: 'L\'interface est belle et intuitive. J\'ai tout configuré en 10 minutes!',
     note: 5,
   },
 ];
@@ -65,7 +65,7 @@ const STATS = [
 
 const AVANTAGES = [
   'Aucune installation — 100% en ligne',
-  'Données hébergées en France (RGPD)',
+  'Données hébergées en Europe (RGPD)',
   'Mises à jour automatiques incluses',
   'Support par email inclus',
 ];
@@ -269,7 +269,7 @@ export default function HomeHub() {
             </p>
             <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
               {[
-                { icon: Shield,   text: 'Conforme RGPD — données en France' },
+                { icon: Shield,   text: 'Conforme RGPD — données en Europe' },
                 { icon: Zap,      text: 'Interface rapide, aucune formation requise' },
                 { icon: Bell,     text: 'Alertes automatiques sur vos échéances' },
                 { icon: BarChart2,text: 'Tableaux de bord adaptés aux indépendants' },
