@@ -122,7 +122,7 @@ export default function ProSignup() {
       </nav>
 
       <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px 16px 40px', position:'relative', zIndex:10 }}>
-        <div style={{ background:'rgba(15,23,42,0.82)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:20, padding:'36px 40px', width:'100%', maxWidth:460 }}>
+        <div style={{ background:'linear-gradient(135deg, rgba(91,163,199,0.1), rgba(91,163,199,0.04))', backdropFilter:'blur(24px)', border:'1px solid rgba(91,163,199,0.2)', borderRadius:20, padding:'36px 40px', width:'100%', maxWidth:460 }}>
 
           <Link to="/" style={{ textDecoration:'none' }}>
             <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:24, color:'#5BA3C7', marginBottom:4 }}>Vigie</h1>
