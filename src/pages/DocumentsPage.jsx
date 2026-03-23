@@ -21,7 +21,7 @@ export default function DocumentsPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'transparent' 0%, #F1F5F9 50%, #E2E8F0 100%)',
+      background: 'transparent',      
       fontFamily: "'Nunito Sans', sans-serif",
       padding: '32px 24px',
     }}>
