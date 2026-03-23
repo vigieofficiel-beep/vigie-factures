@@ -6,7 +6,16 @@
 import { useState, useEffect, useRef } from "react";
 import { supabasePro } from "../lib/supabasePro";
 
-const C = { blue:'#5BA3C7', purple:'#A85BC7', dark:'#1A1C20', light:'#9AA0AE', border:'#E8EAF0', red:'#C75B4E', orange:'#5BC78A', green:'#5BC78A' };
+const C = {
+  blue:   '#5BA3C7',
+  purple: '#A85BC7',
+  dark:   '#EDE8DB',
+  light:  'rgba(237,232,219,0.4)',
+  border: 'rgba(255,255,255,0.08)',
+  red:    '#C75B4E',
+  orange: '#5BC78A',
+  green:  '#5BC78A',
+};
 
 const MOIS = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
 
@@ -48,7 +57,6 @@ function CourbeSVG({ data, width, height, color, compact }) {
     v,
   }));
 
-  // Courbe lissée avec bezier
   const path = pts.map((p, i) => {
     if (i === 0) return `M ${p.x} ${p.y}`;
     const prev = pts[i-1];
@@ -56,10 +64,8 @@ function CourbeSVG({ data, width, height, color, compact }) {
     return `C ${cx} ${prev.y}, ${cx} ${p.y}, ${p.x} ${p.y}`;
   }).join(' ');
 
-  // Zone remplie
   const fill = `${path} L ${pts[pts.length-1].x} ${padT+H} L ${pts[0].x} ${padT+H} Z`;
 
-  // Lignes horizontales guide
   const guides = [0.25, 0.5, 0.75, 1].map(f => ({
     y: padT + H - f * H,
     val: max * f,
@@ -67,39 +73,30 @@ function CourbeSVG({ data, width, height, color, compact }) {
 
   return (
     <svg width="100%" viewBox={`0 0 ${width} ${height}`} style={{ overflow:'visible' }}>
-      {/* Grille */}
       {guides.map((g, i) => (
         <g key={i}>
-          <line x1={padL} y1={g.y} x2={padL+W} y2={g.y} stroke="#F0F2F5" strokeWidth="1"/>
-          <text x={padL-6} y={g.y+4} textAnchor="end" fontSize={compact?9:10} fill={C.light}>{fmt(g.val)}</text>
+          <line x1={padL} y1={g.y} x2={padL+W} y2={g.y} stroke="rgba(255,255,255,0.06)" strokeWidth="1"/>
+          <text x={padL-6} y={g.y+4} textAnchor="end" fontSize={compact?9:10} fill="rgba(237,232,219,0.35)">{fmt(g.val)}</text>
         </g>
       ))}
-
-      {/* Zone remplie */}
       <defs>
         <linearGradient id="gradCA" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.18"/>
+          <stop offset="0%" stopColor={color} stopOpacity="0.25"/>
           <stop offset="100%" stopColor={color} stopOpacity="0.01"/>
         </linearGradient>
       </defs>
       <path d={fill} fill="url(#gradCA)"/>
-
-      {/* Courbe */}
       <path d={path} fill="none" stroke={color} strokeWidth={compact?2:2.5} strokeLinecap="round"/>
-
-      {/* Points */}
       {pts.map((p, i) => (
         <g key={i}>
-          <circle cx={p.x} cy={p.y} r={compact?3:4} fill="#fff" stroke={color} strokeWidth={1.5}/>
+          <circle cx={p.x} cy={p.y} r={compact?3:4} fill="#0F172A" stroke={color} strokeWidth={1.5}/>
           {!compact && p.v > 0 && (
-            <text x={p.x} y={p.y-10} textAnchor="middle" fontSize={9} fill={C.light} fontWeight="600">{fmt(p.v)}</text>
+            <text x={p.x} y={p.y-10} textAnchor="middle" fontSize={9} fill="rgba(237,232,219,0.5)" fontWeight="600">{fmt(p.v)}</text>
           )}
         </g>
       ))}
-
-      {/* Labels mois */}
       {pts.map((p, i) => (
-        <text key={i} x={p.x} y={padT+H+18} textAnchor="middle" fontSize={compact?9:10} fill={C.light}>
+        <text key={i} x={p.x} y={padT+H+18} textAnchor="middle" fontSize={compact?9:10} fill="rgba(237,232,219,0.35)">
           {MOIS[i]}
         </text>
       ))}
@@ -137,15 +134,15 @@ export default function GraphiqueCA({ compact = false }) {
     })();
   }, []);
 
-  const data     = buildDonnees(devis, annee);
-  const total    = data.reduce((s, v) => s + v, 0);
-  const meilleur = MOIS[data.indexOf(Math.max(...data))];
-  const moisActif= data.filter(v => v > 0).length;
-  const hauteur  = compact ? 160 : 260;
-  const annees   = [new Date().getFullYear(), new Date().getFullYear()-1, new Date().getFullYear()-2];
+  const data      = buildDonnees(devis, annee);
+  const total     = data.reduce((s, v) => s + v, 0);
+  const meilleur  = MOIS[data.indexOf(Math.max(...data))];
+  const moisActif = data.filter(v => v > 0).length;
+  const hauteur   = compact ? 160 : 260;
+  const annees    = [new Date().getFullYear(), new Date().getFullYear()-1, new Date().getFullYear()-2];
 
   if (compact) return (
-    <div ref={containerRef} style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:14, padding:'18px 20px', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }}>
+    <div ref={containerRef} style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:'18px 20px' }}>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
         <div>
           <p style={{ fontSize:11, color:C.light, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.06em', margin:0 }}>Évolution CA</p>
@@ -153,32 +150,32 @@ export default function GraphiqueCA({ compact = false }) {
         </div>
         <div style={{ display:'flex', gap:4 }}>
           {annees.map(a => (
-            <button key={a} onClick={() => setAnnee(a)} style={{ padding:'4px 8px', borderRadius:6, border:'none', background:annee===a?C.blue:'#F0F2F5', color:annee===a?'#fff':C.light, fontSize:10, fontWeight:700, cursor:'pointer' }}>{a}</button>
+            <button key={a} onClick={() => setAnnee(a)} style={{ padding:'4px 8px', borderRadius:6, border:'none', background:annee===a?C.blue:'rgba(255,255,255,0.06)', color:annee===a?'#fff':C.light, fontSize:10, fontWeight:700, cursor:'pointer' }}>{a}</button>
           ))}
         </div>
       </div>
-      {loading ? <div style={{ height:hauteur, display:'flex', alignItems:'center', justifyContent:'center', color:C.light, fontSize:12 }}>Chargement...</div>
-               : <CourbeSVG data={data} width={width||400} height={hauteur} color={C.blue} compact={true}/>}
+      {loading
+        ? <div style={{ height:hauteur, display:'flex', alignItems:'center', justifyContent:'center', color:C.light, fontSize:12 }}>Chargement...</div>
+        : <CourbeSVG data={data} width={width||400} height={hauteur} color={C.blue} compact={true}/>}
     </div>
   );
 
-  // Mode page dédiée
   return (
     <div style={{ fontFamily:"'Nunito Sans', sans-serif", padding:'32px 28px', maxWidth:1000, margin:'0 auto' }}>
       <div style={{ marginBottom:28 }}>
-        <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:26, fontWeight:600, color:C.dark, margin:0 }}>Graphiques</h1>
+        <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:26, fontWeight:600, color:'#EDE8DB', margin:0 }}>Graphiques</h1>
         <p style={{ fontSize:13, color:C.light, marginTop:4 }}>Évolution de votre chiffre d'affaires</p>
       </div>
 
       {/* KPIs */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))', gap:14, marginBottom:24 }}>
         {[
-          { label:'CA annuel', value:fmt(total), color:C.blue },
-          { label:'Meilleur mois', value:meilleur || '—', color:C.green },
-          { label:'Mois actifs', value:`${moisActif} / 12`, color:C.purple },
-          { label:'Moyenne mensuelle', value:moisActif > 0 ? fmt(total/moisActif) : '—', color:C.orange },
+          { label:'CA annuel',          value:fmt(total),                                color:C.blue   },
+          { label:'Meilleur mois',      value:meilleur || '—',                           color:C.green  },
+          { label:'Mois actifs',        value:`${moisActif} / 12`,                       color:C.purple },
+          { label:'Moyenne mensuelle',  value:moisActif > 0 ? fmt(total/moisActif) : '—', color:C.orange },
         ].map(k => (
-          <div key={k.label} style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:12, padding:'16px 18px', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }}>
+          <div key={k.label} style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:12, padding:'16px 18px' }}>
             <p style={{ fontSize:11, color:C.light, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>{k.label}</p>
             <p style={{ fontSize:22, fontWeight:700, color:k.color, margin:0 }}>{k.value}</p>
           </div>
@@ -186,12 +183,12 @@ export default function GraphiqueCA({ compact = false }) {
       </div>
 
       {/* Graphique principal */}
-      <div ref={containerRef} style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:14, padding:'24px 28px', boxShadow:'0 1px 6px rgba(0,0,0,0.06)', marginBottom:20 }}>
+      <div ref={containerRef} style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:'24px 28px', marginBottom:20 }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
-          <h2 style={{ fontSize:14, fontWeight:700, color:C.dark, margin:0 }}>CA mensuel {annee}</h2>
+          <h2 style={{ fontSize:14, fontWeight:700, color:'#EDE8DB', margin:0 }}>CA mensuel {annee}</h2>
           <div style={{ display:'flex', gap:6 }}>
             {annees.map(a => (
-              <button key={a} onClick={() => setAnnee(a)} style={{ padding:'6px 12px', borderRadius:8, border:'none', background:annee===a?C.blue:'#F0F2F5', color:annee===a?'#fff':C.light, fontSize:12, fontWeight:700, cursor:'pointer', transition:'all 150ms' }}>{a}</button>
+              <button key={a} onClick={() => setAnnee(a)} style={{ padding:'6px 12px', borderRadius:8, border:'none', background:annee===a?C.blue:'rgba(255,255,255,0.06)', color:annee===a?'#fff':C.light, fontSize:12, fontWeight:700, cursor:'pointer', transition:'all 150ms' }}>{a}</button>
             ))}
           </div>
         </div>
@@ -201,10 +198,10 @@ export default function GraphiqueCA({ compact = false }) {
       </div>
 
       {/* Tableau mensuel */}
-      <div style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:14, overflow:'hidden', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }}>
+      <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, overflow:'hidden' }}>
         <table style={{ width:'100%', borderCollapse:'collapse' }}>
           <thead>
-            <tr style={{ borderBottom:'1px solid #F0F2F5' }}>
+            <tr style={{ borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
               {['Mois','CA HT','Part annuelle','Barre'].map(h => (
                 <th key={h} style={{ padding:'11px 16px', textAlign:'left', fontSize:10, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:'0.06em' }}>{h}</th>
               ))}
@@ -212,17 +209,17 @@ export default function GraphiqueCA({ compact = false }) {
           </thead>
           <tbody>
             {data.map((v, i) => {
-              const pct = total > 0 ? (v / total) * 100 : 0;
+              const pct    = total > 0 ? (v / total) * 100 : 0;
               const isBest = v === Math.max(...data) && v > 0;
               return (
-                <tr key={i} style={{ borderBottom:'1px solid #F8F9FB', background: isBest ? `${C.green}05` : 'transparent' }}>
-                  <td style={{ padding:'10px 16px', fontSize:13, color:C.dark, fontWeight: isBest ? 700 : 400 }}>
+                <tr key={i} style={{ borderBottom:'1px solid rgba(255,255,255,0.04)', background:isBest?`${C.green}08`:'transparent' }}>
+                  <td style={{ padding:'10px 16px', fontSize:13, color:'#EDE8DB', fontWeight:isBest?700:400 }}>
                     {MOIS[i]} {isBest && <span style={{ fontSize:10, background:`${C.green}15`, color:C.green, padding:'1px 6px', borderRadius:10, marginLeft:4 }}>Meilleur</span>}
                   </td>
-                  <td style={{ padding:'10px 16px', fontSize:13, fontWeight:600, color: v > 0 ? C.blue : C.light }}>{v > 0 ? fmt(v) : '—'}</td>
-                  <td style={{ padding:'10px 16px', fontSize:12, color:C.light }}>{v > 0 ? `${pct.toFixed(1)}%` : '—'}</td>
+                  <td style={{ padding:'10px 16px', fontSize:13, fontWeight:600, color:v>0?C.blue:C.light }}>{v>0?fmt(v):'—'}</td>
+                  <td style={{ padding:'10px 16px', fontSize:12, color:C.light }}>{v>0?`${pct.toFixed(1)}%`:'—'}</td>
                   <td style={{ padding:'10px 16px', width:160 }}>
-                    <div style={{ height:6, background:'#F0F2F5', borderRadius:3, overflow:'hidden' }}>
+                    <div style={{ height:6, background:'rgba(255,255,255,0.06)', borderRadius:3, overflow:'hidden' }}>
                       <div style={{ width:`${pct}%`, height:'100%', background:`linear-gradient(90deg,${C.blue},${C.purple})`, borderRadius:3, transition:'width 0.4s ease' }}/>
                     </div>
                   </td>
