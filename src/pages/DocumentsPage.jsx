@@ -21,7 +21,7 @@ export default function DocumentsPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 50%, #E2E8F0 100%)',
+      background: 'transparent' 0%, #F1F5F9 50%, #E2E8F0 100%)',
       fontFamily: "'Nunito Sans', sans-serif",
       padding: '32px 24px',
     }}>
@@ -36,10 +36,10 @@ export default function DocumentsPage() {
             <FileText size={22} color="#fff" strokeWidth={2} />
           </div>
           <div>
-            <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: '#0F172A', fontFamily: "'Cormorant Garamond', serif" }}>
+            <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: '#EDE8DB', fontFamily: "'Cormorant Garamond', serif" }}>
               Générateur de documents
             </h1>
-            <p style={{ margin: 0, fontSize: 13, color: '#64748B' }}>Générez vos devis et factures</p>
+            <p style={{ margin: 0, fontSize: 13, color: 'rgba(237,232,219,0.5)' }}>Générez vos devis et factures</p>
           </div>
         </div>
       </div>

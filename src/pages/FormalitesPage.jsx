@@ -157,14 +157,14 @@ function FormaliteForm({ onSave, onCancel, editData = null }) {
 
   const inputStyle = {
     width: '100%', padding: '9px 12px', borderRadius: 8,
-    background: '#F8F9FB', border: '1px solid #E8EAF0',
-    color: '#1A1C20', fontSize: 13, outline: 'none', boxSizing: 'border-box',
+    background: '#F8F9FB', border: '1px solid rgba(255,255,255,0.08)',
+    color: '#EDE8DB', fontSize: 13, outline: 'none', boxSizing: 'border-box',
   };
   const labelStyle = { fontSize: 11, fontWeight: 600, color: '#5A6070', marginBottom: 5, display: 'block' };
 
   return (
-    <form onSubmit={handleSubmit} style={{ background: '#fff', border: '1px solid #E8EAF0', borderRadius: 14, padding: 24, marginBottom: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-      <h3 style={{ fontSize: 15, fontWeight: 700, color: '#1A1C20', marginBottom: 16 }}>
+    <form onSubmit={handleSubmit} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, padding: 24, marginBottom: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+      <h3 style={{ fontSize: 15, fontWeight: 700, color: '#EDE8DB', marginBottom: 16 }}>
         {editData ? 'Modifier la formalité' : 'Ajouter une formalité'}
       </h3>
 
@@ -247,7 +247,7 @@ function FormaliteForm({ onSave, onCancel, editData = null }) {
             <button type="submit" disabled={loading} style={{ flex: 1, padding: '11px', borderRadius: 9, border: 'none', background: loading ? `${ACCENT}50` : ACCENT, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
               {loading ? 'Enregistrement...' : '✓ Enregistrer'}
             </button>
-            <button type="button" onClick={onCancel} style={{ padding: '11px 18px', borderRadius: 9, border: '1px solid #E8EAF0', background: '#fff', color: '#5A6070', fontSize: 13, cursor: 'pointer' }}>
+            <button type="button" onClick={onCancel} style={{ padding: '11px 18px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: '#5A6070', fontSize: 13, cursor: 'pointer' }}>
               Annuler
             </button>
           </div>
@@ -316,13 +316,13 @@ export default function FormalitesPage() {
       {/* En-tête */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 600, color: '#1A1C20', margin: 0 }}>
+          <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 600, color: '#EDE8DB', margin: 0 }}>
             Formalités administratives
           </h1>
           <p style={{ fontSize: 13, color: '#9AA0AE', marginTop: 4 }}>Kbis, AG, CFE et obligations périodiques</p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={exportCSV} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 9, border: '1px solid #E8EAF0', background: '#fff', color: '#5A6070', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+          <button onClick={exportCSV} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: '#5A6070', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
             <Download size={13} /> Exporter CSV
           </button>
           <button onClick={() => { setShowForm(true); setEditFormalite(null); }} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 9, border: 'none', background: ACCENT, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
@@ -358,7 +358,7 @@ export default function FormalitesPage() {
         ].map(s => {
           const Icon = s.icon;
           return (
-            <div key={s.label} style={{ background: '#fff', border: `1px solid ${s.alert ? 'rgba(199,91,78,0.3)' : '#E8EAF0'}`, borderRadius: 12, padding: '16px 18px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+            <div key={s.label} style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${s.alert ? 'rgba(199,91,78,0.3)' : '#E8EAF0'}`, borderRadius: 12, padding: '16px 18px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <p style={{ fontSize: 11, color: '#9AA0AE', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>{s.label}</p>
                 <Icon size={14} color={s.color} />
@@ -396,7 +396,7 @@ export default function FormalitesPage() {
         {loading ? (
           <div style={{ padding: 40, textAlign: 'center', color: '#9AA0AE', fontSize: 13 }}>Chargement...</div>
         ) : filtered.length === 0 ? (
-          <div style={{ padding: 48, textAlign: 'center', background: '#fff', border: '1px solid #E8EAF0', borderRadius: 14 }}>
+          <div style={{ padding: 48, textAlign: 'center', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14 }}>
             <AlertCircle size={32} color="#E8EAF0" style={{ marginBottom: 12 }} />
             <p style={{ color: '#9AA0AE', fontSize: 13, margin: 0 }}>
               {formalites.length === 0 ? 'Aucune formalité — cliquez sur "Ajouter"' : 'Aucune formalité pour ce filtre'}
@@ -409,7 +409,7 @@ export default function FormalitesPage() {
             const isUrgent = f.statut !== 'fait' && days !== null && days <= 30;
             return (
               <div key={f.id || i} style={{
-                background: '#fff',
+                background: 'rgba(255,255,255,0.04)',
                 border: `1px solid ${isUrgent ? 'rgba(199,91,78,0.2)' : '#E8EAF0'}`,
                 borderRadius: 12, padding: '16px 18px',
                 display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
@@ -417,7 +417,7 @@ export default function FormalitesPage() {
               }}>
                 <span style={{ fontSize: 22, flexShrink: 0 }}>{type?.icon || '📌'}</span>
                 <div style={{ flex: 1, minWidth: 200 }}>
-                  <p style={{ fontSize: 14, fontWeight: 700, color: '#1A1C20', margin: 0 }}>{f.label}</p>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: '#EDE8DB', margin: 0 }}>{f.label}</p>
                   <p style={{ fontSize: 12, color: '#9AA0AE', margin: '3px 0 0' }}>
                     Échéance : {formatDate(f.date_echeance)}
                     {f.recurrente && <span style={{ marginLeft: 8, color: '#5BA3C7' }}>↻ tous les {f.periodicite_mois} mois</span>}
