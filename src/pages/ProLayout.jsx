@@ -108,7 +108,7 @@ export default function ProLayout() {
 
   return (
     <PlanProvider>
-    <div style={{ display:'flex', minHeight:'100vh', background:'linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 50%, #E2E8F0 100%)', fontFamily:"'Nunito Sans', sans-serif", position:'relative' }}>
+    <div style={{ display:'flex', minHeight:'100vh', background:'#06080B', fontFamily:"'Nunito Sans', sans-serif", position:'relative' }}>
 
       {isMobile && mobileOpen && (
         <div onClick={() => setMobileOpen(false)} style={{ position:'fixed', inset:0, background:'rgba(15,23,42,0.5)', backdropFilter:'blur(4px)', zIndex:40 }} />
