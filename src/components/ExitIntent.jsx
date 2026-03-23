@@ -95,7 +95,8 @@ export default function ExitIntent() {
         animation: 'slideUp 300ms ease',
       }}>
         <div style={{
-          background: '#0F172A',
+          background: 'linear-gradient(135deg, rgba(91,163,199,0.1), rgba(91,163,199,0.04))',
+          backdropFilter: 'blur(24px)',
           border: '1px solid rgba(91,163,199,0.25)',
           borderRadius: 20,
           padding: '40px 36px',
@@ -126,8 +127,7 @@ export default function ExitIntent() {
                 C'est noté ! 🎉
               </h2>
               <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>
-                Vous recevrez bientôt nos conseils et nouveautés directement dans votre boîte mail.
-              </p>
+                Vous serez parmi les premiers informés des nouveautés et offres exclusives Vigie Pro.              </p>
             </div>
           ) : (
             /* ── Formulaire ── */
@@ -152,9 +152,9 @@ export default function ExitIntent() {
               {/* Avantages */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
                 {[
-                  'Conseils comptables pour indépendants',
                   'Nouveautés Vigie Pro en avant-première',
-                  'Offres exclusives abonnés',
+                  'Offres exclusives réservées aux abonnés',
+                  'Mises à jour et nouvelles fonctionnalités',
                 ].map((item, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'rgba(91,199,138,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
