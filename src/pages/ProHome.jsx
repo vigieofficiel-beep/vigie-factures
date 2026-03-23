@@ -27,13 +27,7 @@ const TYPE_CONFIG = {
   document: { color: '#A85BC7', bg: 'rgba(168,91,199,0.1)' },
 };
 
-const NOTIFS_DEMO = [
-  { id:1, type:'alerte',   titre:'Contrat expirant',     message:'Votre contrat Orange expire dans 12 jours.',  date: new Date(Date.now() - 1000*60*30),    lu: false },
-  { id:2, type:'alerte',   titre:'Déclaration TVA',       message:'Échéance TVA dans 8 jours (19 du mois).',    date: new Date(Date.now() - 1000*60*120),   lu: false },
-  { id:3, type:'recette',  titre:'Devis accepté',         message:'Le devis DEV-2025-012 a été accepté.',        date: new Date(Date.now() - 1000*60*60*3),  lu: false },
-  { id:4, type:'info',     titre:'Mise à jour Vigie Pro', message:'Nouvelles fonctionnalités disponibles.',      date: new Date(Date.now() - 1000*60*60*24), lu: true  },
-  { id:5, type:'document', titre:'Export FEC prêt',       message:'Votre export FEC 2024 est disponible.',       date: new Date(Date.now() - 1000*60*60*48), lu: true  },
-];
+
 
 function timeAgo(date) {
   const diff = Date.now() - date.getTime();
@@ -234,8 +228,7 @@ export default function ProHome() {
   const [showAnomalies, setShowAnomalies] = useState(true);
   const [loading,       setLoading]       = useState(true);
   const [profil,        setProfil]        = useState({});
-  const [notifs,        setNotifs]        = useState(NOTIFS_DEMO);
-  const navigate = useNavigate();
+  const [notifs, setNotifs] = useState([]);  const navigate = useNavigate();
 
   useEffect(() => { fetchAll(); }, []);
 
