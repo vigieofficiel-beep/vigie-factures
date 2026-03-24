@@ -14,7 +14,7 @@ import Vigil from './Vigil';
 import AnalyseDocumentFlottant from '../components/AnalyseDocumentFlottant';
 import { PlanProvider } from '../hooks/usePlan.jsx';
 import { WorkspaceProvider } from '../hooks/useWorkspace.jsx';
-
+import WorkspaceSwitcher from '../components/WorkspaceSwitcher.jsx';
 const NAV = [
   { id:'accueil', label:'Bureau', icon:Home, color:'#5BA3C7', route:'/pro', exact:true, active:true },
   {
@@ -209,7 +209,7 @@ export default function ProLayout() {
 
           {/* FOOTER */}
           <div style={{ borderTop:'1px solid rgba(255,255,255,0.05)', padding:'8px 8px 4px' }}>
-
+<WorkspaceSwitcher isOpen={isOpen} />
             {/* Mon compte */}
             <div style={{ marginBottom:4 }}>
               <button onClick={() => { if (!isOpen) return; setCompteOpen(v => !v); }} style={{ width:'100%', display:'flex', alignItems:'center', gap:12, padding:'9px 8px', borderRadius:10, border:'none', background:compteOpen&&isOpen?'rgba(91,163,199,0.1)':'transparent', cursor:'pointer', transition:'background 150ms ease' }}
