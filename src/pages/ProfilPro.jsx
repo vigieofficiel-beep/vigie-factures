@@ -101,14 +101,14 @@ const path = `${user.id}/avatar.${ext}`;
       await supabasePro.from('user_profiles').upsert({ id: user.id, avatar_url });
       setForm(f => ({ ...f, avatar_url }));
       setPhotoPreview(avatar_url);
+      // Notifier ProfileAvatar de se rafraîchir
+      window.dispatchEvent(new CustomEvent('avatar_updated', { detail: { url: avatar_url } }));
     } catch (e) {
       setError('Erreur upload : ' + e.message);
     } finally {
       setUploadingPhoto(false);
       e.target.value = '';
     }
-    // Notifier ProfileAvatar de se rafraîchir
-window.dispatchEvent(new CustomEvent('avatar_updated', { detail: { url: avatar_url } }));
   };
 
   // ── Sauvegarde profil ────────────────────────────────────────────
@@ -144,7 +144,7 @@ window.dispatchEvent(new CustomEvent('avatar_updated', { detail: { url: avatar_u
       </div>
 
       {/* ── Photo de profil ── */}
-      <div style={{ background: '#fff', border: `1px solid ${C.border}`, borderRadius: 16, padding: 24, marginBottom: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+      <div style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.border}`, borderRadius: 16, padding: 24, marginBottom: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
           <div style={{ width: 28, height: 28, borderRadius: 8, background: `${C.blue}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Camera size={13} color={C.blue}/>
@@ -226,7 +226,7 @@ window.dispatchEvent(new CustomEvent('avatar_updated', { detail: { url: avatar_u
       </div>
 
       {/* ── Identité ── */}
-      <div style={{ background: '#fff', border: `1px solid ${C.border}`, borderRadius: 16, padding: 24, marginBottom: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+      <div style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.border}`, borderRadius: 16, padding: 24, marginBottom: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
           <div style={{ width: 28, height: 28, borderRadius: 8, background: `${C.blue}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <User size={13} color={C.blue}/>
@@ -241,7 +241,7 @@ window.dispatchEvent(new CustomEvent('avatar_updated', { detail: { url: avatar_u
       </div>
 
       {/* ── Entreprise ── */}
-      <div style={{ background: '#fff', border: `1px solid ${C.border}`, borderRadius: 16, padding: 24, marginBottom: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+      <div style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.border}`, borderRadius: 16, padding: 24, marginBottom: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
           <div style={{ width: 28, height: 28, borderRadius: 8, background: `${C.blue}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Building2 size={13} color={C.blue}/>
@@ -263,7 +263,7 @@ window.dispatchEvent(new CustomEvent('avatar_updated', { detail: { url: avatar_u
       </div>
 
       {/* ── Adresse ── */}
-      <div style={{ background: '#fff', border: `1px solid ${C.border}`, borderRadius: 16, padding: 24, marginBottom: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+      <div style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.border}`, borderRadius: 16, padding: 24, marginBottom: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
           <div style={{ width: 28, height: 28, borderRadius: 8, background: `${C.blue}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <MapPin size={13} color={C.blue}/>
@@ -280,7 +280,7 @@ window.dispatchEvent(new CustomEvent('avatar_updated', { detail: { url: avatar_u
       </div>
 
       {/* ── Coordonnées bancaires ── */}
-      <div style={{ background: '#fff', border: `1px solid ${C.border}`, borderRadius: 16, padding: 24, marginBottom: 24, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+      <div style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.border}`, borderRadius: 16, padding: 24, marginBottom: 24, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
           <div style={{ width: 28, height: 28, borderRadius: 8, background: `${C.blue}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <CreditCard size={13} color={C.blue}/>
@@ -292,7 +292,7 @@ window.dispatchEvent(new CustomEvent('avatar_updated', { detail: { url: avatar_u
       </div>
 
       {/* ── Abonnement ── */}
-      <div style={{ background: '#fff', border: `1px solid ${C.border}`, borderRadius: 16, padding: 24, marginBottom: 24, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+      <div style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.border}`, borderRadius: 16, padding: 24, marginBottom: 24, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
           <div style={{ width: 28, height: 28, borderRadius: 8, background: `${C.blue}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Zap size={13} color={C.blue}/>
