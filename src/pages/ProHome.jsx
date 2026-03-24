@@ -9,6 +9,7 @@ import {
 import { analyserTout, URGENCE } from '../agents/AlertesAgent';
 import GraphiqueCA from './GraphiqueCA';
 import OnboardingChecklist from '../components/OnboardingChecklist';
+import { useWorkspace } from '../hooks/useWorkspace.jsx';
 
 const formatEuro = (n) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n ?? 0);
@@ -229,7 +230,7 @@ export default function ProHome() {
   const [loading,       setLoading]       = useState(true);
   const [profil,        setProfil]        = useState({});
   const [notifs, setNotifs] = useState([]);  const navigate = useNavigate();
-
+const { activeWorkspace } = useWorkspace();
   useEffect(() => { fetchAll(); }, []);
 
   const fetchAll = async () => {
@@ -238,8 +239,7 @@ export default function ProHome() {
     if (!user) return;
     const [{ data: exp }, { data: dev }, { data: cont }, { data: form }, { data: prof }] = await Promise.all([
       supabasePro.from('expenses').select('amount_ttc, type, etablissement, date, notes').eq('user_id', user.id).order('date', { ascending: false }).limit(50),
-      supabasePro.from('devis').select('*, clients(nom)').eq('user_id', user.id),
-      supabasePro.from('contrats').select('*').eq('user_id', user.id),
+supabasePro.from('devis').select('*, clients(nom)').eq('user_id', user.id).or(`workspace_id.eq.${activeWorkspace?.id},workspace_id.is.null`),      supabasePro.from('contrats').select('*').eq('user_id', user.id),
       supabasePro.from('formalites').select('*').eq('user_id', user.id),
       supabasePro.from('user_profiles').select('company_name, first_name').eq('id', user.id).single(),
     ]);
