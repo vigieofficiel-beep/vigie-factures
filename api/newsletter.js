@@ -16,9 +16,7 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Email invalide' });
   }
 
-  // DEBUG — à supprimer après confirmation
-  console.log('RESEND_API_KEY present:', !!process.env.RESEND_API_KEY);
-  console.log('RESEND_API_KEY prefix:', process.env.RESEND_API_KEY?.substring(0, 8));
+  
 
   try {
     const { error: dbError } = await supabase
