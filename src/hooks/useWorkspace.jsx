@@ -1,12 +1,12 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, createContext, useContext, useCallback } from 'react';
 import { supabasePro } from '../lib/supabasePro';
 
 const WorkspaceContext = createContext(null);
 
 export function WorkspaceProvider({ children }) {
-  const [workspaces,       setWorkspaces]       = useState([]);
-  const [activeWorkspace,  setActiveWorkspace]  = useState(null);
-  const [loading,          setLoading]          = useState(true);
+  const [workspaces,      setWorkspaces]      = useState([]);
+  const [activeWorkspace, setActiveWorkspace] = useState(null);
+  const [loading,         setLoading]         = useState(true);
 
   useEffect(() => { loadWorkspaces(); }, []);
 
@@ -23,28 +23,26 @@ export function WorkspaceProvider({ children }) {
     const list = data || [];
     setWorkspaces(list);
 
-    // Restaurer le workspace actif depuis localStorage
     const saved = localStorage.getItem('vigie_active_workspace');
     const found = list.find(w => w.id === saved);
-    setActiveWorkspace(found || list[0] || null);
+    const initial = found || list[0] || null;
+    setActiveWorkspace(initial);
     setLoading(false);
   };
 
-  const switchWorkspace = (workspace) => {
-    setActiveWorkspace(workspace);
+  const switchWorkspace = useCallback((workspace) => {
+    setActiveWorkspace({ ...workspace }); // spread pour forcer nouveau objet = re-render garanti
     localStorage.setItem('vigie_active_workspace', workspace.id);
-  };
+  }, []);
 
   const createWorkspace = async (name) => {
     const { data: { user } } = await supabasePro.auth.getUser();
     if (!user) return null;
-
     const { data, error } = await supabasePro
       .from('workspaces')
       .insert({ user_id: user.id, name })
       .select()
       .single();
-
     if (error) throw error;
     setWorkspaces(prev => [...prev, data]);
     return data;
@@ -54,7 +52,7 @@ export function WorkspaceProvider({ children }) {
     await supabasePro.from('workspaces').delete().eq('id', id);
     const remaining = workspaces.filter(w => w.id !== id);
     setWorkspaces(remaining);
-    if (activeWorkspace?.id === id) {
+    if (activeWorkspace?.id === id && remaining.length > 0) {
       switchWorkspace(remaining[0]);
     }
   };
