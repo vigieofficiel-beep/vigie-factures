@@ -13,6 +13,7 @@ import { ProfileAvatar } from '../components/ProfileAvatar';
 import Vigil from './Vigil';
 import AnalyseDocumentFlottant from '../components/AnalyseDocumentFlottant';
 import { PlanProvider } from '../hooks/usePlan.jsx';
+import { WorkspaceProvider } from '../hooks/useWorkspace.jsx';
 
 const NAV = [
   { id:'accueil', label:'Bureau', icon:Home, color:'#5BA3C7', route:'/pro', exact:true, active:true },
@@ -107,6 +108,7 @@ export default function ProLayout() {
   const handleLogout = async () => { await supabasePro.auth.signOut(); window.location.href = '/'; };
 
   return (
+    <WorkspaceProvider>
     <PlanProvider>
     <div style={{ display:'flex', minHeight:'100vh', background:'#06080B', fontFamily:"'Nunito Sans', sans-serif", position:'relative' }}>
 
@@ -268,5 +270,6 @@ export default function ProLayout() {
       `}</style>
     </div>
     </PlanProvider>
+    </WorkspaceProvider>
   );
 }
