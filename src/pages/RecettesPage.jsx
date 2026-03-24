@@ -280,8 +280,8 @@ export default function RecettesPage() {
     const{data:{user}}=await supabasePro.auth.getUser();
     if(!user)return;
     const[{data:d},{data:c},{data:p}]=await Promise.all([
-      supabasePro.from('devis').select('*, clients(nom,email,telephone,adresse,siret)').eq('user_id',user.id).eq('workspace_id',activeWorkspace?.id).order('date_emission',{ascending:false}),
-      supabasePro.from('clients').select('*').eq('user_id',user.id).eq('workspace_id',activeWorkspace?.id).order('nom'),
+      supabasePro.from('devis').select('*, clients(nom,email,telephone,adresse,siret)').eq('user_id',user.id).or(`workspace_id.eq.${activeWorkspace?.id},workspace_id.is.null`).order('date_emission',{ascending:false}),
+      supabasePro.from('clients').select('*').eq('user_id',user.id).or(`workspace_id.eq.${activeWorkspace?.id},workspace_id.is.null`).order('nom'),
       supabasePro.from('user_profiles').select('*').eq('id',user.id).single(),
     ]);
     setDevis(d||[]);setClients(c||[]);setProfil(p||{});setLoading(false);

@@ -7,21 +7,21 @@ import { usePlan, PLANS } from '../hooks/usePlan';
 const C = {
   blue:   '#5BA3C7',
   green:  '#5BC78A',
-  dark:   '#0F172A',
-  light:  '#94A3B8',
-  border: '#E2E8F0',
-  bg:     '#F8FAFC',
+  dark:   '#EDE8DB',
+  light:  'rgba(237,232,219,0.5)',
+  border: 'rgba(255,255,255,0.08)',
+  bg:     'rgba(255,255,255,0.06)',
   red:    '#C75B4E',
 };
 
 const inputStyle = {
   width: '100%', padding: '10px 12px', borderRadius: 9,
-  background: C.bg, border: `1px solid ${C.border}`,
-  color: C.dark, fontSize: 13, outline: 'none',
+  background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+  color: '#EDE8DB', fontSize: 13, outline: 'none',
   boxSizing: 'border-box', fontFamily: 'inherit',
 };
 const labelStyle = {
-  fontSize: 11, fontWeight: 600, color: C.light,
+  fontSize: 11, fontWeight: 600, color: 'rgba(237,232,219,0.5)',
   marginBottom: 5, display: 'block',
   textTransform: 'uppercase', letterSpacing: '0.05em',
 };
@@ -35,12 +35,12 @@ export default function ProfilPro() {
     tva_intracommunautaire: '', adresse: '', code_postal: '', ville: '',
     iban: '', avatar_url: '',
   });
-  const [loading,       setLoading]       = useState(true);
-  const [saving,        setSaving]        = useState(false);
-  const [saved,         setSaved]         = useState(false);
-  const [error,         setError]         = useState('');
+  const [loading,        setLoading]        = useState(true);
+  const [saving,         setSaving]         = useState(false);
+  const [saved,          setSaved]          = useState(false);
+  const [error,          setError]          = useState('');
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
-  const [photoPreview,  setPhotoPreview]  = useState(null);
+  const [photoPreview,   setPhotoPreview]   = useState(null);
   const fileRef = useRef(null);
 
   useEffect(() => { loadProfil(); }, []);
@@ -58,50 +58,26 @@ export default function ProfilPro() {
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
-  // ── Upload photo de profil ───────────────────────────────────────
   const handlePhotoChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    // Vérifications
-    if (!file.type.startsWith('image/')) {
-      setError('Le fichier doit être une image (JPG, PNG, WebP).');
-      return;
-    }
-    if (file.size > 2 * 1024 * 1024) {
-      setError('L\'image ne doit pas dépasser 2 Mo.');
-      return;
-    }
-
-    setError('');
-    setUploadingPhoto(true);
-
-    // Aperçu local immédiat
+    if (!file.type.startsWith('image/')) { setError('Le fichier doit être une image (JPG, PNG, WebP).'); return; }
+    if (file.size > 2 * 1024 * 1024) { setError("L'image ne doit pas dépasser 2 Mo."); return; }
+    setError(''); setUploadingPhoto(true);
     const reader = new FileReader();
     reader.onload = (ev) => setPhotoPreview(ev.target.result);
     reader.readAsDataURL(file);
-
     try {
       const { data: { user } } = await supabasePro.auth.getUser();
       const ext  = file.name.split('.').pop();
-const path = `${user.id}/avatar.${ext}`;
-
-      // Upload dans le bucket invoices (déjà existant)
-      const { error: upErr } = await supabasePro.storage
-        .from('avatars')
-        .upload(path, file, { upsert: true });
+      const path = `${user.id}/avatar.${ext}`;
+      const { error: upErr } = await supabasePro.storage.from('avatars').upload(path, file, { upsert: true });
       if (upErr) throw upErr;
-      const { data: urlData } = supabasePro.storage
-        .from('avatars')
-        .getPublicUrl(path);
-
-      const avatar_url = urlData.publicUrl + '?t=' + Date.now(); // cache-bust
-
-      // Sauvegarder l'URL dans le profil
+      const { data: urlData } = supabasePro.storage.from('avatars').getPublicUrl(path);
+      const avatar_url = urlData.publicUrl + '?t=' + Date.now();
       await supabasePro.from('user_profiles').upsert({ id: user.id, avatar_url });
       setForm(f => ({ ...f, avatar_url }));
       setPhotoPreview(avatar_url);
-      // Notifier ProfileAvatar de se rafraîchir
       window.dispatchEvent(new CustomEvent('avatar_updated', { detail: { url: avatar_url } }));
     } catch (e) {
       setError('Erreur upload : ' + e.message);
@@ -111,7 +87,6 @@ const path = `${user.id}/avatar.${ext}`;
     }
   };
 
-  // ── Sauvegarde profil ────────────────────────────────────────────
   const handleSave = async () => {
     setSaving(true); setError('');
     try {
@@ -124,253 +99,166 @@ const path = `${user.id}/avatar.${ext}`;
     setSaving(false);
   };
 
-  // Initiales pour le placeholder avatar
   const initiales = [form.first_name?.[0], form.last_name?.[0]].filter(Boolean).join('').toUpperCase() || '?';
 
   if (loading) return (
     <div style={{ padding: 40, textAlign: 'center', color: C.light, fontSize: 13 }}>Chargement…</div>
   );
 
-  return (
-    <div style={{ fontFamily: "'Nunito Sans', sans-serif", padding: '32px 28px', maxWidth: 720, margin: '0 auto' }}>
+  const cardStyle = { background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:16, padding:24, marginBottom:16 };
+  const sectionTitle = (icon, label) => (
+    <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:18 }}>
+      <div style={{ width:28, height:28, borderRadius:8, background:`${C.blue}15`, display:'flex', alignItems:'center', justifyContent:'center' }}>
+        {icon}
+      </div>
+      <span style={{ fontSize:12, fontWeight:700, color:'rgba(237,232,219,0.7)', textTransform:'uppercase', letterSpacing:'0.06em' }}>{label}</span>
+    </div>
+  );
 
-      <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 600, color: C.dark, margin: 0 }}>
+  return (
+    <div style={{ fontFamily:"'Nunito Sans', sans-serif", padding:'32px 28px', maxWidth:720, margin:'0 auto' }}>
+
+      <div style={{ marginBottom:28 }}>
+        <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:26, fontWeight:600, color:'#EDE8DB', margin:0 }}>
           Mon profil pro
         </h1>
-        <p style={{ fontSize: 13, color: C.light, marginTop: 4 }}>
+        <p style={{ fontSize:13, color:C.light, marginTop:4 }}>
           Ces informations apparaîtront automatiquement sur vos devis et factures générés.
         </p>
       </div>
 
-      {/* ── Photo de profil ── */}
-      <div style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.border}`, borderRadius: 16, padding: 24, marginBottom: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: `${C.blue}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Camera size={13} color={C.blue}/>
-          </div>
-          <span style={{ fontSize: 12, fontWeight: 700, color: C.dark, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Photo de profil
-          </span>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-
-          {/* Avatar — grand carré cliquable */}
-          <div
-            onClick={() => !uploadingPhoto && fileRef.current?.click()}
-            style={{
-              width: 100, height: 100, borderRadius: 16, flexShrink: 0,
-              background: photoPreview ? 'transparent' : `${C.blue}15`,
-              border: `2px dashed ${photoPreview ? C.blue : C.border}`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: uploadingPhoto ? 'wait' : 'pointer',
-              overflow: 'hidden', position: 'relative',
-              transition: 'all 200ms ease',
-            }}
-            onMouseEnter={e => { if (!uploadingPhoto) e.currentTarget.style.borderColor = C.blue; }}
-            onMouseLeave={e => { if (!photoPreview) e.currentTarget.style.borderColor = C.border; }}
-          >
+      {/* Photo de profil */}
+      <div style={cardStyle}>
+        {sectionTitle(<Camera size={13} color={C.blue}/>, 'Photo de profil')}
+        <div style={{ display:'flex', alignItems:'center', gap:24 }}>
+          <div onClick={() => !uploadingPhoto && fileRef.current?.click()}
+            style={{ width:100, height:100, borderRadius:16, flexShrink:0, background:photoPreview?'transparent':`${C.blue}15`, border:`2px dashed ${photoPreview?C.blue:'rgba(255,255,255,0.15)'}`, display:'flex', alignItems:'center', justifyContent:'center', cursor:uploadingPhoto?'wait':'pointer', overflow:'hidden', position:'relative', transition:'all 200ms ease' }}
+            onMouseEnter={e => { if (!uploadingPhoto) e.currentTarget.style.borderColor=C.blue; }}
+            onMouseLeave={e => { if (!photoPreview) e.currentTarget.style.borderColor='rgba(255,255,255,0.15)'; }}>
             {photoPreview ? (
               <>
-                <img
-                  src={photoPreview}
-                  alt="Photo de profil"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-                {/* Overlay au hover */}
-                <div style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 200ms' }}
-                  onMouseEnter={e => e.currentTarget.style.opacity = 1}
-                  onMouseLeave={e => e.currentTarget.style.opacity = 0}>
+                <img src={photoPreview} alt="Photo" style={{ width:'100%', height:'100%', objectFit:'cover' }}/>
+                <div style={{ position:'absolute', inset:0, background:'rgba(15,23,42,0.5)', display:'flex', alignItems:'center', justifyContent:'center', opacity:0, transition:'opacity 200ms' }}
+                  onMouseEnter={e => e.currentTarget.style.opacity=1}
+                  onMouseLeave={e => e.currentTarget.style.opacity=0}>
                   <Camera size={20} color="#fff"/>
                 </div>
               </>
             ) : uploadingPhoto ? (
-              <div style={{ fontSize: 11, color: C.light, textAlign: 'center', padding: 8 }}>Upload…</div>
+              <div style={{ fontSize:11, color:C.light, textAlign:'center', padding:8 }}>Upload…</div>
             ) : (
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 28, fontWeight: 700, color: C.blue, lineHeight: 1 }}>
-                  {initiales}
-                </div>
-                <div style={{ fontSize: 10, color: C.light, marginTop: 6 }}>Cliquer</div>
+              <div style={{ textAlign:'center' }}>
+                <div style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:28, fontWeight:700, color:C.blue, lineHeight:1 }}>{initiales}</div>
+                <div style={{ fontSize:10, color:C.light, marginTop:6 }}>Cliquer</div>
               </div>
             )}
           </div>
-
-          {/* Infos et bouton */}
           <div>
-            <p style={{ fontSize: 13, color: C.dark, fontWeight: 600, marginBottom: 6 }}>
-              {photoPreview ? 'Modifier la photo' : 'Ajouter une photo'}
-            </p>
-            <p style={{ fontSize: 12, color: C.light, marginBottom: 14, lineHeight: 1.5 }}>
-              JPG, PNG ou WebP · Max 2 Mo<br/>
-              Apparaît sur votre bureau et vos documents.
-            </p>
-            <button
-              onClick={() => fileRef.current?.click()}
-              disabled={uploadingPhoto}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 9, border: `1px solid ${C.blue}`, background: `${C.blue}10`, color: C.blue, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}
-            >
+            <p style={{ fontSize:13, color:'#EDE8DB', fontWeight:600, marginBottom:6 }}>{photoPreview?'Modifier la photo':'Ajouter une photo'}</p>
+            <p style={{ fontSize:12, color:C.light, marginBottom:14, lineHeight:1.5 }}>JPG, PNG ou WebP · Max 2 Mo<br/>Apparaît sur votre bureau et vos documents.</p>
+            <button onClick={() => fileRef.current?.click()} disabled={uploadingPhoto}
+              style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:9, border:`1px solid ${C.blue}`, background:`${C.blue}10`, color:C.blue, fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
               <Upload size={13}/>
               {uploadingPhoto ? 'Upload en cours…' : 'Choisir une image'}
             </button>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              style={{ display: 'none' }}
-              onChange={handlePhotoChange}
-            />
+            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display:'none' }} onChange={handlePhotoChange}/>
           </div>
         </div>
       </div>
 
-      {/* ── Identité ── */}
-      <div style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.border}`, borderRadius: 16, padding: 24, marginBottom: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: `${C.blue}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <User size={13} color={C.blue}/>
-          </div>
-          <span style={{ fontSize: 12, fontWeight: 700, color: C.dark, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Identité</span>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-          <div><label style={labelStyle}>Prénom</label><input value={form.first_name || ''} onChange={set('first_name')} style={inputStyle} placeholder="Jean"/></div>
-          <div><label style={labelStyle}>Nom</label><input value={form.last_name || ''} onChange={set('last_name')} style={inputStyle} placeholder="Dupont"/></div>
-          <div><label style={labelStyle}>Téléphone</label><input value={form.phone || ''} onChange={set('phone')} style={inputStyle} placeholder="06 00 00 00 00"/></div>
+      {/* Identité */}
+      <div style={cardStyle}>
+        {sectionTitle(<User size={13} color={C.blue}/>, 'Identité')}
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
+          <div><label style={labelStyle}>Prénom</label><input value={form.first_name||''} onChange={set('first_name')} style={inputStyle} placeholder="Jean"/></div>
+          <div><label style={labelStyle}>Nom</label><input value={form.last_name||''} onChange={set('last_name')} style={inputStyle} placeholder="Dupont"/></div>
+          <div><label style={labelStyle}>Téléphone</label><input value={form.phone||''} onChange={set('phone')} style={inputStyle} placeholder="06 00 00 00 00"/></div>
         </div>
       </div>
 
-      {/* ── Entreprise ── */}
-      <div style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.border}`, borderRadius: 16, padding: 24, marginBottom: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: `${C.blue}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Building2 size={13} color={C.blue}/>
-          </div>
-          <span style={{ fontSize: 12, fontWeight: 700, color: C.dark, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Entreprise</span>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-          <div><label style={labelStyle}>Raison sociale</label><input value={form.company_name || ''} onChange={set('company_name')} style={inputStyle} placeholder="SARL Dupont"/></div>
+      {/* Entreprise */}
+      <div style={cardStyle}>
+        {sectionTitle(<Building2 size={13} color={C.blue}/>, 'Entreprise')}
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
+          <div><label style={labelStyle}>Raison sociale</label><input value={form.company_name||''} onChange={set('company_name')} style={inputStyle} placeholder="SARL Dupont"/></div>
           <div>
             <label style={labelStyle}>Forme juridique</label>
-            <select value={form.forme_juridique || ''} onChange={set('forme_juridique')} style={{ ...inputStyle, cursor: 'pointer' }}>
+            <select value={form.forme_juridique||''} onChange={set('forme_juridique')} style={{ ...inputStyle, cursor:'pointer' }}>
               <option value="">Sélectionner</option>
               {['Auto-entrepreneur','EURL','SARL','SAS','SASU','SA','EI','Association'].map(f => <option key={f}>{f}</option>)}
             </select>
           </div>
-          <div><label style={labelStyle}>SIRET</label><input value={form.siret || ''} onChange={set('siret')} style={inputStyle} placeholder="000 000 000 00000"/></div>
-          <div><label style={labelStyle}>N° TVA intracommunautaire</label><input value={form.tva_intracommunautaire || ''} onChange={set('tva_intracommunautaire')} style={inputStyle} placeholder="FR00000000000"/></div>
+          <div><label style={labelStyle}>SIRET</label><input value={form.siret||''} onChange={set('siret')} style={inputStyle} placeholder="000 000 000 00000"/></div>
+          <div><label style={labelStyle}>N° TVA intracommunautaire</label><input value={form.tva_intracommunautaire||''} onChange={set('tva_intracommunautaire')} style={inputStyle} placeholder="FR00000000000"/></div>
         </div>
       </div>
 
-      {/* ── Adresse ── */}
-      <div style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.border}`, borderRadius: 16, padding: 24, marginBottom: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: `${C.blue}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <MapPin size={13} color={C.blue}/>
-          </div>
-          <span style={{ fontSize: 12, fontWeight: 700, color: C.dark, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Adresse</span>
-        </div>
-        <div style={{ display: 'grid', gap: 14 }}>
-          <div><label style={labelStyle}>Adresse</label><input value={form.adresse || ''} onChange={set('adresse')} style={inputStyle} placeholder="1 rue de la Paix"/></div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 14 }}>
-            <div><label style={labelStyle}>Code postal</label><input value={form.code_postal || ''} onChange={set('code_postal')} style={inputStyle} placeholder="75001"/></div>
-            <div><label style={labelStyle}>Ville</label><input value={form.ville || ''} onChange={set('ville')} style={inputStyle} placeholder="Paris"/></div>
+      {/* Adresse */}
+      <div style={cardStyle}>
+        {sectionTitle(<MapPin size={13} color={C.blue}/>, 'Adresse')}
+        <div style={{ display:'grid', gap:14 }}>
+          <div><label style={labelStyle}>Adresse</label><input value={form.adresse||''} onChange={set('adresse')} style={inputStyle} placeholder="1 rue de la Paix"/></div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 2fr', gap:14 }}>
+            <div><label style={labelStyle}>Code postal</label><input value={form.code_postal||''} onChange={set('code_postal')} style={inputStyle} placeholder="75001"/></div>
+            <div><label style={labelStyle}>Ville</label><input value={form.ville||''} onChange={set('ville')} style={inputStyle} placeholder="Paris"/></div>
           </div>
         </div>
       </div>
 
-      {/* ── Coordonnées bancaires ── */}
-      <div style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.border}`, borderRadius: 16, padding: 24, marginBottom: 24, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: `${C.blue}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <CreditCard size={13} color={C.blue}/>
-          </div>
-          <span style={{ fontSize: 12, fontWeight: 700, color: C.dark, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Coordonnées bancaires</span>
-        </div>
-        <div><label style={labelStyle}>IBAN</label><input value={form.iban || ''} onChange={set('iban')} style={inputStyle} placeholder="FR76 0000 0000 0000 0000 0000 000"/></div>
-        <p style={{ fontSize: 11, color: C.light, marginTop: 8 }}>ℹ️ L'IBAN apparaîtra en bas de vos devis pour faciliter le paiement.</p>
+      {/* Bancaire */}
+      <div style={{ ...cardStyle, marginBottom:24 }}>
+        {sectionTitle(<CreditCard size={13} color={C.blue}/>, 'Coordonnées bancaires')}
+        <div><label style={labelStyle}>IBAN</label><input value={form.iban||''} onChange={set('iban')} style={inputStyle} placeholder="FR76 0000 0000 0000 0000 0000 000"/></div>
+        <p style={{ fontSize:11, color:C.light, marginTop:8 }}>ℹ️ L'IBAN apparaîtra en bas de vos devis pour faciliter le paiement.</p>
       </div>
 
-      {/* ── Abonnement ── */}
-      <div style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.border}`, borderRadius: 16, padding: 24, marginBottom: 24, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: `${C.blue}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Zap size={13} color={C.blue}/>
-          </div>
-          <span style={{ fontSize: 12, fontWeight: 700, color: C.dark, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Mon abonnement</span>
-        </div>
-
-        {/* Plan actuel */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: C.bg, borderRadius: 10, border: `1px solid ${C.border}`, marginBottom: 16 }}>
+      {/* Abonnement */}
+      <div style={{ ...cardStyle, marginBottom:24 }}>
+        {sectionTitle(<Zap size={13} color={C.blue}/>, 'Mon abonnement')}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 16px', background:'rgba(255,255,255,0.04)', borderRadius:10, border:'1px solid rgba(255,255,255,0.08)', marginBottom:16 }}>
           <div>
-            <div style={{ fontSize: 12, color: C.light, marginBottom: 3 }}>Plan actuel</div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: C.dark }}>
+            <div style={{ fontSize:12, color:C.light, marginBottom:3 }}>Plan actuel</div>
+            <div style={{ fontSize:16, fontWeight:700, color:'#EDE8DB' }}>
               {PLANS[currentPlan]?.label || 'Gratuit'}
-              <span style={{ fontSize: 12, fontWeight: 400, color: C.light, marginLeft: 8 }}>
-                {PLANS[currentPlan]?.price || '0 €/mois'}
-              </span>
+              <span style={{ fontSize:12, fontWeight:400, color:C.light, marginLeft:8 }}>{PLANS[currentPlan]?.price || '0 €/mois'}</span>
             </div>
           </div>
-          <div style={{ width: 10, height: 10, borderRadius: '50%', background: currentPlan === 'gratuit' ? '#9AA0AE' : C.green }}/>
+          <div style={{ width:10, height:10, borderRadius:'50%', background:currentPlan==='gratuit'?'rgba(237,232,219,0.2)':C.green }}/>
         </div>
 
-        {/* Boutons selon le plan */}
         {currentPlan === 'gratuit' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <p style={{ fontSize: 12, color: C.light, marginBottom: 8 }}>Passez à un plan payant pour accéder aux modules de gestion.</p>
-            {['starter', 'pro', 'premium'].map(p => (
-              <button
-                key={p}
-                onClick={() => startCheckout(p)}
-                disabled={stripeLoading}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', borderRadius: 9, border: `1px solid ${PLANS[p]?.color}40`, background: `${PLANS[p]?.color}08`, color: PLANS[p]?.color, fontSize: 13, fontWeight: 700, cursor: stripeLoading ? 'wait' : 'pointer', fontFamily: 'inherit' }}
-              >
+          <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+            <p style={{ fontSize:12, color:C.light, marginBottom:8 }}>Passez à un plan payant pour accéder aux modules de gestion.</p>
+            {['starter','pro','premium'].map(p => (
+              <button key={p} onClick={() => startCheckout(p)} disabled={stripeLoading}
+                style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 16px', borderRadius:9, border:`1px solid ${PLANS[p]?.color}40`, background:`${PLANS[p]?.color}08`, color:PLANS[p]?.color, fontSize:13, fontWeight:700, cursor:stripeLoading?'wait':'pointer', fontFamily:'inherit' }}>
                 <span>{PLANS[p]?.label} — {PLANS[p]?.price}</span>
-                {stripeLoading ? <Loader size={13} style={{ animation: 'spin 1s linear infinite' }}/> : <ExternalLink size={13}/>}
+                {stripeLoading ? <Loader size={13} style={{ animation:'spin 1s linear infinite' }}/> : <ExternalLink size={13}/>}
               </button>
             ))}
           </div>
         )}
 
         {currentPlan !== 'gratuit' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <button
-              onClick={openPortal}
-              disabled={stripeLoading}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '11px 16px', borderRadius: 9, border: `1px solid ${C.blue}`, background: `${C.blue}10`, color: C.blue, fontSize: 13, fontWeight: 700, cursor: stripeLoading ? 'wait' : 'pointer', fontFamily: 'inherit' }}
-            >
-              {stripeLoading
-                ? <><Loader size={13} style={{ animation: 'spin 1s linear infinite' }}/> Redirection…</>
-                : <><ExternalLink size={13}/> Gérer mon abonnement (CB, factures, annulation)</>
-              }
+          <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+            <button onClick={openPortal} disabled={stripeLoading}
+              style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:'11px 16px', borderRadius:9, border:`1px solid ${C.blue}`, background:`${C.blue}10`, color:C.blue, fontSize:13, fontWeight:700, cursor:stripeLoading?'wait':'pointer', fontFamily:'inherit' }}>
+              {stripeLoading ? <><Loader size={13} style={{ animation:'spin 1s linear infinite' }}/> Redirection…</> : <><ExternalLink size={13}/> Gérer mon abonnement (CB, factures, annulation)</>}
             </button>
-            <p style={{ fontSize: 11, color: C.light, textAlign: 'center' }}>
-              Vous serez redirigé vers le portail sécurisé Stripe.
-            </p>
+            <p style={{ fontSize:11, color:C.light, textAlign:'center' }}>Vous serez redirigé vers le portail sécurisé Stripe.</p>
           </div>
         )}
 
-        {stripeError && (
-          <div style={{ fontSize: 12, color: C.red, marginTop: 8, padding: '8px 12px', background: 'rgba(199,91,78,0.07)', borderRadius: 8 }}>
-            {stripeError}
-          </div>
-        )}
+        {stripeError && <div style={{ fontSize:12, color:C.red, marginTop:8, padding:'8px 12px', background:'rgba(199,91,78,0.07)', borderRadius:8 }}>{stripeError}</div>}
       </div>
 
-      {error && <div style={{ color: C.red, fontSize: 12, marginBottom: 12, padding: '8px 12px', background: 'rgba(199,91,78,0.07)', borderRadius: 8, border: '1px solid rgba(199,91,78,0.2)' }}>{error}</div>}
+      {error && <div style={{ color:C.red, fontSize:12, marginBottom:12, padding:'8px 12px', background:'rgba(199,91,78,0.07)', borderRadius:8, border:'1px solid rgba(199,91,78,0.2)' }}>{error}</div>}
 
-      <button
-        onClick={handleSave}
-        disabled={saving}
-        style={{ width: '100%', padding: '13px', borderRadius: 11, border: 'none', background: saved ? C.green : C.blue, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'background 0.3s ease', fontFamily: 'inherit' }}
-      >
-        {saved
-          ? <><CheckCircle size={16}/> Profil enregistré !</>
-          : saving ? 'Enregistrement…'
-          : <><Save size={16}/> Enregistrer mon profil</>
-        }
+      <button onClick={handleSave} disabled={saving}
+        style={{ width:'100%', padding:'13px', borderRadius:11, border:'none', background:saved?C.green:C.blue, color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'background 0.3s ease', fontFamily:'inherit' }}>
+        {saved ? <><CheckCircle size={16}/> Profil enregistré !</> : saving ? 'Enregistrement…' : <><Save size={16}/> Enregistrer mon profil</>}
       </button>
-      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+      <style>{`@keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }`}</style>
     </div>
   );
 }

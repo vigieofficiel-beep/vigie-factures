@@ -247,7 +247,7 @@ export default function BanquePage() {
     const { data: { user } } = await supabasePro.auth.getUser();
     if (!user) return;
     const [{ data: tx }, { data: inv }] = await Promise.all([
-      supabasePro.from('bank_transactions').select('*').eq('user_id', user.id).eq('workspace_id', activeWorkspace?.id).order('date', { ascending:false }),
+      supabasePro.from('bank_transactions').select('*').eq('user_id', user.id).or(`workspace_id.eq.${activeWorkspace?.id},workspace_id.is.null`).order('date', { ascending:false }),
       supabasePro.from('invoices').select('id, provider, amount_ttc, invoice_date').eq('user_id', user.id),
     ]);
     setTransactions(tx || []);

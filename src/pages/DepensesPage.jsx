@@ -227,8 +227,7 @@ export default function DepensesPage() {
     const { data } = await supabasePro.from('expenses')
       .select('*')
       .eq('user_id', session.user.id)
-      .eq('workspace_id', activeWorkspace?.id)
-      .order('date', { ascending:false });
+.or(`workspace_id.eq.${activeWorkspace?.id},workspace_id.is.null`)      .order('date', { ascending:false });
     setExpenses(data || []);
     setLoading(false);
   };
