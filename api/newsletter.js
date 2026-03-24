@@ -16,8 +16,11 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Email invalide' });
   }
 
+  // DEBUG — à supprimer après confirmation
+  console.log('RESEND_API_KEY present:', !!process.env.RESEND_API_KEY);
+  console.log('RESEND_API_KEY prefix:', process.env.RESEND_API_KEY?.substring(0, 8));
+
   try {
-    // Sauvegarder dans Supabase
     const { error: dbError } = await supabase
       .from('newsletter_subscribers')
       .insert({ email, source });
@@ -25,7 +28,6 @@ module.exports = async function handler(req, res) {
     const dejaInscrit = dbError?.code === '23505';
     if (dbError && !dejaInscrit) throw dbError;
 
-    // Email de bienvenue via Resend
     if (!dejaInscrit && process.env.RESEND_API_KEY) {
       const resendRes = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -59,8 +61,11 @@ module.exports = async function handler(req, res) {
       if (!resendRes.ok) {
         const resendError = await resendRes.text();
         console.error('Resend error:', resendError);
-        // On ne bloque pas si Resend échoue — l'inscription Supabase est déjà faite
+      } else {
+        console.log('Resend success - email envoyé à:', email);
       }
+    } else {
+      console.log('Resend skipped - dejaInscrit:', dejaInscrit, 'hasKey:', !!process.env.RESEND_API_KEY);
     }
 
     return res.status(200).json({
