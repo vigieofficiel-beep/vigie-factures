@@ -141,7 +141,6 @@ function AddExpenseForm({ onSave, onCancel, prefill=null, workspaceId=null }) {
         </div>
       )}
       <h3 style={{ fontSize:15, fontWeight:700, color:'#EDE8DB', marginBottom:20 }}>Nouvelle dépense</h3>
-
       <div style={{ marginBottom:20 }}>
         <label style={lS}>Justificatif (photo ou PDF) <Tooltip text={TIPS.ocr} /></label>
         <div onClick={() => fileRef.current?.click()} style={{ border:`2px dashed ${ocrSuccess?ACCENT:file?'#5BC78A':'rgba(255,255,255,0.12)'}`, borderRadius:10, padding:18, textAlign:'center', cursor:'pointer', background:ocrSuccess?`${ACCENT}08`:'rgba(255,255,255,0.02)', transition:'all 200ms ease' }}>
@@ -152,28 +151,20 @@ function AddExpenseForm({ onSave, onCancel, prefill=null, workspaceId=null }) {
           : <div><div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:6, marginBottom:4 }}><Scan size={16} color={ACCENT}/><span style={{ fontSize:13, color:ACCENT, fontWeight:700 }}>Déposer une facture</span></div><span style={{ fontSize:11, color:'rgba(237,232,219,0.3)' }}>PDF ou photo — le formulaire se complète automatiquement</span></div>}
         </div>
       </div>
-
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, marginBottom:14 }}>
         <div><label style={lS}>Date *</label><input type="date" value={form.date} onChange={set('date')} required style={{ ...iS, colorScheme:'dark' }}/></div>
-        <div>
-          <label style={lS}>Montant TTC (€) * <Tooltip text={TIPS.montant_ttc} /></label>
-          <input type="number" step="0.01" min="0" value={form.amount_ttc} onChange={set('amount_ttc')} placeholder="0,00" required style={iS}/>
-        </div>
+        <div><label style={lS}>Montant TTC (€) * <Tooltip text={TIPS.montant_ttc} /></label><input type="number" step="0.01" min="0" value={form.amount_ttc} onChange={set('amount_ttc')} placeholder="0,00" required style={iS}/></div>
       </div>
-
       <div style={{ marginBottom:14 }}>
         <label style={lS}>Catégorie *</label>
         <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
           {TYPES.map(t => { const Icon = t.icon; const sel = form.type===t.id; return (
             <button key={t.id} type="button" onClick={() => setForm(f => ({ ...f, type:t.id }))} style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 13px', borderRadius:20, border:`1px solid ${sel?t.color:'rgba(255,255,255,0.1)'}`, background:sel?`${t.color}20`:'rgba(255,255,255,0.04)', color:sel?t.color:'rgba(237,232,219,0.5)', fontSize:12, fontWeight:sel?700:500, cursor:'pointer' }}>
               <Icon size={12}/> {t.label}
-            </button>);
-          })}
+            </button>);})}
         </div>
       </div>
-
       <div style={{ marginBottom:14 }}><label style={lS}>Fournisseur</label><input type="text" value={form.etablissement} onChange={set('etablissement')} placeholder="ex : EDF, Amazon..." style={iS}/></div>
-
       {form.type === 'transport' && (
         <div style={{ marginBottom:14, background:'rgba(91,163,199,0.06)', border:'1px solid rgba(91,163,199,0.2)', borderRadius:10, padding:'12px 14px' }}>
           <label style={{ ...lS, color:'#5BA3C7' }}>Kilométrage (facultatif) <Tooltip text={TIPS.indemnite_km} /></label>
@@ -183,7 +174,6 @@ function AddExpenseForm({ onSave, onCancel, prefill=null, workspaceId=null }) {
           </div>
         </div>
       )}
-
       <div style={{ marginBottom:14 }}><label style={lS}>Remarques</label><input type="text" value={form.notes} onChange={set('notes')} placeholder="Informations complémentaires..." style={iS}/></div>
       {error && <div style={{ background:'rgba(199,91,78,0.08)', border:'1px solid rgba(199,91,78,0.2)', borderRadius:8, padding:'10px 14px', color:'#C75B4E', fontSize:12, marginBottom:14 }}>{error}</div>}
       <div style={{ display:'flex', gap:10 }}>
@@ -212,8 +202,7 @@ export default function DepensesPage() {
       if (raw) {
         const data = JSON.parse(raw);
         if (data.source === 'prohome_ocr' && data.type_document === 'depense') {
-          setOcrPrefill(data);
-          setShowForm(true);
+          setOcrPrefill(data); setShowForm(true);
           sessionStorage.removeItem('ocr_prefill');
         }
       }
@@ -224,10 +213,14 @@ export default function DepensesPage() {
     setLoading(true);
     const { data: { session } } = await supabasePro.auth.getSession();
     if (!session?.user) return;
-    const { data } = await supabasePro.from('expenses')
+    let query = supabasePro.from('expenses')
       .select('*')
       .eq('user_id', session.user.id)
-.or(`workspace_id.eq.${activeWorkspace?.id},workspace_id.is.null`)      .order('date', { ascending:false });
+      .order('date', { ascending: false });
+    if (activeWorkspace?.id) {
+      query = query.eq('workspace_id', activeWorkspace.id);
+    }
+    const { data } = await query;
     setExpenses(data || []);
     setLoading(false);
   };
@@ -259,13 +252,10 @@ export default function DepensesPage() {
           <DateFilter onChange={setDateRange} color={ACCENT}/>
           <ExportButton data={filtered} filename={`depenses-${new Date().getFullYear()}`} color={ACCENT}
             columns={[
-              { key:'date',          label:'Date' },
-              { key:'type',          label:'Catégorie' },
-              { key:'etablissement', label:'Fournisseur' },
-              { key:'amount_ttc',    label:'Montant TTC (€)' },
-              { key:'km',            label:'Km' },
-              { key:'indemnite_km',  label:'Indemnité Km (€)' },
-              { key:'notes',         label:'Remarques' },
+              { key:'date', label:'Date' }, { key:'type', label:'Catégorie' },
+              { key:'etablissement', label:'Fournisseur' }, { key:'amount_ttc', label:'Montant TTC (€)' },
+              { key:'km', label:'Km' }, { key:'indemnite_km', label:'Indemnité Km (€)' },
+              { key:'notes', label:'Remarques' },
             ]}/>
           <button onClick={() => { setOcrPrefill(null); setShowForm(true); }} style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 16px', borderRadius:9, border:'none', background:ACCENT, color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer' }}>
             <Plus size={13}/> Nouvelle dépense
@@ -274,24 +264,21 @@ export default function DepensesPage() {
       </div>
 
       {showForm && (
-        <AddExpenseForm
-          prefill={ocrPrefill}
-          workspaceId={activeWorkspace?.id}
+        <AddExpenseForm prefill={ocrPrefill} workspaceId={activeWorkspace?.id}
           onSave={() => { setShowForm(false); setOcrPrefill(null); fetchExpenses(); }}
-          onCancel={() => { setShowForm(false); setOcrPrefill(null); }}
-        />
+          onCancel={() => { setShowForm(false); setOcrPrefill(null); }}/>
       )}
 
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))', gap:14, marginBottom:24 }}>
         {[
-          { label:'Total dépenses',  value:formatEuro(totalFiltered), color:ACCENT,    tip: TIPS.depenses },
-          { label:'Indemnités km',   value:formatEuro(totalKm),       color:'#5BA3C7', tip: TIPS.indemnite_km },
-          { label:'Nombre dépenses', value:filtered.length,           color:'#5BC78A', tip: null },
+          { label:'Total dépenses',  value:formatEuro(totalFiltered), color:ACCENT,    tip:TIPS.depenses },
+          { label:'Indemnités km',   value:formatEuro(totalKm),       color:'#5BA3C7', tip:TIPS.indemnite_km },
+          { label:'Nombre dépenses', value:filtered.length,           color:'#5BC78A', tip:null },
         ].map(s => (
           <div key={s.label} style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:12, padding:'16px 18px' }}>
             <div style={{ display:'flex', alignItems:'center', gap:4, marginBottom:8 }}>
               <p style={{ fontSize:11, color:'rgba(237,232,219,0.4)', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.06em', margin:0 }}>{s.label}</p>
-              {s.tip && <Tooltip text={s.tip} size={11} />}
+              {s.tip && <Tooltip text={s.tip} size={11}/>}
             </div>
             <p style={{ fontSize:22, fontWeight:700, color:s.color, margin:0 }}>{s.value}</p>
           </div>
@@ -317,12 +304,7 @@ export default function DepensesPage() {
           <table style={{ width:'100%', borderCollapse:'collapse' }}>
             <thead>
               <tr style={{ borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
-                {[
-                  'Date', 'Catégorie', 'Fournisseur',
-                  <span key="ttc" style={{ display:'flex', alignItems:'center', gap:4 }}>Montant TTC <Tooltip text={TIPS.montant_ttc} size={11} /></span>,
-                  <span key="km" style={{ display:'flex', alignItems:'center', gap:4 }}>Indemnité km <Tooltip text={TIPS.indemnite_km} size={11} /></span>,
-                  'Justificatif', '',
-                ].map((h, i) => (
+                {['Date','Catégorie','Fournisseur','Montant TTC','Indemnité km','Justificatif',''].map((h,i) => (
                   <th key={i} style={{ padding:'11px 14px', textAlign:'left', fontSize:10, fontWeight:700, color:'rgba(237,232,219,0.3)', textTransform:'uppercase', letterSpacing:'0.06em' }}>{h}</th>
                 ))}
               </tr>
