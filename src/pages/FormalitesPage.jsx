@@ -142,7 +142,8 @@ export default function FormalitesPage() {
     if (!user) return;
     const { data } = await supabasePro.from('formalites').select('*')
       .eq('user_id', user.id)
-.or(`workspace_id.eq.${activeWorkspace?.id},workspace_id.is.null`)      .order('date_echeance', { ascending:true });
+      .eq('workspace_id', activeWorkspace?.id)
+      .order('date_echeance', { ascending:true });
     setFormalites(data || []);
     setLoading(false);
   };

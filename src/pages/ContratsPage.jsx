@@ -163,7 +163,8 @@ export default function ContratsPage() {
     if (!user) return;
     const { data } = await supabasePro.from('contrats').select('*')
       .eq('user_id', user.id)
-.or(`workspace_id.eq.${activeWorkspace?.id},workspace_id.is.null`)      .order('date_fin', { ascending:true });
+      .eq('workspace_id', activeWorkspace?.id)
+      .order('date_fin', { ascending:true });
     setContrats(data || []);
     setLoading(false);
   };
