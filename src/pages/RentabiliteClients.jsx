@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabasePro } from "../lib/supabasePro";
 
-const C = { blue:'#5BA3C7', purple:'#A85BC7', dark:'#1A1C20', light:'#9AA0AE', border:'#E8EAF0', red:'#C75B4E', orange:'#5BC78A', green:'#5BC78A' };
+const C = { blue:'#5BA3C7', purple:'#A85BC7', dark:'#EDE8DB', light:'rgba(237,232,219,0.4)', border:'rgba(255,255,255,0.08)', red:'#C75B4E', orange:'#5BC78A', green:'#5BC78A' };
 
 function fmt(n) { return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n||0); }
 function fmtPct(n) { return `${Math.round(n||0)}%`; }
@@ -18,7 +18,7 @@ function Badge({ val }) {
 
 function BarScore({ pct, color }) {
   return (
-    <div style={{ height:6, background:'#F0F2F5', borderRadius:3, overflow:'hidden', marginTop:6 }}>
+    <div style={{ height:6, background:'rgba(255,255,255,0.06)', borderRadius:3, overflow:'hidden', marginTop:6 }}>
       <div style={{ width:`${Math.min(pct,100)}%`, height:'100%', background:color, borderRadius:3, transition:'width 0.6s ease' }}/>
     </div>
   );
@@ -98,7 +98,7 @@ export default function RentabiliteClients() {
           { label:'Taux de marge global', value:fmtPct(tauxGlobal), color:tauxGlobal>=50?C.green:tauxGlobal>=30?C.orange:C.red },
           { label:'Clients analysés', value:stats.length, color:C.purple },
         ].map(k => (
-          <div key={k.label} style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:12, padding:'16px 18px', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }}>
+          <div key={k.label} style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:12, padding:'16px 18px', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }}>
             <p style={{ fontSize:11, color:C.light, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>{k.label}</p>
             <p style={{ fontSize:22, fontWeight:700, color:k.color, margin:0 }}>{k.value}</p>
           </div>
@@ -108,7 +108,7 @@ export default function RentabiliteClients() {
       {loading ? (
         <div style={{ textAlign:'center', padding:48, color:C.light }}>Chargement...</div>
       ) : stats.length === 0 ? (
-        <div style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:14, padding:48, textAlign:'center' }}>
+        <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:48, textAlign:'center' }}>
           <p style={{ fontSize:32, marginBottom:12 }}>📊</p>
           <p style={{ color:C.light, fontSize:13 }}>Aucun devis accepté trouvé. Acceptez des devis dans Recettes pour voir la rentabilité.</p>
         </div>
@@ -118,9 +118,9 @@ export default function RentabiliteClients() {
           {/* Liste clients */}
           <div>
             {/* Tri */}
-            <div style={{ display:'flex', gap:4, marginBottom:16, background:'#F0F2F5', borderRadius:10, padding:4, width:'fit-content' }}>
+            <div style={{ display:'flex', gap:4, marginBottom:16, background:'rgba(255,255,255,0.06)', borderRadius:10, padding:4, width:'fit-content' }}>
               {[['rentabilite','Rentabilité'],['ca','CA'],['marge','Marge']].map(([val,lab])=>(
-                <button key={val} onClick={()=>setTri(val)} style={{ padding:'7px 14px', borderRadius:8, border:'none', background:tri===val?'#fff':'transparent', color:tri===val?C.dark:C.light, fontSize:12, fontWeight:tri===val?700:500, cursor:'pointer', boxShadow:tri===val?'0 1px 3px rgba(0,0,0,0.08)':'none', transition:'all 150ms' }}>
+                <button key={val} onClick={()=>setTri(val)} style={{ padding:'7px 14px', borderRadius:8, border:'none', background:tri===val?'rgba(91,163,199,0.15)':'transparent', color:tri===val?'#5BA3C7':'rgba(237,232,219,0.4)', fontSize:12, fontWeight:tri===val?700:500, cursor:'pointer', boxShadow:tri===val?'0 1px 3px rgba(0,0,0,0.08)':'none', transition:'all 150ms' }}>
                   {lab}
                 </button>
               ))}
@@ -132,9 +132,9 @@ export default function RentabiliteClients() {
                 const isSelected = selected?.client.id === s.client.id;
                 return (
                   <div key={s.client.id} onClick={() => setSelected(isSelected ? null : s)}
-                    style={{ background:'#fff', border:`1px solid ${isSelected ? C.blue : '#E8EAF0'}`, borderRadius:12, padding:'16px 20px', cursor:'pointer', boxShadow: isSelected ? `0 0 0 2px ${C.blue}30` : '0 1px 4px rgba(0,0,0,0.05)', transition:'all 150ms' }}
-                    onMouseEnter={e => { if (!isSelected) e.currentTarget.style.borderColor = '#D0D8E8'; }}
-                    onMouseLeave={e => { if (!isSelected) e.currentTarget.style.borderColor = '#E8EAF0'; }}>
+                    style={{ background:'rgba(255,255,255,0.04)', border:`1px solid ${isSelected ? C.blue : '#E8EAF0'}`, borderRadius:12, padding:'16px 20px', cursor:'pointer', boxShadow: isSelected ? `0 0 0 2px ${C.blue}30` : '0 1px 4px rgba(0,0,0,0.05)', transition:'all 150ms' }}
+                    onMouseEnter={e => { if (!isSelected) e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}
+                    onMouseLeave={e => { if (!isSelected) e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}>
 
                     <div style={{ display:'flex', alignItems:'center', gap:14 }}>
                       {/* Rang */}
@@ -171,7 +171,7 @@ export default function RentabiliteClients() {
           {/* Fiche détail */}
           {selected && (
             <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-              <div style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:14, padding:22, boxShadow:'0 2px 12px rgba(0,0,0,0.07)', position:'sticky', top:20 }}>
+              <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:22, boxShadow:'0 2px 12px rgba(0,0,0,0.07)', position:'sticky', top:20 }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:18 }}>
                   <h3 style={{ fontSize:16, fontWeight:700, color:C.dark, margin:0 }}>{selected.client.nom}</h3>
                   <button onClick={() => setSelected(null)} style={{ background:'none', border:'none', cursor:'pointer', color:C.light, fontSize:18 }}>×</button>
@@ -184,8 +184,8 @@ export default function RentabiliteClients() {
                   { label:'Charges manuelles', value:`− ${fmt(selected.chargesManuelles)}`, color:C.red },
                   { label:'Marge nette', value:fmt(selected.marge), color:selected.marge>=0?C.green:C.red, big:true },
                 ].map(r => (
-                  <div key={r.label} style={{ display:'flex', justifyContent:'space-between', padding:'9px 0', borderBottom:'1px solid #F0F2F5' }}>
-                    <span style={{ fontSize:13, color:'#5A6070' }}>{r.label}</span>
+                  <div key={r.label} style={{ display:'flex', justifyContent:'space-between', padding:'9px 0', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
+                    <span style={{ fontSize:13, color:'rgba(237,232,219,0.5)' }}>{r.label}</span>
                     <span style={{ fontSize:r.big?17:13, fontWeight:r.big?800:600, color:r.color }}>{r.value}</span>
                   </div>
                 ))}
@@ -201,7 +201,7 @@ export default function RentabiliteClients() {
 
                 {/* Charges manuelles */}
                 <div style={{ marginTop:16 }}>
-                  <label style={{ fontSize:11, fontWeight:700, color:'#5A6070', marginBottom:6, display:'block', textTransform:'uppercase', letterSpacing:'0.05em' }}>
+                  <label style={{ fontSize:11, fontWeight:700, color:'rgba(237,232,219,0.5)', marginBottom:6, display:'block', textTransform:'uppercase', letterSpacing:'0.05em' }}>
                     Ajouter des charges spécifiques (€)
                   </label>
                   <input type="number" value={charges[selected.client.id] || ''} placeholder="0"
@@ -216,7 +216,7 @@ export default function RentabiliteClients() {
                         return { ...prev, chargesManuelles:val, coutTotal:newCout, marge:newMarge, tauxMarge:newTaux, rentabilite:Math.min(Math.max(newTaux,0),100) };
                       });
                     }}
-                    style={{ width:'100%', padding:'9px 12px', borderRadius:9, background:'#F8F9FB', border:'1px solid #E8EAF0', color:'#1A1C20', fontSize:14, outline:'none', boxSizing:'border-box' }}
+                    style={{ width:'100%', padding:'9px 12px', borderRadius:9, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', color:'#EDE8DB', fontSize:14, outline:'none', boxSizing:'border-box' }}
                   />
                   <p style={{ fontSize:11, color:C.light, marginTop:6 }}>Ex: temps passé valorisé, frais déplacement, sous-traitance...</p>
                 </div>

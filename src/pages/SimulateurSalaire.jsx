@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 
-const C = { blue:'#5BA3C7', green:'#5BC78A', orange:'#5BC78A', red:'#C75B4E', purple:'#A85BC7', dark:'#1A1C20', light:'#9AA0AE', border:'#E8EAF0', bg:'#F8F9FB' };
+const C = { blue:'#5BA3C7', green:'#5BC78A', orange:'#5BC78A', red:'#C75B4E', purple:'#A85BC7', dark:'#EDE8DB', light:'rgba(237,232,219,0.4)', border:'rgba(255,255,255,0.08)', bg:'rgba(255,255,255,0.06)' };
 
 const euro = (n) => new Intl.NumberFormat('fr-FR', { style:'currency', currency:'EUR', maximumFractionDigits:2 }).format(n ?? 0);
 const pct  = (n) => `${Number(n).toFixed(2)}%`;
@@ -80,8 +80,8 @@ function calculer(brut) {
   };
 }
 
-const iS = { width:'100%', padding:'10px 14px', borderRadius:9, background:'#fff', border:`1px solid #E8EAF0`, color:'#1A1C20', fontSize:14, outline:'none', boxSizing:'border-box', fontFamily:'inherit' };
-const lS = { fontSize:11, fontWeight:700, color:'#5A6070', marginBottom:6, display:'block', textTransform:'uppercase', letterSpacing:'0.05em' };
+const iS = { width:'100%', padding:'10px 14px', borderRadius:9, background:'rgba(255,255,255,0.04)', border:`1px solid #E8EAF0`, color:'#EDE8DB', fontSize:14, outline:'none', boxSizing:'border-box', fontFamily:'inherit' };
+const lS = { fontSize:11, fontWeight:700, color:'rgba(237,232,219,0.5)', marginBottom:6, display:'block', textTransform:'uppercase', letterSpacing:'0.05em' };
 
 export default function SimulateurSalaire() {
   const [mode,   setMode]   = useState('brut'); // 'brut' | 'net'
@@ -124,11 +124,11 @@ export default function SimulateurSalaire() {
         <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
 
           {/* Mode */}
-          <div style={{ background:'#fff', border:`1px solid ${C.border}`, borderRadius:14, padding:22, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+          <div style={{ background:'rgba(255,255,255,0.04)', border:`1px solid ${C.border}`, borderRadius:14, padding:22, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
             <label style={lS}>Je saisis un salaire</label>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:16 }}>
               {[['brut','Brut → Net'],['net','Net → Brut']].map(([v,l]) => (
-                <button key={v} onClick={() => setMode(v)} style={{ padding:'10px', borderRadius:9, border:'1px solid', borderColor:mode===v?C.blue:C.border, background:mode===v?`${C.blue}10`:'#F8F9FB', color:mode===v?C.blue:C.dark, fontSize:13, fontWeight:mode===v?700:400, cursor:'pointer', transition:'all 150ms', fontFamily:'inherit' }}>
+                <button key={v} onClick={() => setMode(v)} style={{ padding:'10px', borderRadius:9, border:'1px solid', borderColor:mode===v?C.blue:C.border, background:mode===v?`${C.blue}10`:'rgba(255,255,255,0.04)', color:mode===v?C.blue:C.dark, fontSize:13, fontWeight:mode===v?700:400, cursor:'pointer', transition:'all 150ms', fontFamily:'inherit' }}>
                   {l}
                 </button>
               ))}
@@ -137,7 +137,7 @@ export default function SimulateurSalaire() {
             <label style={lS}>Période</label>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:16 }}>
               {[['mensuel','Mensuel'],['annuel','Annuel']].map(([v,l]) => (
-                <button key={v} onClick={() => setPeriode(v)} style={{ padding:'10px', borderRadius:9, border:'1px solid', borderColor:periode===v?C.blue:C.border, background:periode===v?`${C.blue}10`:'#F8F9FB', color:periode===v?C.blue:C.dark, fontSize:13, fontWeight:periode===v?700:400, cursor:'pointer', transition:'all 150ms', fontFamily:'inherit' }}>
+                <button key={v} onClick={() => setPeriode(v)} style={{ padding:'10px', borderRadius:9, border:'1px solid', borderColor:periode===v?C.blue:C.border, background:periode===v?`${C.blue}10`:'rgba(255,255,255,0.04)', color:periode===v?C.blue:C.dark, fontSize:13, fontWeight:periode===v?700:400, cursor:'pointer', transition:'all 150ms', fontFamily:'inherit' }}>
                   {l}
                 </button>
               ))}
@@ -149,7 +149,7 @@ export default function SimulateurSalaire() {
             {brut > 0 && (
               <div style={{ marginTop:12, padding:'10px 14px', background:C.bg, borderRadius:9, border:`1px solid ${C.border}` }}>
                 <div style={{ fontSize:11, color:C.light, marginBottom:4 }}>Rapport au SMIC 2025 ({euro(smic2025Mensuel)}/mois brut)</div>
-                <div style={{ height:6, background:'#E8EAF0', borderRadius:3, overflow:'hidden', marginBottom:4 }}>
+                <div style={{ height:6, background:'rgba(255,255,255,0.08)', borderRadius:3, overflow:'hidden', marginBottom:4 }}>
                   <div style={{ width:`${Math.min(rapportSmic * 50, 100)}%`, height:'100%', background:rapportSmic < 1 ? C.red : rapportSmic < 2 ? C.orange : C.green, borderRadius:3, transition:'width 0.4s ease' }}/>
                 </div>
                 <div style={{ fontSize:12, fontWeight:700, color:rapportSmic < 1 ? C.red : C.dark }}>
@@ -169,7 +169,7 @@ export default function SimulateurSalaire() {
               'Taux moyen de cotisations patronales : ~42%',
               'Ces calculs sont des estimations — ils varient selon la convention collective',
             ].map((info, i) => (
-              <div key={i} style={{ fontSize:12, color:'#5A6070', padding:'3px 0', display:'flex', gap:6 }}>
+              <div key={i} style={{ fontSize:12, color:'rgba(237,232,219,0.5)', padding:'3px 0', display:'flex', gap:6 }}>
                 <span style={{ color:C.blue }}>→</span> {info}
               </div>
             ))}
@@ -203,7 +203,7 @@ export default function SimulateurSalaire() {
             </div>
 
             {/* Répartition visuelle */}
-            <div style={{ background:'#fff', border:`1px solid ${C.border}`, borderRadius:14, padding:20, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+            <div style={{ background:'rgba(255,255,255,0.04)', border:`1px solid ${C.border}`, borderRadius:14, padding:20, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
               <div style={{ fontSize:12, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:14 }}>Répartition du coût total</div>
               {[
                 { label:'Net salarié',          montant:result.net,    color:C.green,  pct:(result.net/result.coutTotal)*100 },
@@ -212,10 +212,10 @@ export default function SimulateurSalaire() {
               ].map(r => (
                 <div key={r.label} style={{ marginBottom:10 }}>
                   <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
-                    <span style={{ fontSize:12, color:'#5A6070', fontWeight:600 }}>{r.label}</span>
+                    <span style={{ fontSize:12, color:'rgba(237,232,219,0.5)', fontWeight:600 }}>{r.label}</span>
                     <span style={{ fontSize:12, fontWeight:700, color:r.color }}>{euro(r.montant)} ({r.pct.toFixed(1)}%)</span>
                   </div>
-                  <div style={{ height:8, background:'#F0F2F5', borderRadius:4, overflow:'hidden' }}>
+                  <div style={{ height:8, background:'rgba(255,255,255,0.06)', borderRadius:4, overflow:'hidden' }}>
                     <div style={{ width:`${r.pct}%`, height:'100%', background:r.color, borderRadius:4, transition:'width 0.5s ease' }}/>
                   </div>
                 </div>
@@ -223,10 +223,10 @@ export default function SimulateurSalaire() {
             </div>
 
             {/* Onglets détail */}
-            <div style={{ background:'#fff', border:`1px solid ${C.border}`, borderRadius:14, overflow:'hidden', boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+            <div style={{ background:'rgba(255,255,255,0.04)', border:`1px solid ${C.border}`, borderRadius:14, overflow:'hidden', boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
               <div style={{ display:'flex', borderBottom:`1px solid ${C.border}` }}>
                 {[['synthese','Synthèse'],['salariales','Part salariale'],['patronales','Part patronale']].map(([id,label]) => (
-                  <button key={id} onClick={() => setOnglet(id)} style={{ flex:1, padding:'11px 8px', border:'none', background:onglet===id?`${C.blue}08`:'#fff', color:onglet===id?C.blue:C.light, fontSize:12, fontWeight:onglet===id?700:500, cursor:'pointer', borderBottom:onglet===id?`2px solid ${C.blue}`:'2px solid transparent', fontFamily:'inherit', transition:'all 150ms' }}>
+                  <button key={id} onClick={() => setOnglet(id)} style={{ flex:1, padding:'11px 8px', border:'none', background:onglet===id?`${C.blue}08`:'rgba(255,255,255,0.04)', color:onglet===id?C.blue:C.light, fontSize:12, fontWeight:onglet===id?700:500, cursor:'pointer', borderBottom:onglet===id?`2px solid ${C.blue}`:'2px solid transparent', fontFamily:'inherit', transition:'all 150ms' }}>
                     {label}
                   </button>
                 ))}
@@ -244,7 +244,7 @@ export default function SimulateurSalaire() {
                         { label:'= Coût total employeur',value:euro(result.coutTotal), color:C.red,   bold:true },
                       ].map((r, i) => (
                         <tr key={i} style={{ borderBottom:`1px solid ${C.bg}` }}>
-                          <td style={{ padding:'10px 16px', fontSize:13, color:'#5A6070' }}>{r.label}</td>
+                          <td style={{ padding:'10px 16px', fontSize:13, color:'rgba(237,232,219,0.5)' }}>{r.label}</td>
                           <td style={{ padding:'10px 16px', fontSize:13, fontWeight:r.bold?700:500, color:r.color, textAlign:'right' }}>{r.value}</td>
                         </tr>
                       ))}
@@ -265,7 +265,7 @@ export default function SimulateurSalaire() {
                       {(onglet==='salariales' ? result.lignesSal : result.lignesPat)
                         .filter(l => l.montant > 0)
                         .map((l, i) => (
-                          <tr key={i} style={{ borderBottom:`1px solid ${C.bg}`, background:i%2===0?'#fff':C.bg }}>
+                          <tr key={i} style={{ borderBottom:`1px solid ${C.bg}`, background:i%2===0?'rgba(255,255,255,0.04)':C.bg }}>
                             <td style={{ padding:'8px 14px', fontSize:11, color:C.dark }}>{l.nom}</td>
                             <td style={{ padding:'8px 14px', fontSize:11, color:C.light, textAlign:'right' }}>{pct(l.taux)}</td>
                             <td style={{ padding:'8px 14px', fontSize:12, fontWeight:600, color:onglet==='salariales'?C.blue:C.orange, textAlign:'right' }}>{euro(l.montant)}</td>
@@ -278,7 +278,7 @@ export default function SimulateurSalaire() {
             </div>
 
           </>) : (
-            <div style={{ background:'#fff', border:`1px solid ${C.border}`, borderRadius:14, padding:40, textAlign:'center', color:C.light, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+            <div style={{ background:'rgba(255,255,255,0.04)', border:`1px solid ${C.border}`, borderRadius:14, padding:40, textAlign:'center', color:C.light, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
               <div style={{ fontSize:40, marginBottom:12 }}>💼</div>
               <div style={{ fontSize:14, fontWeight:600 }}>Saisissez un salaire</div>
               <div style={{ fontSize:12, marginTop:6 }}>La simulation apparaîtra ici</div>

@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import Tooltip from '../components/Tooltip';
 import { TIPS } from '../utils/tooltips';
 
-const C = { blue:'#5BA3C7', green:'#5BC78A', orange:'#5BC78A', red:'#C75B4E', dark:'#1A1C20', light:'#9AA0AE', border:'#E8EAF0', bg:'#F8F9FB' };
+const C = { blue:'#5BA3C7', green:'#5BC78A', orange:'#5BC78A', red:'#C75B4E', dark:'#EDE8DB', light:'rgba(237,232,219,0.4)', border:'rgba(255,255,255,0.08)', bg:'rgba(255,255,255,0.06)' };
 
 const CATEGORIES = [
   { label:'Matériel informatique',  duree:3,  taux:33.33 },
@@ -65,8 +65,8 @@ function calculerDegressif(valeur, duree, dateAcquisition) {
 const euro = (n) => new Intl.NumberFormat('fr-FR', { style:'currency', currency:'EUR', maximumFractionDigits:2 }).format(n);
 const pct  = (n) => `${n.toFixed(2)}%`;
 
-const iS = { width:'100%', padding:'10px 14px', borderRadius:9, background:'#fff', border:`1px solid ${C.border}`, color:C.dark, fontSize:14, outline:'none', boxSizing:'border-box', fontFamily:'inherit' };
-const lS = { fontSize:11, fontWeight:700, color:'#5A6070', marginBottom:6, display:'flex', alignItems:'center', gap:6, textTransform:'uppercase', letterSpacing:'0.05em' };
+const iS = { width:'100%', padding:'10px 14px', borderRadius:9, background:'rgba(255,255,255,0.04)', border:`1px solid ${C.border}`, color:C.dark, fontSize:14, outline:'none', boxSizing:'border-box', fontFamily:'inherit' };
+const lS = { fontSize:11, fontWeight:700, color:'rgba(237,232,219,0.5)', marginBottom:6, display:'flex', alignItems:'center', gap:6, textTransform:'uppercase', letterSpacing:'0.05em' };
 
 export default function CalculateurAmortissement() {
   const [valeur,      setValeur]      = useState('');
@@ -105,12 +105,12 @@ export default function CalculateurAmortissement() {
         {/* Colonne gauche */}
         <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
 
-          <div style={{ background:'#fff', border:`1px solid ${C.border}`, borderRadius:14, padding:22, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+          <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:22, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
             <label style={lS}>Désignation du bien</label>
             <input value={nom} onChange={e=>setNom(e.target.value)} placeholder="Ex : MacBook Pro, Renault Kangoo…" style={iS}/>
           </div>
 
-          <div style={{ background:'#fff', border:`1px solid ${C.border}`, borderRadius:14, padding:22, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+          <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:22, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
             <label style={lS}>
               Valeur d'acquisition <Tooltip text={TIPS.montant_ht}/>
               <span style={{ fontSize:9, fontWeight:400, color:C.light, textTransform:'none', marginLeft:4 }}>(HT, €)</span>
@@ -119,7 +119,7 @@ export default function CalculateurAmortissement() {
             <p style={{ fontSize:11, color:C.light, marginTop:6, marginBottom:0 }}>⚠️ Seuls les biens {'>'} 500 € HT sont amortissables (règle fiscale française)</p>
           </div>
 
-          <div style={{ background:'#fff', border:`1px solid ${C.border}`, borderRadius:14, padding:22, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+          <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:22, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
             <label style={lS}>Catégorie de bien</label>
             <select value={categorie} onChange={e=>setCategorie(Number(e.target.value))} style={iS}>
               {CATEGORIES.map((c,i)=><option key={i} value={i}>{c.label} {i<CATEGORIES.length-1?`(${c.duree} ans)`:''}</option>)}
@@ -132,15 +132,15 @@ export default function CalculateurAmortissement() {
             )}
           </div>
 
-          <div style={{ background:'#fff', border:`1px solid ${C.border}`, borderRadius:14, padding:22, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+          <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:22, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
             <label style={lS}>Date d'acquisition</label>
-            <input type="date" value={dateAcq} onChange={e=>setDateAcq(e.target.value)} style={{ ...iS, colorScheme:'light' }}/>
+            <input type="date" value={dateAcq} onChange={e=>setDateAcq(e.target.value)} style={{ ...iS, colorScheme:'dark' }}/>
           </div>
 
-          <div style={{ background:'#fff', border:`1px solid ${C.border}`, borderRadius:14, padding:22, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+          <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:22, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
             <label style={lS}>Méthode d'amortissement <Tooltip text={TIPS.amortissement}/></label>
             {METHODES.map(m=>(
-              <div key={m.id} onClick={()=>setMethode(m.id)} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'11px 14px', borderRadius:10, border:`1px solid ${methode===m.id?C.blue:C.border}`, background:methode===m.id?`${C.blue}08`:C.bg, cursor:'pointer', marginBottom:8, transition:'all 150ms' }}>
+              <div key={m.id} onClick={()=>setMethode(m.id)} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'11px 14px', borderRadius:10, border:`1px solid ${methode===m.id?C.blue:C.border}`, background:methode===m.id?`${C.blue}15`:'rgba(255,255,255,0.03)', cursor:'pointer', marginBottom:8, transition:'all 150ms' }}>
                 <div>
                   <div style={{ fontSize:13, fontWeight:700, color:methode===m.id?C.blue:C.dark }}>{m.label}</div>
                   <div style={{ fontSize:11, color:C.light }}>{m.description}</div>
@@ -168,7 +168,7 @@ export default function CalculateurAmortissement() {
                 { label:'Taux annuel',     value:pct(100/duree),       color:C.orange, tip:null },
                 { label:'Coef. dégressif', value:methode==='degressif'?`×${getCoef(duree)}`:'—', color:C.green, tip:null },
               ].map(k=>(
-                <div key={k.label} style={{ background:'#fff', border:`1px solid ${C.border}`, borderRadius:12, padding:'14px 16px', boxShadow:'0 1px 4px rgba(0,0,0,0.04)' }}>
+                <div key={k.label} style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:12, padding:'14px 16px', boxShadow:'0 1px 4px rgba(0,0,0,0.04)' }}>
                   <div style={{ fontSize:11, color:C.light, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.05em', marginBottom:6, display:'flex', alignItems:'center', gap:4 }}>
                     {k.label} {k.tip && <Tooltip text={k.tip} size={10}/>}
                   </div>
@@ -177,7 +177,7 @@ export default function CalculateurAmortissement() {
               ))}
             </div>
 
-            <div style={{ background:'#fff', border:`1px solid ${C.border}`, borderRadius:14, padding:20, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+            <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:20, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
               <div style={{ fontSize:12, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:14 }}>Dotations annuelles</div>
               <svg width="100%" viewBox={`0 0 480 ${svgH+30}`} style={{ overflow:'visible' }}>
                 {tableau.map((l,i) => {
@@ -192,34 +192,34 @@ export default function CalculateurAmortissement() {
               </svg>
             </div>
 
-            <div style={{ background:'#fff', border:`1px solid ${C.border}`, borderRadius:14, overflow:'hidden', boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
-              <div style={{ padding:'14px 18px', borderBottom:`1px solid ${C.border}`, fontSize:12, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:'0.06em' }}>
+            <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, overflow:'hidden', boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+              <div style={{ padding:'14px 18px', borderBottom:'1px solid rgba(255,255,255,0.08)', fontSize:12, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:'0.06em' }}>
                 Tableau d'amortissement {nom&&`— ${nom}`}
               </div>
               <div style={{ overflowX:'auto' }}>
                 <table style={{ width:'100%', borderCollapse:'collapse' }}>
                   <thead>
-                    <tr style={{ background:C.bg }}>
+                    <tr style={{ background:'rgba(255,255,255,0.04)' }}>
                       {[
                         'Année',
                         'Taux',
                         <span key="dot" style={{display:'flex',alignItems:'center',gap:4}}>Dotation <Tooltip text={TIPS.amortissement} size={10}/></span>,
                         <span key="vna" style={{display:'flex',alignItems:'center',gap:4}}>VNA <Tooltip text="VNA = Valeur Nette d'Amortissement. C'est la valeur comptable résiduelle du bien après déduction des dotations cumulées." size={10}/></span>,
                       ].map((h,i)=>(
-                        <th key={i} style={{ padding:'10px 16px', fontSize:11, fontWeight:700, color:C.light, textAlign:'right', textTransform:'uppercase', letterSpacing:'0.05em', borderBottom:`1px solid ${C.border}` }}>{h}</th>
+                        <th key={i} style={{ padding:'10px 16px', fontSize:11, fontWeight:700, color:C.light, textAlign:'right', textTransform:'uppercase', letterSpacing:'0.05em', borderBottom:'1px solid rgba(255,255,255,0.08)' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {tableau.map((l,i)=>(
-                      <tr key={i} style={{ borderBottom:`1px solid ${C.bg}`, background:i%2===0?'#fff':C.bg }}>
+                      <tr key={i} style={{ borderBottom:`1px solid ${C.bg}`, background:i%2===0?'rgba(255,255,255,0.02)':'transparent' }}>
                         <td style={{ padding:'10px 16px', fontSize:13, fontWeight:700, color:C.dark, textAlign:'right' }}>{l.annee}</td>
                         <td style={{ padding:'10px 16px', fontSize:13, color:C.light, textAlign:'right' }}>{pct(l.taux)}</td>
                         <td style={{ padding:'10px 16px', fontSize:13, fontWeight:700, color:methode==='lineaire'?C.blue:C.orange, textAlign:'right' }}>{euro(l.dotation)}</td>
                         <td style={{ padding:'10px 16px', fontSize:13, color:l.vna<1?C.green:C.dark, fontWeight:l.vna<1?700:400, textAlign:'right' }}>{l.vna<1?'0,00 €':euro(l.vna)}</td>
                       </tr>
                     ))}
-                    <tr style={{ background:`${C.blue}08`, borderTop:`2px solid ${C.border}` }}>
+                    <tr style={{ background:`${C.blue}08`, borderTop:'2px solid rgba(255,255,255,0.08)' }}>
                       <td colSpan={2} style={{ padding:'10px 16px', fontSize:13, fontWeight:700, color:C.dark, textAlign:'right' }}>Total</td>
                       <td style={{ padding:'10px 16px', fontSize:13, fontWeight:700, color:C.blue, textAlign:'right' }}>{euro(totalDotations)}</td>
                       <td style={{ padding:'10px 16px', fontSize:13, fontWeight:700, color:C.green, textAlign:'right' }}>0,00 €</td>
@@ -234,7 +234,7 @@ export default function CalculateurAmortissement() {
             </div>
 
           </>) : (
-            <div style={{ background:'#fff', border:`1px solid ${C.border}`, borderRadius:14, padding:40, textAlign:'center', boxShadow:'0 1px 6px rgba(0,0,0,0.05)', color:C.light }}>
+            <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:40, textAlign:'center', boxShadow:'0 1px 6px rgba(0,0,0,0.05)', color:C.light }}>
               <div style={{ fontSize:40, marginBottom:12 }}>📊</div>
               <div style={{ fontSize:14, fontWeight:600 }}>Renseignez la valeur du bien</div>
               <div style={{ fontSize:12, marginTop:6 }}>Le tableau d'amortissement apparaîtra ici</div>
