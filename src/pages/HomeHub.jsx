@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Briefcase, ArrowRight, Lock, ChevronDown, Check, Star, Zap, Shield, BarChart2, Bell } from 'lucide-react';
+import { User, Briefcase, ArrowRight, Lock, ChevronDown, Check, Zap, Shield, BarChart2, Bell } from 'lucide-react';
 import Footer from '../components/Footer';
 import ExitIntent from '../components/ExitIntent';
 
@@ -19,12 +19,6 @@ const ETAPES = [
   { num: '01', titre: 'Créez votre espace',     desc: "Inscrivez-vous gratuitement en moins d'une minute. Aucune carte bancaire requise pour commencer.", color: '#5BA3C7' },
   { num: '02', titre: 'Connectez vos données',  desc: 'Importez vos relevés bancaires, vos factures et vos dépenses. Vigie analyse tout automatiquement.',  color: '#5BC78A' },
   { num: '03', titre: 'Pilotez votre activité', desc: "Tableaux de bord, alertes intelligentes, exports comptables — prenez les bonnes décisions.",          color: '#A85BC7' },
-];
-
-const TEMOIGNAGES = [
-  { nom: 'Marie L.',  metier: 'Consultante indépendante', texte: "Vigie Pro m'a fait gagner 3h par semaine sur ma gestion. Les alertes TVA m'ont évité une pénalité.", note: 5 },
-  { nom: 'Thomas R.', metier: 'Artisan menuisier',        texte: "Enfin un outil simple pour suivre mes dépenses et générer mes devis. Je n'ai pas besoin d'un comptable pour ça.", note: 5 },
-  { nom: 'Sophia M.', metier: 'Photographe freelance',    texte: "L'interface est belle et intuitive. J'ai tout configuré en 10 minutes et mes données sont sécurisées en Europe.", note: 5 },
 ];
 
 const AVANTAGES = [
@@ -51,12 +45,7 @@ export default function HomeHub() {
       {/* ── NAVBAR ── */}
       <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:100, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 6%', height:64, background:scrolled?'rgba(6,8,11,0.92)':'transparent', backdropFilter:scrolled?'blur(20px)':'none', borderBottom:scrolled?'1px solid rgba(255,255,255,0.05)':'1px solid transparent', transition:'all 0.4s ease' }}>
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-          <img
-            src="/logo-vigie.png"
-            alt="Vigie"
-            style={{ height:36, width:'auto', objectFit:'contain' }}
-            onError={e => { e.currentTarget.style.display='none'; if(e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display='block'; }}
-          />
+          <img src="/logo-vigie.png" alt="Vigie" style={{ height:36, width:'auto', objectFit:'contain' }} onError={e => { e.currentTarget.style.display='none'; if(e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display='block'; }}/>
           <span style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:22, fontWeight:700, color:'#EDE8DB', display:'none' }}>Vigie</span>
         </div>
         <div style={{ display:'flex', gap:10 }}>
@@ -65,28 +54,19 @@ export default function HomeHub() {
         </div>
       </nav>
 
-      {/* ── HERO avec image océan ── */}
+      {/* ── HERO ── */}
       <section style={{ position:'relative', zIndex:1, minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'100px 6% 80px', textAlign:'center', overflow:'hidden' }}>
-
-        {/* Image fond océan */}
         <div style={{ position:'absolute', inset:0, backgroundImage:'url(/hero-bg.jpg)', backgroundSize:'cover', backgroundPosition:'center 40%', backgroundRepeat:'no-repeat', zIndex:0 }}/>
-
-        {/* Overlay sombre */}
         <div style={{ position:'absolute', inset:0, background:'linear-gradient(to bottom, rgba(6,8,11,0.72) 0%, rgba(6,8,11,0.55) 40%, rgba(6,8,11,0.88) 85%, rgba(6,8,11,1) 100%)', zIndex:1 }}/>
-
-        {/* Texture grain/noise */}
         <div style={{ position:'absolute', inset:0, zIndex:2, opacity:0.06, backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E")`, backgroundRepeat:'repeat', backgroundSize:'128px', pointerEvents:'none' }}/>
 
-        {/* Contenu */}
         <div style={{ position:'relative', zIndex:3 }}>
           <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'clamp(64px, 10vw, 120px)', fontWeight:700, lineHeight:0.92, letterSpacing:'-3px', color:'#EDE8DB', marginBottom:28, animation:'fadeUp 0.7s ease both' }}>
             Vigie
           </h1>
-
           <p style={{ fontSize:'clamp(15px, 2vw, 20px)', color:'rgba(237,232,219,0.6)', maxWidth:540, lineHeight:1.75, margin:'0 auto 24px', animation:'fadeUp 0.7s 0.1s ease both' }}>
             Votre espace de gestion tout-en-un. Pilotez votre activité, automatisez vos tâches et prenez les bonnes décisions.
           </p>
-
           <div style={{ display:'flex', flexWrap:'wrap', gap:14, justifyContent:'center', marginBottom:52, animation:'fadeUp 0.7s 0.2s ease both' }}>
             {AVANTAGES.map((a, i) => (
               <div key={i} style={{ display:'flex', alignItems:'center', gap:6 }}>
@@ -96,7 +76,6 @@ export default function HomeHub() {
             ))}
           </div>
 
-          {/* Vigie Pro uniquement */}
           <div style={{ maxWidth:320, width:'100%', margin:'0 auto', animation:'fadeUp 0.7s 0.3s ease both' }}>
             <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
               <Link to="/pro" style={{ textDecoration:'none' }} onMouseEnter={() => setHoveredCard('pro')} onMouseLeave={() => setHoveredCard(null)}>
@@ -118,24 +97,6 @@ export default function HomeHub() {
                   <ArrowRight size={13} color="#5BA3C7"/>
                 </div>
               </Link>
-            </div>
-          </div>
-
-          {/* Vigie Perso — conservé invisible */}
-          <div style={{ display:'none' }}>
-            <div style={{ position:'relative', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:20, padding:'36px 28px', opacity:0.6 }}>
-              <div style={{ position:'absolute', top:-12, left:'50%', transform:'translateX(-50%)', display:'flex', alignItems:'center', gap:6, background:'rgba(212,168,83,0.15)', border:'1px solid rgba(212,168,83,0.35)', borderRadius:20, padding:'4px 14px', whiteSpace:'nowrap' }}>
-                <span style={{ fontSize:11 }}>🚧</span>
-                <span style={{ fontSize:11, fontWeight:700, color:'#D4A853' }}>En construction</span>
-              </div>
-              <div style={{ width:56, height:56, borderRadius:16, background:'rgba(212,168,83,0.1)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:18, marginTop:8 }}>
-                <User size={24} color="#D4A853" strokeWidth={2}/>
-              </div>
-              <h2 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:22, fontWeight:700, color:'#EDE8DB', marginBottom:8, textAlign:'left' }}>Vigie Perso</h2>
-              <p style={{ fontSize:13, color:'rgba(237,232,219,0.4)', lineHeight:1.6, textAlign:'left', marginBottom:14 }}>Gestion personnelle, factures, démarches, foyer</p>
-              <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, color:'rgba(237,232,219,0.25)', fontStyle:'italic' }}>
-                <Lock size={10} color="rgba(237,232,219,0.25)"/> Disponible prochainement
-              </div>
             </div>
           </div>
         </div>
@@ -187,25 +148,25 @@ export default function HomeHub() {
         </div>
       </section>
 
-      {/* ── TÉMOIGNAGES ── */}
+      {/* ── PREMIERS UTILISATEURS (remplace les faux avis) ── */}
       <section style={{ position:'relative', zIndex:1, padding:'100px 6%', textAlign:'center', background:'#06080B' }}>
-        <p style={{ fontSize:11, fontWeight:700, color:'#5BA3C7', letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:14 }}>Ils nous font confiance</p>
-        <h2 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'clamp(28px, 4vw, 44px)', fontWeight:700, color:'#EDE8DB', marginBottom:56, lineHeight:1.2 }}>
-          Ce qu'en disent<br/><em style={{ color:'#5BA3C7' }}>nos utilisateurs</em>
+        <p style={{ fontSize:11, fontWeight:700, color:'#5BA3C7', letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:14 }}>Lancement en cours</p>
+        <h2 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'clamp(28px, 4vw, 44px)', fontWeight:700, color:'#EDE8DB', marginBottom:20, lineHeight:1.2 }}>
+          Soyez parmi<br/><em style={{ color:'#5BA3C7' }}>les premiers</em>
         </h2>
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(260px, 1fr))', gap:20, maxWidth:900, margin:'0 auto' }}>
-          {TEMOIGNAGES.map((t, i) => (
-            <div key={i} style={{ background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:20, padding:'28px 24px', textAlign:'left' }}>
-              <div style={{ display:'flex', gap:4, marginBottom:16 }}>
-                {Array.from({ length: t.note }).map((_, j) => (
-                  <Star key={j} size={13} color="#D4A853" fill="#D4A853"/>
-                ))}
-              </div>
-              <p style={{ fontSize:14, color:'rgba(237,232,219,0.7)', lineHeight:1.7, marginBottom:20, fontStyle:'italic' }}>"{t.texte}"</p>
-              <div>
-                <div style={{ fontSize:13, fontWeight:700, color:'#EDE8DB' }}>{t.nom}</div>
-                <div style={{ fontSize:11, color:'rgba(237,232,219,0.35)', marginTop:2 }}>{t.metier}</div>
-              </div>
+        <p style={{ fontSize:14, color:'rgba(237,232,219,0.4)', maxWidth:480, margin:'0 auto 48px', lineHeight:1.8 }}>
+          Vigie Pro vient de lancer. Rejoignez les premiers utilisateurs, bénéficiez du plan gratuit et contribuez à façonner le produit avec vos retours.
+        </p>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(220px, 1fr))', gap:16, maxWidth:700, margin:'0 auto' }}>
+          {[
+            { icon:'🚀', titre:'Accès immédiat',      desc:'Compte opérationnel en moins d\'une minute' },
+            { icon:'💬', titre:'Retours bienvenus',   desc:'Vos suggestions impactent directement le produit' },
+            { icon:'🎯', titre:'Plan gratuit inclus', desc:'Fonctionnalités essentielles sans limite de durée' },
+          ].map((item, i) => (
+            <div key={i} style={{ background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:16, padding:'28px 22px', textAlign:'left' }}>
+              <div style={{ fontSize:28, marginBottom:14 }}>{item.icon}</div>
+              <div style={{ fontSize:13, fontWeight:700, color:'#EDE8DB', marginBottom:6 }}>{item.titre}</div>
+              <div style={{ fontSize:12, color:'rgba(237,232,219,0.4)', lineHeight:1.6 }}>{item.desc}</div>
             </div>
           ))}
         </div>
@@ -269,7 +230,7 @@ export default function HomeHub() {
                 <div style={{ width:'74%', height:'100%', background:'linear-gradient(90deg, #5BA3C7, #5BC78A)', borderRadius:2 }}/>
               </div>
             </div>
-            <div style={{ background:'rgba(212,168,83,0.08)', border:'1px solid rgba(212,168,83,0.2)', borderRadius:10, padding:'10px 14px', display:'flex', alignItems:'center', gap:8 }}>
+            <div style={{ background:'rgba(212,168,83,0.08)', border:'1px solid rgba(212,168,83,0.15)', borderRadius:10, padding:'10px 14px', display:'flex', alignItems:'center', gap:8 }}>
               <Bell size={12} color="#D4A853"/>
               <span style={{ fontSize:11, color:'rgba(212,168,83,0.8)' }}>Déclaration TVA dans 12 jours</span>
             </div>
