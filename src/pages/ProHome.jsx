@@ -16,7 +16,7 @@ const formatEuro = (n) =>
 
 const ALERTE_STYLE = {
   critique : { bg: 'rgba(199,91,78,0.08)',  border: 'rgba(199,91,78,0.3)',  color: '#C75B4E', label: 'Urgent'    },
-  attention: { bg: 'rgba(212,168,83,0.08)', border: 'rgba(212,168,83,0.3)', color: '#5BC78A', label: 'Attention' },
+  attention: { bg: 'rgba(212,168,83,0.08)', border: 'rgba(212,168,83,0.3)', color: '#D4A853', label: 'Attention' },
   info     : { bg: 'rgba(91,163,199,0.08)', border: 'rgba(91,163,199,0.3)', color: '#5BA3C7', label: 'Info'      },
 };
 const ICONE_MAP = { Percent, FileText, ClipboardCheck, AlertCircle, FileCheck };
@@ -27,8 +27,6 @@ const TYPE_CONFIG = {
   recette:  { color: '#5BC78A', bg: 'rgba(91,199,138,0.1)' },
   document: { color: '#A85BC7', bg: 'rgba(168,91,199,0.1)' },
 };
-
-
 
 function timeAgo(date) {
   const diff = Date.now() - date.getTime();
@@ -78,7 +76,8 @@ function ClocheNotifications({ notifs, setNotifs }) {
 
   return (
     <div style={{ position: 'relative' }}>
-      <button ref={btnRef} onClick={handleToggle} style={{ position:'relative', width:38, height:38, borderRadius:10, background:open?'rgba(91,163,199,0.15)':'rgba(255,255,255,0.06)', border:`1px solid ${open?'rgba(91,163,199,0.4)':'rgba(255,255,255,0.1)'}`, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', transition:'all 150ms ease' }}
+      <button ref={btnRef} onClick={handleToggle}
+        style={{ position:'relative', width:38, height:38, borderRadius:10, background:open?'rgba(91,163,199,0.15)':'rgba(255,255,255,0.06)', border:`1px solid ${open?'rgba(91,163,199,0.4)':'rgba(255,255,255,0.1)'}`, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', transition:'all 150ms ease' }}
         onMouseEnter={e => { if (!open) e.currentTarget.style.borderColor='rgba(91,163,199,0.3)'; }}
         onMouseLeave={e => { if (!open) e.currentTarget.style.borderColor='rgba(255,255,255,0.1)'; }}>
         <Bell size={16} color={open ? '#5BA3C7' : 'rgba(237,232,219,0.6)'} strokeWidth={2}/>
@@ -116,7 +115,8 @@ function ClocheNotifications({ notifs, setNotifs }) {
             ) : notifs.map(n => {
               const cfg = TYPE_CONFIG[n.type] || TYPE_CONFIG.info;
               return (
-                <div key={n.id} onClick={() => marquerLu(n.id)} style={{ display:'flex', gap:10, padding:10, borderRadius:10, marginBottom:4, cursor:'pointer', background:n.lu?'transparent':'rgba(91,163,199,0.05)', border:`1px solid ${n.lu?'transparent':'rgba(91,163,199,0.1)'}`, transition:'all 150ms ease' }}
+                <div key={n.id} onClick={() => marquerLu(n.id)}
+                  style={{ display:'flex', gap:10, padding:10, borderRadius:10, marginBottom:4, cursor:'pointer', background:n.lu?'transparent':'rgba(91,163,199,0.05)', border:`1px solid ${n.lu?'transparent':'rgba(91,163,199,0.1)'}`, transition:'all 150ms ease' }}
                   onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,0.05)'}
                   onMouseLeave={e => e.currentTarget.style.background=n.lu?'transparent':'rgba(91,163,199,0.05)'}>
                   <div style={{ width:34, height:34, borderRadius:9, flexShrink:0, background:cfg.bg, display:'flex', alignItems:'center', justifyContent:'center' }}>
@@ -130,7 +130,8 @@ function ClocheNotifications({ notifs, setNotifs }) {
                     <div style={{ fontSize:11, color:'rgba(255,255,255,0.4)', lineHeight:1.4, marginBottom:4 }}>{n.message}</div>
                     <div style={{ fontSize:10, color:'rgba(255,255,255,0.25)' }}>{timeAgo(n.date)}</div>
                   </div>
-                  <button onClick={e => { e.stopPropagation(); supprimer(n.id); }} style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.2)', padding:2, flexShrink:0, display:'flex', alignItems:'center' }}
+                  <button onClick={e => { e.stopPropagation(); supprimer(n.id); }}
+                    style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.2)', padding:2, flexShrink:0, display:'flex', alignItems:'center' }}
                     onMouseEnter={e => e.currentTarget.style.color='#C75B4E'}
                     onMouseLeave={e => e.currentTarget.style.color='rgba(255,255,255,0.2)'}>
                     <X size={12}/>
@@ -141,7 +142,9 @@ function ClocheNotifications({ notifs, setNotifs }) {
           </div>
           {notifs.length > 0 && (
             <div style={{ padding:'10px 16px', borderTop:'1px solid rgba(255,255,255,0.07)', textAlign:'center', flexShrink:0 }}>
-              <button onClick={() => setNotifs([])} style={{ fontSize:11, color:'rgba(255,255,255,0.25)', background:'none', border:'none', cursor:'pointer', fontFamily:'inherit' }}>Effacer toutes les notifications</button>
+              <button onClick={() => setNotifs([])} style={{ fontSize:11, color:'rgba(255,255,255,0.25)', background:'none', border:'none', cursor:'pointer', fontFamily:'inherit' }}>
+                Effacer toutes les notifications
+              </button>
             </div>
           )}
         </div>
@@ -167,8 +170,8 @@ function BandeauAlertes({ alertes, onDismiss }) {
   return (
     <div style={{ background:critiques>0?'rgba(199,91,78,0.08)':'rgba(212,168,83,0.08)', border:`1px solid ${critiques>0?'rgba(199,91,78,0.3)':'rgba(212,168,83,0.3)'}`, borderRadius:14, marginBottom:24, overflow:'hidden' }}>
       <div onClick={() => setCollapsed(c => !c)} style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', cursor:'pointer' }}>
-        <Bell size={15} color={critiques>0?'#C75B4E':'#5BC78A'} />
-        <span style={{ fontSize:13, fontWeight:700, color:critiques>0?'#C75B4E':'#5BC78A', flex:1 }}>
+        <Bell size={15} color={critiques>0?'#C75B4E':'#D4A853'} />
+        <span style={{ fontSize:13, fontWeight:700, color:critiques>0?'#C75B4E':'#D4A853', flex:1 }}>
           {visibles.length} alerte{visibles.length>1?'s':''} en attente
           {critiques>0 && <span style={{ fontSize:11, fontWeight:600, marginLeft:8, background:'rgba(199,91,78,0.15)', color:'#C75B4E', padding:'2px 7px', borderRadius:20 }}>{critiques} urgent{critiques>1?'es':'e'}</span>}
         </span>
@@ -229,20 +232,30 @@ export default function ProHome() {
   const [showAnomalies, setShowAnomalies] = useState(true);
   const [loading,       setLoading]       = useState(true);
   const [profil,        setProfil]        = useState({});
-  const [notifs, setNotifs] = useState([]);  const navigate = useNavigate();
-const { activeWorkspace } = useWorkspace();
-  useEffect(() => { fetchAll(); }, []);
+  const [notifs,        setNotifs]        = useState([]);
+  const navigate = useNavigate();
+  const { activeWorkspace } = useWorkspace();
+
+  useEffect(() => { if (activeWorkspace) fetchAll(); }, [activeWorkspace]);
 
   const fetchAll = async () => {
     setLoading(true);
     const { data: { user } } = await supabasePro.auth.getUser();
     if (!user) return;
+
+    let qExp = supabasePro.from('expenses').select('amount_ttc, type, etablissement, date, notes').eq('user_id', user.id).order('date', { ascending: false }).limit(50);
+    if (activeWorkspace?.id) qExp = qExp.eq('workspace_id', activeWorkspace.id);
+
+    let qDev = supabasePro.from('devis').select('*, clients(nom)').eq('user_id', user.id);
+    if (activeWorkspace?.id) qDev = qDev.eq('workspace_id', activeWorkspace.id);
+
     const [{ data: exp }, { data: dev }, { data: cont }, { data: form }, { data: prof }] = await Promise.all([
-      supabasePro.from('expenses').select('amount_ttc, type, etablissement, date, notes').eq('user_id', user.id).order('date', { ascending: false }).limit(50),
-supabasePro.from('devis').select('*, clients(nom)').eq('user_id', user.id).or(`workspace_id.eq.${activeWorkspace?.id},workspace_id.is.null`),      supabasePro.from('contrats').select('*').eq('user_id', user.id),
+      qExp, qDev,
+      supabasePro.from('contrats').select('*').eq('user_id', user.id),
       supabasePro.from('formalites').select('*').eq('user_id', user.id),
       supabasePro.from('user_profiles').select('company_name, first_name').eq('id', user.id).single(),
     ]);
+
     setExpenses(exp || []); setDevis(dev || []); setContrats(cont || []); setFormalites(form || []);
     setAnomalies(detecterAnomalies(exp || []));
     setAlertes(analyserTout({ contrats: cont || [], devis: dev || [], formalites: form || [], regimeTVA: 'mensuel' }));
@@ -257,6 +270,9 @@ supabasePro.from('devis').select('*, clients(nom)').eq('user_id', user.id).or(`w
   const depensesByType = expenses.reduce((acc, e) => { const t = e.type || 'Autre'; acc[t] = (acc[t] || 0) + (e.amount_ttc || 0); return acc; }, {});
   const critiques      = alertes.filter(a => a.niveau === URGENCE.CRITIQUE).length;
 
+  // Nom du bureau actif
+  const nomBureau = activeWorkspace?.name || profil.company_name || (profil.first_name ? `Bureau de ${profil.first_name}` : 'Bureau');
+
   if (loading) return (
     <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'60vh', color:'rgba(237,232,219,0.4)', fontSize:14 }}>Chargement…</div>
   );
@@ -268,7 +284,7 @@ supabasePro.from('devis').select('*, clients(nom)').eq('user_id', user.id).or(`w
       <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:28 }}>
         <div>
           <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:28, fontWeight:600, color:'#EDE8DB', margin:0 }}>
-            {profil.company_name || (profil.first_name ? `Bureau de ${profil.first_name}` : 'Bureau')}
+            {nomBureau}
           </h1>
           <p style={{ fontSize:13, color:'rgba(237,232,219,0.4)', marginTop:4, marginBottom:0 }}>
             Vue d'ensemble de votre activité

@@ -70,10 +70,10 @@ function EmployeForm({ onSave, onCancel, editData = null }) {
 
   const inputStyle = {
     width: '100%', padding: '9px 12px', borderRadius: 8,
-    background: '#F8F9FB', border: '1px solid rgba(255,255,255,0.08)',
+    background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
     color: '#EDE8DB', fontSize: 13, outline: 'none', boxSizing: 'border-box',
   };
-  const labelStyle = { fontSize: 11, fontWeight: 600, color: '#5A6070', marginBottom: 5, display: 'block' };
+  const labelStyle = { fontSize: 11, fontWeight: 600, color: 'rgba(237,232,219,0.5)', marginBottom: 5, display: 'block' };
 
   return (
     <form onSubmit={handleSubmit} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, padding: 24, marginBottom: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
@@ -114,7 +114,7 @@ function EmployeForm({ onSave, onCancel, editData = null }) {
         <button type="submit" disabled={loading} style={{ flex: 1, padding: '11px', borderRadius: 9, border: 'none', background: loading ? `${ACCENT}50` : ACCENT, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
           {loading ? 'Enregistrement...' : '✓ Enregistrer'}
         </button>
-        <button type="button" onClick={onCancel} style={{ padding: '11px 18px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: '#5A6070', fontSize: 13, cursor: 'pointer' }}>
+        <button type="button" onClick={onCancel} style={{ padding: '11px 18px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: 'rgba(237,232,219,0.5)', fontSize: 13, cursor: 'pointer' }}>
           Annuler
         </button>
       </div>
@@ -154,10 +154,10 @@ function PointageForm({ employes, onSave, onCancel }) {
 
   const inputStyle = {
     width: '100%', padding: '9px 12px', borderRadius: 8,
-    background: '#F8F9FB', border: '1px solid rgba(255,255,255,0.08)',
+    background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
     color: '#EDE8DB', fontSize: 13, outline: 'none', boxSizing: 'border-box',
   };
-  const labelStyle = { fontSize: 11, fontWeight: 600, color: '#5A6070', marginBottom: 5, display: 'block' };
+  const labelStyle = { fontSize: 11, fontWeight: 600, color: 'rgba(237,232,219,0.5)', marginBottom: 5, display: 'block' };
 
   return (
     <form onSubmit={handleSubmit} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, padding: 24, marginBottom: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
@@ -208,7 +208,7 @@ function PointageForm({ employes, onSave, onCancel }) {
         <button type="submit" disabled={loading} style={{ flex: 1, padding: '11px', borderRadius: 9, border: 'none', background: ACCENT, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
           {loading ? 'Enregistrement...' : '✓ Enregistrer le pointage'}
         </button>
-        <button type="button" onClick={onCancel} style={{ padding: '11px 18px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: '#5A6070', fontSize: 13, cursor: 'pointer' }}>
+        <button type="button" onClick={onCancel} style={{ padding: '11px 18px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: 'rgba(237,232,219,0.5)', fontSize: 13, cursor: 'pointer' }}>
           Annuler
         </button>
       </div>
@@ -288,12 +288,12 @@ export default function EquipePage() {
           <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 600, color: '#EDE8DB', margin: 0 }}>
             Équipe & Déplacements
           </h1>
-          <p style={{ fontSize: 13, color: '#9AA0AE', marginTop: 4 }}>
+          <p style={{ fontSize: 13, color: 'rgba(237,232,219,0.4)', marginTop: 4 }}>
             Pointages bruts et suivi des déplacements
           </p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={exportCSV} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: '#5A6070', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+          <button onClick={exportCSV} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: 'rgba(237,232,219,0.5)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
             <Download size={13} /> Exporter CSV
           </button>
           {tab === 'equipe' ? (
@@ -320,7 +320,7 @@ export default function EquipePage() {
           return (
             <div key={s.label} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 18px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <p style={{ fontSize: 11, color: '#9AA0AE', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>{s.label}</p>
+                <p style={{ fontSize: 11, color: 'rgba(237,232,219,0.4)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>{s.label}</p>
                 <Icon size={14} color={s.color} />
               </div>
               <p style={{ fontSize: 20, fontWeight: 700, color: s.color, margin: 0 }}>{s.value}</p>
@@ -330,7 +330,7 @@ export default function EquipePage() {
       </div>
 
       {/* Disclaimer */}
-      <div style={{ background: 'rgba(212,168,83,0.06)', border: '1px solid rgba(212,168,83,0.2)', borderRadius: 10, padding: '10px 16px', marginBottom: 20, fontSize: 12, color: '#9AA0AE' }}>
+      <div style={{ background: 'rgba(212,168,83,0.06)', border: '1px solid rgba(212,168,83,0.2)', borderRadius: 10, padding: '10px 16px', marginBottom: 20, fontSize: 12, color: 'rgba(237,232,219,0.4)' }}>
         ⚠️ Vigie enregistre uniquement les pointages bruts horodatés. Aucun calcul de paie ou d'heures supplémentaires n'est effectué.
       </div>
 
@@ -373,24 +373,24 @@ export default function EquipePage() {
       {tab === 'equipe' && (
         <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
           {loading ? (
-            <div style={{ padding: 40, textAlign: 'center', color: '#9AA0AE', fontSize: 13 }}>Chargement...</div>
+            <div style={{ padding: 40, textAlign: 'center', color: 'rgba(237,232,219,0.4)', fontSize: 13 }}>Chargement...</div>
           ) : employes.length === 0 ? (
             <div style={{ padding: 48, textAlign: 'center' }}>
               <Users size={32} color="#E8EAF0" style={{ marginBottom: 12 }} />
-              <p style={{ color: '#9AA0AE', fontSize: 13, margin: 0 }}>Aucun membre — cliquez sur "Ajouter un membre"</p>
+              <p style={{ color: 'rgba(237,232,219,0.4)', fontSize: 13, margin: 0 }}>Aucun membre — cliquez sur "Ajouter un membre"</p>
             </div>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid #F0F2F5' }}>
+                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                   {['Membre', 'Poste', 'Email', 'Entrée', 'Statut', ''].map(h => (
-                    <th key={h} style={{ padding: '11px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: '#9AA0AE', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</th>
+                    <th key={h} style={{ padding: '11px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: 'rgba(237,232,219,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {employes.map((e, i) => (
-                  <tr key={e.id || i} style={{ borderBottom: '1px solid #F8F9FB' }}
+                  <tr key={e.id || i} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
                     onMouseEnter={ev => ev.currentTarget.style.background = '#FAFBFC'}
                     onMouseLeave={ev => ev.currentTarget.style.background = 'transparent'}
                   >
@@ -402,9 +402,9 @@ export default function EquipePage() {
                         <span style={{ fontSize: 13, fontWeight: 600, color: '#EDE8DB' }}>{e.prenom} {e.nom}</span>
                       </div>
                     </td>
-                    <td style={{ padding: '11px 14px', fontSize: 12, color: '#5A6070' }}>{e.poste || '—'}</td>
-                    <td style={{ padding: '11px 14px', fontSize: 12, color: '#5A6070' }}>{e.email || '—'}</td>
-                    <td style={{ padding: '11px 14px', fontSize: 12, color: '#5A6070' }}>{formatDate(e.date_entree)}</td>
+                    <td style={{ padding: '11px 14px', fontSize: 12, color: 'rgba(237,232,219,0.5)' }}>{e.poste || '—'}</td>
+                    <td style={{ padding: '11px 14px', fontSize: 12, color: 'rgba(237,232,219,0.5)' }}>{e.email || '—'}</td>
+                    <td style={{ padding: '11px 14px', fontSize: 12, color: 'rgba(237,232,219,0.5)' }}>{formatDate(e.date_entree)}</td>
                     <td style={{ padding: '11px 14px' }}>
                       <span style={{ background: e.statut === 'actif' ? 'rgba(91,199,138,0.1)' : '#F0F2F5', color: e.statut === 'actif' ? '#5BC78A' : '#9AA0AE', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>
                         {e.statut === 'actif' ? 'Actif' : 'Inactif'}
@@ -413,12 +413,12 @@ export default function EquipePage() {
                     <td style={{ padding: '11px 14px' }}>
                       <div style={{ display: 'flex', gap: 4 }}>
                         <button onClick={() => { setEditEmploye(e); setShowEmployeForm(false); }}
-                          style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 4, color: '#9AA0AE' }}
+                          style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 4, color: 'rgba(237,232,219,0.4)' }}
                           onMouseEnter={ev => ev.currentTarget.style.color = ACCENT}
                           onMouseLeave={ev => ev.currentTarget.style.color = '#9AA0AE'}
                         ><Edit2 size={13} /></button>
                         <button onClick={() => deleteEmploye(e.id)}
-                          style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 4, color: '#D0D4DC' }}
+                          style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 4, color: 'rgba(237,232,219,0.2)' }}
                           onMouseEnter={ev => ev.currentTarget.style.color = '#C75B4E'}
                           onMouseLeave={ev => ev.currentTarget.style.color = '#D0D4DC'}
                         ><Trash2 size={13} /></button>
@@ -436,26 +436,26 @@ export default function EquipePage() {
       {tab === 'pointages' && (
         <>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#5A6070' }}>Mois :</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'rgba(237,232,219,0.5)' }}>Mois :</label>
             <input type="month" value={filterMois} onChange={e => setFilterMois(e.target.value)}
               style={{ padding: '7px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', fontSize: 13, outline: 'none', colorScheme: 'light' }} />
-            <span style={{ fontSize: 12, color: '#9AA0AE' }}>{pointagesFiltres.length} pointage{pointagesFiltres.length > 1 ? 's' : ''}</span>
+            <span style={{ fontSize: 12, color: 'rgba(237,232,219,0.4)' }}>{pointagesFiltres.length} pointage{pointagesFiltres.length > 1 ? 's' : ''}</span>
           </div>
 
           <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
             {pointagesFiltres.length === 0 ? (
               <div style={{ padding: 48, textAlign: 'center' }}>
                 <Clock size={32} color="#E8EAF0" style={{ marginBottom: 12 }} />
-                <p style={{ color: '#9AA0AE', fontSize: 13, margin: 0 }}>
+                <p style={{ color: 'rgba(237,232,219,0.4)', fontSize: 13, margin: 0 }}>
                   {employes.length === 0 ? 'Ajoutez d\'abord des membres à votre équipe' : 'Aucun pointage ce mois'}
                 </p>
               </div>
             ) : (
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid #F0F2F5' }}>
+                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                     {['Date', 'Employé', 'Type', 'Horaires', 'Durée', 'Km / Indemnité', ''].map(h => (
-                      <th key={h} style={{ padding: '11px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: '#9AA0AE', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</th>
+                      <th key={h} style={{ padding: '11px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: 'rgba(237,232,219,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -465,11 +465,11 @@ export default function EquipePage() {
                     const type = TYPES_POINTAGE.find(t => t.id === p.type);
                     const duree = dureeHeures(p.heure_debut, p.heure_fin);
                     return (
-                      <tr key={p.id || i} style={{ borderBottom: '1px solid #F8F9FB' }}
+                      <tr key={p.id || i} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
                         onMouseEnter={ev => ev.currentTarget.style.background = '#FAFBFC'}
                         onMouseLeave={ev => ev.currentTarget.style.background = 'transparent'}
                       >
-                        <td style={{ padding: '11px 14px', fontSize: 12, color: '#5A6070' }}>{formatDate(p.date)}</td>
+                        <td style={{ padding: '11px 14px', fontSize: 12, color: 'rgba(237,232,219,0.5)' }}>{formatDate(p.date)}</td>
                         <td style={{ padding: '11px 14px', fontSize: 13, fontWeight: 600, color: '#EDE8DB' }}>
                           {emp ? `${emp.prenom} ${emp.nom}` : '—'}
                         </td>
@@ -478,7 +478,7 @@ export default function EquipePage() {
                             {type?.label || p.type}
                           </span>
                         </td>
-                        <td style={{ padding: '11px 14px', fontSize: 12, color: '#5A6070' }}>
+                        <td style={{ padding: '11px 14px', fontSize: 12, color: 'rgba(237,232,219,0.5)' }}>
                           {p.heure_debut && p.heure_fin ? `${p.heure_debut} → ${p.heure_fin}` : '—'}
                         </td>
                         <td style={{ padding: '11px 14px', fontSize: 12, fontWeight: 600, color: ACCENT }}>
@@ -489,7 +489,7 @@ export default function EquipePage() {
                         </td>
                         <td style={{ padding: '11px 14px' }}>
                           <button onClick={() => deletePointage(p.id)}
-                            style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 4, color: '#D0D4DC' }}
+                            style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 4, color: 'rgba(237,232,219,0.2)' }}
                             onMouseEnter={ev => ev.currentTarget.style.color = '#C75B4E'}
                             onMouseLeave={ev => ev.currentTarget.style.color = '#D0D4DC'}
                           ><Trash2 size={13} /></button>

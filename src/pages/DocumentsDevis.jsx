@@ -14,7 +14,7 @@ function CardSection({ title, icon: Icon, tooltip, children }) {
     <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: 24, boxShadow: '0 1px 4px rgba(15,23,42,0.06)', marginBottom: 20, border: '1px solid rgba(15,23,42,0.06)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
         <Icon size={16} color="#5BA3C7" strokeWidth={2} />
-        <span style={{ fontSize: 14, fontWeight: 700, color: '#1E293B' }}>{title}</span>
+        <span style={{ fontSize: 14, fontWeight: 700, color: '#EDE8DB' }}>{title}</span>
         {tooltip && <Tooltip text={tooltip} />}
       </div>
       {children}
@@ -38,8 +38,8 @@ function Field({ label, required, children }) {
 }
 
 const inp = {
-  width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #E2E8F0',
-  background: 'transparent', fontSize: 13, color: '#1E293B', outline: 'none',
+  width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)',
+  background: 'transparent', fontSize: 13, color: '#EDE8DB', outline: 'none',
   fontFamily: "'Nunito Sans', sans-serif", boxSizing: 'border-box',
 };
 
@@ -328,7 +328,7 @@ ${form.notes ? `<div style="margin-bottom:16px;padding:10px 12px;background:#FFF
                 <span key="totalht" style={{ display:'flex', alignItems:'center', gap:3 }}>Total HT <Tooltip text={TIPS.montant_ht} size={11} /></span>,
                 '',
               ].map((h, i) => (
-                <span key={i} style={{ fontSize: 11, fontWeight: 600, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</span>
+                <span key={i} style={{ fontSize: 11, fontWeight: 600, color: 'rgba(237,232,219,0.4)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</span>
               ))}
             </div>
             {lignes.map(l => (
@@ -339,7 +339,7 @@ ${form.notes ? `<div style="margin-bottom:16px;padding:10px 12px;background:#FFF
                 <select style={{ ...inp, cursor: 'pointer' }} value={l.tva} onChange={e => updateLigne(l.id, 'tva', e.target.value)}>
                   {TVA_TAUX.map(t => <option key={t} value={t}>{t}%</option>)}
                 </select>
-                <div style={{ textAlign: 'right', fontSize: 13, fontWeight: 600, color: '#1E293B', padding: '9px 4px' }}>{fmt(calcLigne(l).ht)} €</div>
+                <div style={{ textAlign: 'right', fontSize: 13, fontWeight: 600, color: '#EDE8DB', padding: '9px 4px' }}>{fmt(calcLigne(l).ht)} €</div>
                 <button onClick={() => removeLigne(l.id)} disabled={lignes.length === 1} style={{ width: 28, height: 28, borderRadius: 7, border: 'none', background: lignes.length === 1 ? 'transparent' : 'rgba(239,68,68,0.08)', color: lignes.length === 1 ? '#CBD5E1' : '#EF4444', cursor: lignes.length === 1 ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Trash2 size={13} />
                 </button>
@@ -361,13 +361,13 @@ ${form.notes ? `<div style="margin-bottom:16px;padding:10px 12px;background:#FFF
         {/* RÉCAP */}
         <div style={{ position: 'sticky', top: 24 }}>
           <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: 24, boxShadow: '0 1px 4px rgba(15,23,42,0.06)', border: '1px solid rgba(15,23,42,0.06)', marginBottom: 16 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#1E293B', marginBottom: 20 }}>Récapitulatif</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#EDE8DB', marginBottom: 20 }}>Récapitulatif</div>
             {Object.entries(tvaDetails).filter(([, d]) => d.base > 0).map(([t, d]) => (
               <div key={t} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'rgba(237,232,219,0.5)', marginBottom: 6 }}>
                 <span>TVA {t}% (base {fmt(d.base)} €)</span><span>{fmt(d.montant)} €</span>
               </div>
             ))}
-            <div style={{ borderTop: '1px solid #F1F5F9', margin: '12px 0' }} />
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', margin: '12px 0' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'rgba(237,232,219,0.5)', marginBottom: 8, alignItems: 'center' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>Total HT <Tooltip text={TIPS.ht} size={12} /></span>
               <span>{fmt(totaux.ht)} €</span>
@@ -377,7 +377,7 @@ ${form.notes ? `<div style="margin-bottom:16px;padding:10px 12px;background:#FFF
               <span>{fmt(totaux.tva)} €</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', borderRadius: 10, marginTop: 8, background: 'linear-gradient(135deg, rgba(91,199,138,0.12), rgba(91,199,138,0.06))', border: '1px solid rgba(91,199,138,0.2)' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 700, color: '#1E293B' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 700, color: '#EDE8DB' }}>
                 Total TTC <Tooltip text={TIPS.ttc} size={13} />
               </span>
               <span style={{ fontSize: 18, fontWeight: 800, color: '#5BC78A' }}>{fmt(totaux.ttc)} €</span>
@@ -393,7 +393,7 @@ ${form.notes ? `<div style="margin-bottom:16px;padding:10px 12px;background:#FFF
           }}>
             <Printer size={16} /> Générer et imprimer / PDF
           </button>
-          <div style={{ fontSize: 11, color: '#94A3B8', textAlign: 'center', marginTop: 10, lineHeight: 1.5 }}>
+          <div style={{ fontSize: 11, color: 'rgba(237,232,219,0.4)', textAlign: 'center', marginTop: 10, lineHeight: 1.5 }}>
             Une fenêtre s'ouvre → "Enregistrer en PDF" dans l'imprimante.
           </div>
         </div>
