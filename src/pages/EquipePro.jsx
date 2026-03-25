@@ -70,14 +70,14 @@ function EmployeForm({ onSave, onCancel, editData = null }) {
 
   const inputStyle = {
     width: '100%', padding: '9px 12px', borderRadius: 8,
-    background: '#F8F9FB', border: '1px solid #E8EAF0',
-    color: '#1A1C20', fontSize: 13, outline: 'none', boxSizing: 'border-box',
+    background: '#F8F9FB', border: '1px solid rgba(255,255,255,0.08)',
+    color: '#EDE8DB', fontSize: 13, outline: 'none', boxSizing: 'border-box',
   };
   const labelStyle = { fontSize: 11, fontWeight: 600, color: '#5A6070', marginBottom: 5, display: 'block' };
 
   return (
-    <form onSubmit={handleSubmit} style={{ background: '#fff', border: '1px solid #E8EAF0', borderRadius: 14, padding: 24, marginBottom: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-      <h3 style={{ fontSize: 15, fontWeight: 700, color: '#1A1C20', marginBottom: 20 }}>
+    <form onSubmit={handleSubmit} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, padding: 24, marginBottom: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+      <h3 style={{ fontSize: 15, fontWeight: 700, color: '#EDE8DB', marginBottom: 20 }}>
         {editData ? 'Modifier l\'employé' : 'Ajouter un membre'}
       </h3>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
@@ -114,7 +114,7 @@ function EmployeForm({ onSave, onCancel, editData = null }) {
         <button type="submit" disabled={loading} style={{ flex: 1, padding: '11px', borderRadius: 9, border: 'none', background: loading ? `${ACCENT}50` : ACCENT, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
           {loading ? 'Enregistrement...' : '✓ Enregistrer'}
         </button>
-        <button type="button" onClick={onCancel} style={{ padding: '11px 18px', borderRadius: 9, border: '1px solid #E8EAF0', background: '#fff', color: '#5A6070', fontSize: 13, cursor: 'pointer' }}>
+        <button type="button" onClick={onCancel} style={{ padding: '11px 18px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: '#5A6070', fontSize: 13, cursor: 'pointer' }}>
           Annuler
         </button>
       </div>
@@ -154,14 +154,14 @@ function PointageForm({ employes, onSave, onCancel }) {
 
   const inputStyle = {
     width: '100%', padding: '9px 12px', borderRadius: 8,
-    background: '#F8F9FB', border: '1px solid #E8EAF0',
-    color: '#1A1C20', fontSize: 13, outline: 'none', boxSizing: 'border-box',
+    background: '#F8F9FB', border: '1px solid rgba(255,255,255,0.08)',
+    color: '#EDE8DB', fontSize: 13, outline: 'none', boxSizing: 'border-box',
   };
   const labelStyle = { fontSize: 11, fontWeight: 600, color: '#5A6070', marginBottom: 5, display: 'block' };
 
   return (
-    <form onSubmit={handleSubmit} style={{ background: '#fff', border: '1px solid #E8EAF0', borderRadius: 14, padding: 24, marginBottom: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-      <h3 style={{ fontSize: 15, fontWeight: 700, color: '#1A1C20', marginBottom: 20 }}>Enregistrer un pointage</h3>
+    <form onSubmit={handleSubmit} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, padding: 24, marginBottom: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+      <h3 style={{ fontSize: 15, fontWeight: 700, color: '#EDE8DB', marginBottom: 20 }}>Enregistrer un pointage</h3>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
         <div>
           <label style={labelStyle}>Employé *</label>
@@ -208,7 +208,7 @@ function PointageForm({ employes, onSave, onCancel }) {
         <button type="submit" disabled={loading} style={{ flex: 1, padding: '11px', borderRadius: 9, border: 'none', background: ACCENT, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
           {loading ? 'Enregistrement...' : '✓ Enregistrer le pointage'}
         </button>
-        <button type="button" onClick={onCancel} style={{ padding: '11px 18px', borderRadius: 9, border: '1px solid #E8EAF0', background: '#fff', color: '#5A6070', fontSize: 13, cursor: 'pointer' }}>
+        <button type="button" onClick={onCancel} style={{ padding: '11px 18px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: '#5A6070', fontSize: 13, cursor: 'pointer' }}>
           Annuler
         </button>
       </div>
@@ -285,7 +285,7 @@ export default function EquipePage() {
       {/* En-tête */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 600, color: '#1A1C20', margin: 0 }}>
+          <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 600, color: '#EDE8DB', margin: 0 }}>
             Équipe & Déplacements
           </h1>
           <p style={{ fontSize: 13, color: '#9AA0AE', marginTop: 4 }}>
@@ -293,7 +293,7 @@ export default function EquipePage() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={exportCSV} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 9, border: '1px solid #E8EAF0', background: '#fff', color: '#5A6070', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+          <button onClick={exportCSV} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: '#5A6070', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
             <Download size={13} /> Exporter CSV
           </button>
           {tab === 'equipe' ? (
@@ -318,7 +318,7 @@ export default function EquipePage() {
         ].map(s => {
           const Icon = s.icon;
           return (
-            <div key={s.label} style={{ background: '#fff', border: '1px solid #E8EAF0', borderRadius: 12, padding: '16px 18px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+            <div key={s.label} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 18px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <p style={{ fontSize: 11, color: '#9AA0AE', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>{s.label}</p>
                 <Icon size={14} color={s.color} />
@@ -371,7 +371,7 @@ export default function EquipePage() {
 
       {/* Tab Équipe */}
       {tab === 'equipe' && (
-        <div style={{ background: '#fff', border: '1px solid #E8EAF0', borderRadius: 14, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+        <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
           {loading ? (
             <div style={{ padding: 40, textAlign: 'center', color: '#9AA0AE', fontSize: 13 }}>Chargement...</div>
           ) : employes.length === 0 ? (
@@ -399,7 +399,7 @@ export default function EquipePage() {
                         <div style={{ width: 32, height: 32, borderRadius: '50%', background: `${ACCENT}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: ACCENT, flexShrink: 0 }}>
                           {(e.prenom?.[0] || '') + (e.nom?.[0] || '')}
                         </div>
-                        <span style={{ fontSize: 13, fontWeight: 600, color: '#1A1C20' }}>{e.prenom} {e.nom}</span>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: '#EDE8DB' }}>{e.prenom} {e.nom}</span>
                       </div>
                     </td>
                     <td style={{ padding: '11px 14px', fontSize: 12, color: '#5A6070' }}>{e.poste || '—'}</td>
@@ -438,11 +438,11 @@ export default function EquipePage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
             <label style={{ fontSize: 12, fontWeight: 600, color: '#5A6070' }}>Mois :</label>
             <input type="month" value={filterMois} onChange={e => setFilterMois(e.target.value)}
-              style={{ padding: '7px 12px', borderRadius: 8, background: '#fff', border: '1px solid #E8EAF0', fontSize: 13, outline: 'none', colorScheme: 'light' }} />
+              style={{ padding: '7px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', fontSize: 13, outline: 'none', colorScheme: 'light' }} />
             <span style={{ fontSize: 12, color: '#9AA0AE' }}>{pointagesFiltres.length} pointage{pointagesFiltres.length > 1 ? 's' : ''}</span>
           </div>
 
-          <div style={{ background: '#fff', border: '1px solid #E8EAF0', borderRadius: 14, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+          <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
             {pointagesFiltres.length === 0 ? (
               <div style={{ padding: 48, textAlign: 'center' }}>
                 <Clock size={32} color="#E8EAF0" style={{ marginBottom: 12 }} />
@@ -470,7 +470,7 @@ export default function EquipePage() {
                         onMouseLeave={ev => ev.currentTarget.style.background = 'transparent'}
                       >
                         <td style={{ padding: '11px 14px', fontSize: 12, color: '#5A6070' }}>{formatDate(p.date)}</td>
-                        <td style={{ padding: '11px 14px', fontSize: 13, fontWeight: 600, color: '#1A1C20' }}>
+                        <td style={{ padding: '11px 14px', fontSize: 13, fontWeight: 600, color: '#EDE8DB' }}>
                           {emp ? `${emp.prenom} ${emp.nom}` : '—'}
                         </td>
                         <td style={{ padding: '11px 14px' }}>

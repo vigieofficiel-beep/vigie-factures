@@ -126,7 +126,7 @@ export default function ProLayout() {
   return (
     <div style={{
       display: 'flex', minHeight: '100vh',
-      background: 'linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 50%, #E2E8F0 100%)',
+      background: 'transparent' 0%, #F1F5F9 50%, #E2E8F0 100%)',
       fontFamily: "'Nunito Sans', sans-serif", position: 'relative',
     }}>
 

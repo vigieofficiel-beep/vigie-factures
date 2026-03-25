@@ -167,7 +167,7 @@ export default function AnalyseDocumentFlottant() {
           <div
             onClick={e => e.stopPropagation()}
             style={{
-              background: '#fff', borderRadius: 20, padding: 28, width: '100%', maxWidth: 460,
+              background: 'rgba(255,255,255,0.04)', borderRadius: 20, padding: 28, width: '100%', maxWidth: 460,
               boxShadow: '0 24px 64px rgba(15,23,42,0.2)',
               animation: 'fadeUp 200ms ease',
             }}
@@ -235,7 +235,7 @@ export default function AnalyseDocumentFlottant() {
                 </div>
 
                 {/* Données extraites */}
-                <div style={{ background: '#F8FAFC', borderRadius: 12, padding: '14px 16px', marginBottom: 20, border: '1px solid #E2E8F0' }}>
+                <div style={{ background: 'transparent', borderRadius: 12, padding: '14px 16px', marginBottom: 20, border: '1px solid #E2E8F0' }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Données extraites</div>
                   {[
                     ['Fournisseur / Nom',  result.fournisseur || result.nom_contrat],
@@ -269,7 +269,7 @@ export default function AnalyseDocumentFlottant() {
                   )}
                   <button onClick={reset} style={{
                     padding: '12px 16px', borderRadius: 10, border: '1px solid #E2E8F0',
-                    background: '#fff', color: '#64748B', fontSize: 13, cursor: 'pointer',
+                    background: 'rgba(255,255,255,0.04)', color: 'rgba(237,232,219,0.5)', fontSize: 13, cursor: 'pointer',
                     fontFamily: "'Nunito Sans', sans-serif",
                   }}>
                     Nouveau
@@ -286,7 +286,7 @@ export default function AnalyseDocumentFlottant() {
                 </div>
                 <div style={{ fontSize: 14, fontWeight: 600, color: '#C75B4E', marginBottom: 6 }}>Erreur d'analyse</div>
                 <div style={{ fontSize: 12, color: '#94A3B8', marginBottom: 20 }}>{errMsg}</div>
-                <button onClick={reset} style={{ padding: '10px 24px', borderRadius: 9, border: '1px solid #E2E8F0', background: '#fff', color: '#64748B', fontSize: 13, cursor: 'pointer', fontFamily: "'Nunito Sans', sans-serif" }}>
+                <button onClick={reset} style={{ padding: '10px 24px', borderRadius: 9, border: '1px solid #E2E8F0', background: 'rgba(255,255,255,0.04)', color: 'rgba(237,232,219,0.5)', fontSize: 13, cursor: 'pointer', fontFamily: "'Nunito Sans', sans-serif" }}>
                   Réessayer
                 </button>
               </div>

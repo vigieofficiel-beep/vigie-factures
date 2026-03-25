@@ -106,7 +106,7 @@ export default function NotFound() {
           Cette page s'est <em style={{ color: '#5BA3C7' }}>éclipsée</em>
         </h1>
 
-        <p style={{ fontSize: 16, color: '#64748B', lineHeight: 1.7, marginBottom: 40, maxWidth: 420, margin: '0 auto 40px' }}>
+        <p style={{ fontSize: 16, color: 'rgba(237,232,219,0.5)', lineHeight: 1.7, marginBottom: 40, maxWidth: 420, margin: '0 auto 40px' }}>
           La page que vous cherchez n'existe pas ou a été déplacée. Vous allez être redirigé automatiquement.
         </p>
 
@@ -123,7 +123,7 @@ export default function NotFound() {
           }}>
             {count}
           </div>
-          <span style={{ fontSize: 13, color: '#64748B' }}>Redirection vers l'accueil...</span>
+          <span style={{ fontSize: 13, color: 'rgba(237,232,219,0.5)' }}>Redirection vers l'accueil...</span>
         </div>
 
         {/* Boutons */}

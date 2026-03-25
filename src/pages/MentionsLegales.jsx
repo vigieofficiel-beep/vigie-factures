@@ -5,7 +5,7 @@ export default function MentionsLegales() {
   return (
     <div style={{
       fontFamily: "'Nunito Sans', sans-serif",
-      background: '#F8FAFC', minHeight: '100vh',
+      background: 'transparent', minHeight: '100vh',
       padding: '40px 20px',
     }}>
       <div style={{ maxWidth: 760, margin: '0 auto' }}>
@@ -22,7 +22,7 @@ export default function MentionsLegales() {
         <div style={{ marginBottom: 40 }}>
           <h1 style={{
             fontFamily: "'Cormorant Garamond', serif",
-            fontSize: 36, fontWeight: 600, color: '#0F172A', margin: 0,
+            fontSize: 36, fontWeight: 600, color: '#EDE8DB', margin: 0,
           }}>
             Mentions légales
           </h1>
@@ -73,12 +73,12 @@ export default function MentionsLegales() {
           },
         ].map((section, i) => (
           <div key={i} style={{
-            background: '#fff', border: '1px solid #E8EAF0',
+            background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
             borderRadius: 14, padding: '24px 28px', marginBottom: 16,
             boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
           }}>
             <h2 style={{
-              fontSize: 15, fontWeight: 700, color: '#0F172A',
+              fontSize: 15, fontWeight: 700, color: '#EDE8DB',
               margin: '0 0 16px', paddingBottom: 12,
               borderBottom: '1px solid #F0F2F5',
             }}>
@@ -93,7 +93,7 @@ export default function MentionsLegales() {
                       <td style={{ padding: '8px 0', fontSize: 13, color: '#94A3B8', fontWeight: 600, width: 200, verticalAlign: 'top' }}>
                         {row.label}
                       </td>
-                      <td style={{ padding: '8px 0', fontSize: 13, color: '#1A1C20' }}>
+                      <td style={{ padding: '8px 0', fontSize: 13, color: '#EDE8DB' }}>
                         {row.value.startsWith('http') ? (
                           <a href={row.value} target="_blank" rel="noreferrer" style={{ color: '#5BA3C7' }}>{row.value}</a>
                         ) : row.label === 'Email' ? (

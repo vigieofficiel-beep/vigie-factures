@@ -118,7 +118,7 @@ export default function Vigil() {
           <div style={{
             position: 'absolute', bottom: 68, right: 0,
             width: 360, height: 520,
-            background: '#fff', borderRadius: 20,
+            background: 'rgba(255,255,255,0.04)', borderRadius: 20,
             boxShadow: '0 20px 60px rgba(15,23,42,0.18), 0 4px 16px rgba(15,23,42,0.10)',
             border: `1px solid ${C.border}`,
             display: 'flex', flexDirection: 'column', overflow: 'hidden',
@@ -143,14 +143,14 @@ export default function Vigil() {
                   <div style={{ fontSize: 14, fontWeight: 700, color: '#F1F5F9' }}>Vigil</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                     <div style={{ width: 6, height: 6, borderRadius: '50%', background: C.green }} />
-                    <span style={{ fontSize: 10, color: '#64748B' }}>Assistant Vigie Pro</span>
+                    <span style={{ fontSize: 10, color: 'rgba(237,232,219,0.5)' }}>Assistant Vigie Pro</span>
                   </div>
                 </div>
               </div>
               <button onClick={() => setOpen(false)} style={{
                 background: 'rgba(255,255,255,0.06)', border: 'none',
                 borderRadius: 8, padding: 6, cursor: 'pointer',
-                color: '#64748B', display: 'flex',
+                color: 'rgba(237,232,219,0.5)', display: 'flex',
               }}>
                 <ChevronDown size={16} />
               </button>

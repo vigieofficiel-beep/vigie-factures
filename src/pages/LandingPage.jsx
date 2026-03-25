@@ -291,7 +291,7 @@ export default function LandingPage() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
               <span style={{ fontSize: 14, color: C.light }}>Mensuel</span>
               <div onClick={() => setIsAnnual(!isAnnual)} style={{ width: 48, height: 26, borderRadius: 13, background: isAnnual ? C.blue : 'rgba(255,255,255,0.1)', border: `1px solid ${C.border}`, position: 'relative', cursor: 'pointer', transition: 'background 0.2s' }}>
-                <div style={{ position: 'absolute', top: 3, left: isAnnual ? 'auto' : 3, right: isAnnual ? 3 : 'auto', width: 18, height: 18, background: '#fff', borderRadius: '50%', transition: 'all 0.2s' }} />
+                <div style={{ position: 'absolute', top: 3, left: isAnnual ? 'auto' : 3, right: isAnnual ? 3 : 'auto', width: 18, height: 18, background: 'rgba(255,255,255,0.04)', borderRadius: '50%', transition: 'all 0.2s' }} />
               </div>
               <span style={{ fontSize: 14, color: C.light }}>Annuel</span>
               <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: 'rgba(91,199,138,0.15)', color: C.green, border: '1px solid rgba(91,199,138,0.3)' }}>2 mois offerts</span>

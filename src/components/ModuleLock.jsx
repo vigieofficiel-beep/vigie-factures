@@ -92,7 +92,7 @@ export default function ModuleLock({ children, module, requiredPlan }) {
       fontFamily: "'Nunito Sans', sans-serif",
     }}>
       <div style={{
-        background: '#fff',
+        background: 'rgba(255,255,255,0.04)',
         borderRadius: 20,
         padding: '40px 36px',
         maxWidth: 480,
@@ -137,7 +137,7 @@ export default function ModuleLock({ children, module, requiredPlan }) {
         </h2>
 
         {/* Description */}
-        <p style={{ fontSize: 14, color: '#64748B', margin: '0 0 24px', lineHeight: 1.6 }}>
+        <p style={{ fontSize: 14, color: 'rgba(237,232,219,0.5)', margin: '0 0 24px', lineHeight: 1.6 }}>
           {content.description}
           <br />
           <span style={{ fontWeight: 600, color: '#1E293B' }}>
@@ -147,7 +147,7 @@ export default function ModuleLock({ children, module, requiredPlan }) {
 
         {/* Avantages */}
         <div style={{
-          background: '#F8FAFC', borderRadius: 12,
+          background: 'transparent', borderRadius: 12,
           padding: '16px 20px', marginBottom: 24,
           textAlign: 'left',
         }}>

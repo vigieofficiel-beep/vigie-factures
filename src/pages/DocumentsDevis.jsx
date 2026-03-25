@@ -11,7 +11,7 @@ function newLigne() {
 
 function CardSection({ title, icon: Icon, tooltip, children }) {
   return (
-    <div style={{ background: '#fff', borderRadius: 16, padding: 24, boxShadow: '0 1px 4px rgba(15,23,42,0.06)', marginBottom: 20, border: '1px solid rgba(15,23,42,0.06)' }}>
+    <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: 24, boxShadow: '0 1px 4px rgba(15,23,42,0.06)', marginBottom: 20, border: '1px solid rgba(15,23,42,0.06)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
         <Icon size={16} color="#5BA3C7" strokeWidth={2} />
         <span style={{ fontSize: 14, fontWeight: 700, color: '#1E293B' }}>{title}</span>
@@ -29,7 +29,7 @@ function FieldRow({ children }) {
 function Field({ label, required, children }) {
   return (
     <div>
-      <label style={{ fontSize: 12, fontWeight: 600, color: '#64748B', display: 'flex', alignItems: 'center', gap: 4, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+      <label style={{ fontSize: 12, fontWeight: 600, color: 'rgba(237,232,219,0.5)', display: 'flex', alignItems: 'center', gap: 4, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
         {label}{required && <span style={{ color: '#EF4444', marginLeft: 2 }}>*</span>}
       </label>
       {children}
@@ -39,7 +39,7 @@ function Field({ label, required, children }) {
 
 const inp = {
   width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #E2E8F0',
-  background: '#F8FAFC', fontSize: 13, color: '#1E293B', outline: 'none',
+  background: 'transparent', fontSize: 13, color: '#1E293B', outline: 'none',
   fontFamily: "'Nunito Sans', sans-serif", boxSizing: 'border-box',
 };
 
@@ -360,19 +360,19 @@ ${form.notes ? `<div style="margin-bottom:16px;padding:10px 12px;background:#FFF
 
         {/* RÉCAP */}
         <div style={{ position: 'sticky', top: 24 }}>
-          <div style={{ background: '#fff', borderRadius: 16, padding: 24, boxShadow: '0 1px 4px rgba(15,23,42,0.06)', border: '1px solid rgba(15,23,42,0.06)', marginBottom: 16 }}>
+          <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: 24, boxShadow: '0 1px 4px rgba(15,23,42,0.06)', border: '1px solid rgba(15,23,42,0.06)', marginBottom: 16 }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#1E293B', marginBottom: 20 }}>Récapitulatif</div>
             {Object.entries(tvaDetails).filter(([, d]) => d.base > 0).map(([t, d]) => (
-              <div key={t} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#64748B', marginBottom: 6 }}>
+              <div key={t} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'rgba(237,232,219,0.5)', marginBottom: 6 }}>
                 <span>TVA {t}% (base {fmt(d.base)} €)</span><span>{fmt(d.montant)} €</span>
               </div>
             ))}
             <div style={{ borderTop: '1px solid #F1F5F9', margin: '12px 0' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#64748B', marginBottom: 8, alignItems: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'rgba(237,232,219,0.5)', marginBottom: 8, alignItems: 'center' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>Total HT <Tooltip text={TIPS.ht} size={12} /></span>
               <span>{fmt(totaux.ht)} €</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#64748B', marginBottom: 8, alignItems: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'rgba(237,232,219,0.5)', marginBottom: 8, alignItems: 'center' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>Total TVA <Tooltip text={TIPS.tva} size={12} /></span>
               <span>{fmt(totaux.tva)} €</span>
             </div>
