@@ -98,9 +98,9 @@ function analyserPrixFournisseurs(fournisseurs, expenses, inflationData = {}) {
 }
 
 /* ══ STYLES ══════════════════════════════════════════════════════════ */
-const C = { blue:'#5BA3C7', purple:'#A85BC7', dark:'#1A1C20', light:'#9AA0AE', border:'#E8EAF0', bg:'#F8F9FB', red:'#C75B4E', orange:'#5BC78A', green:'#5BC78A' };
+const C = { blue:'#5BA3C7', purple:'#A85BC7', dark:'#EDE8DB', light:'rgba(237,232,219,0.4)', border:'rgba(255,255,255,0.08)', bg:'rgba(255,255,255,0.06)', red:'#C75B4E', orange:'#5BC78A', green:'#5BC78A' };
 const CATEGORIES = ["Toutes","Informatique","Fournitures","Loyer","Transport","Alimentation","Communication","Énergie","Assurance","Comptabilité","Juridique","Marketing","RH","Autre"];
-const iS = { width:'100%', padding:'9px 12px', borderRadius:8, background:'#F8F9FB', border:'1px solid rgba(255,255,255,0.08)', color:'#EDE8DB', fontSize:13, outline:'none', boxSizing:'border-box', fontFamily:'inherit' };
+const iS = { width:'100%', padding:'9px 12px', borderRadius:8, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', color:'#EDE8DB', fontSize:13, outline:'none', boxSizing:'border-box', fontFamily:'inherit' };
 const lS = { fontSize:11, fontWeight:600, color:'rgba(237,232,219,0.5)', marginBottom:5, display:'block', textTransform:'uppercase', letterSpacing:'0.05em' };
 
 /* ══ FORMULAIRE FOURNISSEUR ══════════════════════════════════════════ */
@@ -165,7 +165,7 @@ function BandeauAgent6({ alertes, loadingINSEE }) {
           {loadingINSEE ? 'Analyse des prix en cours…' : `${visibles.length} alerte${visibles.length > 1 ? 's' : ''} prix surélevés`}
           {!loadingINSEE && critiques > 0 && <span style={{ fontSize:11, marginLeft:8, background:'rgba(199,91,78,0.15)', color:C.red, padding:'2px 7px', borderRadius:20 }}>{critiques} urgente{critiques > 1 ? 's' : ''}</span>}
         </span>
-        {!loadingINSEE && <button onClick={e => { e.stopPropagation(); setDismissed(alertes.map(a=>a.id)); }} style={{ background:'none', border:'none', cursor:'pointer', color:'#94A3B8', fontSize:11, padding:'3px 8px', borderRadius:6 }}><X size={11}/> Tout ignorer</button>}
+        {!loadingINSEE && <button onClick={e => { e.stopPropagation(); setDismissed(alertes.map(a=>a.id)); }} style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(237,232,219,0.4)', fontSize:11, padding:'3px 8px', borderRadius:6 }}><X size={11}/> Tout ignorer</button>}
         {collapsed ? <ChevronDown size={14} color="#94A3B8"/> : <ChevronUp size={14} color="#94A3B8"/>}
       </div>
 
@@ -178,7 +178,7 @@ function BandeauAgent6({ alertes, loadingINSEE }) {
                 <span style={{ fontSize:16 }}>{a.type === 'hausse' ? '📈' : '⚖️'}</span>
                 <div style={{ flex:1 }}>
                   <div style={{ fontSize:12, fontWeight:700, color }}>{a.titre}</div>
-                  <div style={{ fontSize:11, color:'#94A3B8', marginTop:1 }}>{a.detail}</div>
+                  <div style={{ fontSize:11, color:'rgba(237,232,219,0.4)', marginTop:1 }}>{a.detail}</div>
                   {a.surcoût != null && (
                     <div style={{ fontSize:11, color, marginTop:2, fontWeight:600 }}>
                       Surcoût estimé vs inflation : +{a.surcoût}%
@@ -192,7 +192,7 @@ function BandeauAgent6({ alertes, loadingINSEE }) {
               </div>
             );
           })}
-          <div style={{ fontSize:11, color:'#94A3B8', marginTop:6, textAlign:'right' }}>
+          <div style={{ fontSize:11, color:'rgba(237,232,219,0.4)', marginTop:6, textAlign:'right' }}>
             📊 Comparé aux indices de prix INSEE
           </div>
         </div>
@@ -323,7 +323,7 @@ export default function FournisseursPro() {
           { label:'Alertes prix', value:alertes.length, color:alertes.length>0?C.red:C.green, icon:TrendingUp },
           { label:'Total dépenses', value:new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(totalDepenses), color:C.purple, icon:BarChart2 },
         ].map(s => { const Icon = s.icon; return (
-          <div key={s.label} style={{ background:'rgba(255,255,255,0.04)', border:`1px solid ${alertes.length>0&&s.label==='Alertes prix'?'rgba(199,91,78,0.3)':'#E8EAF0'}`, borderRadius:12, padding:'16px 18px', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }}>
+          <div key={s.label} style={{ background:'rgba(255,255,255,0.04)', border:`1px solid ${alertes.length>0&&s.label==='Alertes prix'?'rgba(199,91,78,0.3)':'rgba(255,255,255,0.08)'}`, borderRadius:12, padding:'16px 18px', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
               <p style={{ fontSize:11, color:C.light, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.06em', margin:0 }}>{s.label}</p>
               <Icon size={14} color={s.color}/>
@@ -335,9 +335,9 @@ export default function FournisseursPro() {
 
       {(showForm||editData) && <FournisseurForm editData={editData} onSave={()=>{setShowForm(false);setEditData(null);fetchAll();}} onCancel={()=>{setShowForm(false);setEditData(null);}}/>}
 
-      <div style={{ display:'flex', gap:4, marginBottom:18, background:'#F0F2F5', borderRadius:10, padding:4, width:'fit-content' }}>
+      <div style={{ display:'flex', gap:4, marginBottom:18, background:'rgba(255,255,255,0.06)', borderRadius:10, padding:4, width:'fit-content' }}>
         {[{id:'fournisseurs',label:'Fournisseurs'},{id:'analyse',label:'Analyse par catégorie'}].map(t=>(
-          <button key={t.id} onClick={()=>setTab(t.id)} style={{ padding:'7px 16px', borderRadius:8, border:'none', background:tab===t.id?'#fff':'transparent', color:tab===t.id?C.dark:C.light, fontSize:13, fontWeight:tab===t.id?700:500, cursor:'pointer', boxShadow:tab===t.id?'0 1px 3px rgba(0,0,0,0.08)':'none', transition:'all 150ms ease' }}>{t.label}</button>
+          <button key={t.id} onClick={()=>setTab(t.id)} style={{ padding:'7px 16px', borderRadius:8, border:'none', background:tab===t.id?'rgba(91,163,199,0.15)':'transparent', color:tab===t.id?'#5BA3C7':'rgba(237,232,219,0.4)', fontSize:13, fontWeight:tab===t.id?700:500, cursor:'pointer', boxShadow:tab===t.id?'0 1px 3px rgba(0,0,0,0.08)':'none', transition:'all 150ms ease' }}>{t.label}</button>
         ))}
       </div>
 
@@ -356,7 +356,7 @@ export default function FournisseursPro() {
           {loading?<div style={{ padding:40, textAlign:'center', color:C.light, fontSize:13 }}>Chargement...</div>
           :filtered.length===0?<div style={{ padding:48, textAlign:'center' }}><ShoppingCart size={32} color="#E8EAF0" style={{ marginBottom:12 }}/><p style={{ color:C.light, fontSize:13, margin:0 }}>{fournisseurs.length===0?'Aucun fournisseur — cliquez sur "Nouveau fournisseur"':'Aucun résultat'}</p></div>
           :<table style={{ width:'100%', borderCollapse:'collapse' }}>
-            <thead><tr style={{ borderBottom:'1px solid #F0F2F5' }}>{['Nom','Catégorie','Email','Téléphone','Conditions',''].map(h=>(<th key={h} style={{ padding:'11px 14px', textAlign:'left', fontSize:10, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:'0.06em' }}>{h}</th>))}</tr></thead>
+            <thead><tr style={{ borderBottom:'1px solid rgba(255,255,255,0.06)' }}>{['Nom','Catégorie','Email','Téléphone','Conditions',''].map(h=>(<th key={h} style={{ padding:'11px 14px', textAlign:'left', fontSize:10, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:'0.06em' }}>{h}</th>))}</tr></thead>
             <tbody>
               {filtered.map((f,i)=>{
                 const aAlerte=alertes.some(a=>a.fournisseur?.toLowerCase()===f.nom?.toLowerCase());
@@ -378,7 +378,7 @@ export default function FournisseursPro() {
                   <td style={{ padding:'11px 14px' }}>
                     <div style={{ display:'flex', gap:4 }} onClick={e=>e.stopPropagation()}>
                       <button onClick={()=>{setEditData(f);setShowForm(false);}} style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:C.light }} onMouseEnter={e=>e.currentTarget.style.color=C.blue} onMouseLeave={e=>e.currentTarget.style.color=C.light}><Edit2 size={13}/></button>
-                      <button onClick={()=>deleteFournisseur(f.id)} style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'#D0D4DC' }} onMouseEnter={e=>e.currentTarget.style.color=C.red} onMouseLeave={e=>e.currentTarget.style.color='#D0D4DC'}><Trash2 size={13}/></button>
+                      <button onClick={()=>deleteFournisseur(f.id)} style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(237,232,219,0.2)' }} onMouseEnter={e=>e.currentTarget.style.color=C.red} onMouseLeave={e=>e.currentTarget.style.color='#D0D4DC'}><Trash2 size={13}/></button>
                     </div>
                   </td>
                 </tr>);
@@ -395,7 +395,7 @@ export default function FournisseursPro() {
             </div>
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:12 }}>
               {[['Catégorie',selected.categorie],['SIRET',selected.siret],['Email',selected.email],['Téléphone',selected.telephone],['Site web',selected.site_web],['Contact',selected.contact_nom],['Adresse',selected.adresse?`${selected.adresse}, ${selected.code_postal} ${selected.ville}`:null],['Conditions',selected.conditions_paiement]].filter(([,v])=>v).map(([label,value])=>(
-                <div key={label} style={{ background:'#F8FAFC', borderRadius:9, padding:'10px 14px' }}>
+                <div key={label} style={{ background:'rgba(255,255,255,0.04)', borderRadius:9, padding:'10px 14px' }}>
                   <div style={{ fontSize:10, fontWeight:700, color:C.light, textTransform:'uppercase', marginBottom:4 }}>{label}</div>
                   <div style={{ fontSize:13, color:C.dark }}>{value}</div>
                 </div>
@@ -433,7 +433,7 @@ export default function FournisseursPro() {
                   </div>
                   <span style={{ fontSize:13, fontWeight:700, color:C.dark }}>{new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(stats.total)}</span>
                 </div>
-                <div style={{ height:8, background:'#F0F2F5', borderRadius:4, overflow:'hidden' }}>
+                <div style={{ height:8, background:'rgba(255,255,255,0.06)', borderRadius:4, overflow:'hidden' }}>
                   <div style={{ width:`${pct}%`, height:'100%', background:`linear-gradient(90deg, ${C.blue}, ${C.purple})`, borderRadius:4, transition:'width 0.6s ease' }}/>
                 </div>
               </div>

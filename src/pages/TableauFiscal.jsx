@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { supabasePro } from '../lib/supabasePro';
 import { TrendingUp, TrendingDown, FileText, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
 
-const C = { blue:'#5BA3C7', green:'#5BC78A', orange:'#D4A853', red:'#C75B4E', dark:'#1A1C20', light:'#9AA0AE', border:'#E8EAF0', bg:'#F8F9FB' };
+const C = { blue:'#5BA3C7', green:'#5BC78A', orange:'#D4A853', red:'#C75B4E', dark:'#EDE8DB', light:'rgba(237,232,219,0.4)', border:'rgba(255,255,255,0.08)', bg:'rgba(255,255,255,0.06)' };
 const euro = (n) => new Intl.NumberFormat('fr-FR', { style:'currency', currency:'EUR', maximumFractionDigits:0 }).format(n ?? 0);
 const pct  = (n) => `${Number(n).toFixed(1)}%`;
 
@@ -130,15 +130,15 @@ export default function TableauFiscal() {
 
       {/* Paramètres */}
       <div style={{ display:'flex', gap:12, flexWrap:'wrap', marginBottom:24 }}>
-        <select value={annee} onChange={e => setAnnee(Number(e.target.value))} style={{ padding:'8px 14px', borderRadius:9, border:`1px solid ${C.border}`, background:'#fff', color:C.dark, fontSize:13, outline:'none', fontFamily:'inherit' }}>
+        <select value={annee} onChange={e => setAnnee(Number(e.target.value))} style={{ padding:'8px 14px', borderRadius:9, border:`1px solid ${C.border}`, background:'rgba(255,255,255,0.04)', color:C.dark, fontSize:13, outline:'none', fontFamily:'inherit' }}>
           {ANNEES.map(a => <option key={a} value={a}>{a}</option>)}
         </select>
-        <select value={regime} onChange={e => setRegime(e.target.value)} style={{ padding:'8px 14px', borderRadius:9, border:`1px solid ${C.border}`, background:'#fff', color:C.dark, fontSize:13, outline:'none', fontFamily:'inherit' }}>
+        <select value={regime} onChange={e => setRegime(e.target.value)} style={{ padding:'8px 14px', borderRadius:9, border:`1px solid ${C.border}`, background:'rgba(255,255,255,0.04)', color:C.dark, fontSize:13, outline:'none', fontFamily:'inherit' }}>
           <option value="ae">Auto-entrepreneur</option>
           <option value="ir">IR (BNC/BIC)</option>
           <option value="is">IS (Société)</option>
         </select>
-        <select value={activite} onChange={e => setActivite(e.target.value)} style={{ padding:'8px 14px', borderRadius:9, border:`1px solid ${C.border}`, background:'#fff', color:C.dark, fontSize:13, outline:'none', fontFamily:'inherit' }}>
+        <select value={activite} onChange={e => setActivite(e.target.value)} style={{ padding:'8px 14px', borderRadius:9, border:`1px solid ${C.border}`, background:'rgba(255,255,255,0.04)', color:C.dark, fontSize:13, outline:'none', fontFamily:'inherit' }}>
           <option value="services">Prestations de services</option>
           <option value="ventes">Ventes de marchandises</option>
         </select>
@@ -154,7 +154,7 @@ export default function TableauFiscal() {
         ].map(k => {
           const Icon = k.icon;
           return (
-            <div key={k.label} style={{ background:'#fff', border:`1px solid ${C.border}`, borderRadius:12, padding:'18px 20px', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }}>
+            <div key={k.label} style={{ background:'rgba(255,255,255,0.04)', border:`1px solid ${C.border}`, borderRadius:12, padding:'18px 20px', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
                 <span style={{ fontSize:11, color:C.light, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.06em' }}>{k.label}</span>
                 <Icon size={14} color={k.color}/>
@@ -166,7 +166,7 @@ export default function TableauFiscal() {
       </div>
 
       {/* Graphique mensuel */}
-      <div style={{ background:'#fff', border:`1px solid ${C.border}`, borderRadius:14, padding:22, marginBottom:20, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+      <div style={{ background:'rgba(255,255,255,0.04)', border:`1px solid ${C.border}`, borderRadius:14, padding:22, marginBottom:20, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
         <div style={{ fontSize:12, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:16 }}>Évolution mensuelle {annee}</div>
         <div style={{ display:'flex', gap:6, alignItems:'flex-end', height:100 }}>
           {stats.parMois.map((m, i) => (
@@ -282,7 +282,7 @@ export default function TableauFiscal() {
           ),
         },
       ].map(section => (
-        <div key={section.id} style={{ background:'#fff', border:`1px solid ${C.border}`, borderRadius:14, overflow:'hidden', marginBottom:14, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+        <div key={section.id} style={{ background:'rgba(255,255,255,0.04)', border:`1px solid ${C.border}`, borderRadius:14, overflow:'hidden', marginBottom:14, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
           <button onClick={() => toggle(section.id)} style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'16px 20px', background:'none', border:'none', cursor:'pointer', fontFamily:'inherit' }}>
             <span style={{ fontSize:14, fontWeight:700, color:C.dark }}>{section.titre}</span>
             {openSect[section.id] ? <ChevronUp size={16} color={C.light}/> : <ChevronDown size={16} color={C.light}/>}
