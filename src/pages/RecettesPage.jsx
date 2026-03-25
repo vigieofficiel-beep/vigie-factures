@@ -24,12 +24,12 @@ function parseOCRDate(str) {
 }
 
 const STATUTS = [
-  { id: 'brouillon',  label: 'Brouillon',  color: '#9AA0AE', bg: '#F0F2F5' },
+  { id: 'brouillon',  label: 'Brouillon',  color: 'rgba(237,232,219,0.4)', bg: '#F0F2F5' },
   { id: 'envoye',     label: 'Envoyé',      color: '#5BA3C7', bg: 'rgba(91,163,199,0.1)' },
   { id: 'signe',      label: 'Signé',       color: '#5BC78A', bg: 'rgba(91,199,138,0.1)' },
   { id: 'encaisse',   label: 'Encaissé',    color: '#A85BC7', bg: 'rgba(168,91,199,0.1)' },
   { id: 'en_retard',  label: 'En retard',   color: '#C75B4E', bg: 'rgba(199,91,78,0.1)' },
-  { id: 'annule',     label: 'Annulé',      color: '#D0D4DC', bg: '#F8F9FB' },
+  { id: 'annule',     label: 'Annulé',      color: 'rgba(237,232,219,0.2)', bg: 'rgba(255,255,255,0.04)' },
 ];
 
 // Tooltips pour chaque statut devis
@@ -119,13 +119,13 @@ function LignesPrestation({ lignes, setLignes }) {
   const addLigne = () => setLignes(l => [...l, { description:'', quantite:1, prix_unitaire:'', tva_taux:20 }]);
   const removeLigne = (i) => setLignes(l => l.filter((_,idx) => idx!==i));
   const updateLigne = (i,k,v) => setLignes(l => l.map((item,idx) => idx===i ? {...item,[k]:v} : item));
-  const inputS = { padding:'8px 10px', borderRadius:7, border:'1px solid #E2E8F0', background:'#F8FAFC', fontSize:12, outline:'none', width:'100%', boxSizing:'border-box' };
+  const inputS = { padding:'8px 10px', borderRadius:7, border:'1px solid rgba(255,255,255,0.08)', background:'rgba(255,255,255,0.04)', fontSize:12, outline:'none', width:'100%', boxSizing:'border-box' };
   const totalHT  = lignes.reduce((s,l) => s+(Number(l.quantite)||0)*(Number(l.prix_unitaire)||0), 0);
   const totalTVA = lignes.reduce((s,l) => s+(Number(l.quantite)||0)*(Number(l.prix_unitaire)||0)*(Number(l.tva_taux)||20)/100, 0);
   return (
     <div style={{marginBottom:14}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
-        <label style={{fontSize:11,fontWeight:600,color:'#94A3B8',textTransform:'uppercase',letterSpacing:'0.05em'}}>Lignes de prestation *</label>
+        <label style={{fontSize:11,fontWeight:600,color:'rgba(237,232,219,0.4)',textTransform:'uppercase',letterSpacing:'0.05em'}}>Lignes de prestation *</label>
         <button type="button" onClick={addLigne} style={{display:'flex',alignItems:'center',gap:5,fontSize:11,fontWeight:700,color:ACCENT,background:`${ACCENT}12`,border:`1px solid ${ACCENT}30`,borderRadius:7,padding:'4px 10px',cursor:'pointer'}}>
           <Plus size={11}/> Ajouter une ligne
         </button>
@@ -137,7 +137,7 @@ function LignesPrestation({ lignes, setLignes }) {
           <span key="tva" style={{display:'flex',alignItems:'center',gap:3}}>TVA % <Tooltip text={TIPS.taux_tva} size={11}/></span>,
           <span key="ttc" style={{display:'flex',alignItems:'center',gap:3}}>Total TTC <Tooltip text={TIPS.ttc} size={11}/></span>,
           '',
-        ].map((h,i) => <span key={i} style={{fontSize:10,fontWeight:700,color:'#94A3B8',textTransform:'uppercase',letterSpacing:'0.05em'}}>{h}</span>)}
+        ].map((h,i) => <span key={i} style={{fontSize:10,fontWeight:700,color:'rgba(237,232,219,0.4)',textTransform:'uppercase',letterSpacing:'0.05em'}}>{h}</span>)}
       </div>
       {lignes.map((l,i) => {
         const ht=(Number(l.quantite)||0)*(Number(l.prix_unitaire)||0); const ttc=ht*(1+(Number(l.tva_taux)||20)/100);
@@ -150,13 +150,13 @@ function LignesPrestation({ lignes, setLignes }) {
               <option value="0">0%</option><option value="5.5">5,5%</option><option value="10">10%</option><option value="20">20%</option>
             </select>
             <span style={{fontSize:12,fontWeight:700,color:ACCENT,textAlign:'right'}}>{ttc.toFixed(2)} €</span>
-            <button type="button" onClick={()=>removeLigne(i)} disabled={lignes.length===1} style={{background:'none',border:'none',cursor:lignes.length===1?'not-allowed':'pointer',color:'#D0D4DC',padding:0,display:'flex'}} onMouseEnter={e=>{if(lignes.length>1)e.currentTarget.style.color='#C75B4E'}} onMouseLeave={e=>e.currentTarget.style.color='#D0D4DC'}><Trash2 size={13}/></button>
+            <button type="button" onClick={()=>removeLigne(i)} disabled={lignes.length===1} style={{background:'none',border:'none',cursor:lignes.length===1?'not-allowed':'pointer',color:'rgba(237,232,219,0.2)',padding:0,display:'flex'}} onMouseEnter={e=>{if(lignes.length>1)e.currentTarget.style.color='#C75B4E'}} onMouseLeave={e=>e.currentTarget.style.color='#D0D4DC'}><Trash2 size={13}/></button>
           </div>
         );
       })}
-      <div style={{marginTop:10,padding:'10px 14px',background:'#F8FAFC',borderRadius:9,border:'1px solid #E2E8F0',display:'flex',justifyContent:'flex-end',gap:24}}>
-        <span style={{fontSize:12,color:'#94A3B8',display:'flex',alignItems:'center',gap:4}}>HT <Tooltip text={TIPS.ht} size={11}/> : <strong style={{color:'#0F172A'}}>{totalHT.toFixed(2)} €</strong></span>
-        <span style={{fontSize:12,color:'#94A3B8',display:'flex',alignItems:'center',gap:4}}>TVA <Tooltip text={TIPS.tva} size={11}/> : <strong style={{color:'#0F172A'}}>{totalTVA.toFixed(2)} €</strong></span>
+      <div style={{marginTop:10,padding:'10px 14px',background:'rgba(255,255,255,0.04)',borderRadius:9,border:'1px solid rgba(255,255,255,0.08)',display:'flex',justifyContent:'flex-end',gap:24}}>
+        <span style={{fontSize:12,color:'rgba(237,232,219,0.4)',display:'flex',alignItems:'center',gap:4}}>HT <Tooltip text={TIPS.ht} size={11}/> : <strong style={{color:'#EDE8DB'}}>{totalHT.toFixed(2)} €</strong></span>
+        <span style={{fontSize:12,color:'rgba(237,232,219,0.4)',display:'flex',alignItems:'center',gap:4}}>TVA <Tooltip text={TIPS.tva} size={11}/> : <strong style={{color:'#EDE8DB'}}>{totalTVA.toFixed(2)} €</strong></span>
         <span style={{fontSize:13,color:ACCENT,fontWeight:800,display:'flex',alignItems:'center',gap:4}}>TTC <Tooltip text={TIPS.ttc} size={11}/> : {(totalHT+totalTVA).toFixed(2)} €</span>
       </div>
     </div>
@@ -168,12 +168,12 @@ function ClientForm({ onSave, onCancel }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const set=(k)=>(e)=>setForm(f=>({...f,[k]:e.target.value}));
-  const iS={width:'100%',padding:'9px 12px',borderRadius:8,background:'#F8F9FB',border:'1px solid #E8EAF0',color:'#1A1C20',fontSize:13,outline:'none',boxSizing:'border-box'};
-  const lS={fontSize:11,fontWeight:600,color:'#5A6070',marginBottom:5,display:'flex',alignItems:'center',gap:4};
+  const iS={width:'100%',padding:'9px 12px',borderRadius:8,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',color:'#EDE8DB',fontSize:13,outline:'none',boxSizing:'border-box'};
+  const lS={fontSize:11,fontWeight:600,color:'rgba(237,232,219,0.5)',marginBottom:5,display:'flex',alignItems:'center',gap:4};
   const handleSubmit=async(e)=>{e.preventDefault();setLoading(true);try{const{data:{user}}=await supabasePro.auth.getUser();const{error:err}=await supabasePro.from('clients').insert({...form,user_id:user.id});if(err)throw err;onSave();}catch(err){setError(err.message);}setLoading(false);};
   return (
-    <form onSubmit={handleSubmit} style={{background:'#fff',border:'1px solid #E8EAF0',borderRadius:14,padding:24,marginBottom:24,boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
-      <h3 style={{fontSize:15,fontWeight:700,color:'#1A1C20',marginBottom:20}}>Nouveau client</h3>
+    <form onSubmit={handleSubmit} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:14,padding:24,marginBottom:24,boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
+      <h3 style={{fontSize:15,fontWeight:700,color:'#EDE8DB',marginBottom:20}}>Nouveau client</h3>
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14,marginBottom:14}}>
         <div><label style={lS}>Nom / Raison sociale *</label><input value={form.nom} onChange={set('nom')} required style={iS} placeholder="Ex: SARL Dupont"/></div>
         <div><label style={lS}>Email *</label><input type="email" value={form.email} onChange={set('email')} required style={iS} placeholder="contact@client.fr"/></div>
@@ -184,7 +184,7 @@ function ClientForm({ onSave, onCancel }) {
       {error&&<div style={{color:'#C75B4E',fontSize:12,marginBottom:12}}>{error}</div>}
       <div style={{display:'flex',gap:10}}>
         <button type="submit" disabled={loading} style={{flex:1,padding:'10px',borderRadius:9,border:'none',background:ACCENT,color:'#fff',fontSize:13,fontWeight:700,cursor:'pointer'}}>{loading?'Enregistrement...':'✓ Enregistrer le client'}</button>
-        <button type="button" onClick={onCancel} style={{padding:'10px 18px',borderRadius:9,border:'1px solid #E8EAF0',background:'#fff',color:'#5A6070',fontSize:13,cursor:'pointer'}}>Annuler</button>
+        <button type="button" onClick={onCancel} style={{padding:'10px 18px',borderRadius:9,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.04)',color:'rgba(237,232,219,0.5)',fontSize:13,cursor:'pointer'}}>Annuler</button>
       </div>
     </form>
   );
@@ -214,17 +214,17 @@ function DevisForm({ clients, onSave, onCancel, editData=null, prefill=null }) {
   const totalHT=lignes.reduce((s,l)=>s+(Number(l.quantite)||0)*(Number(l.prix_unitaire)||0),0);
   const totalTVA=lignes.reduce((s,l)=>s+(Number(l.quantite)||0)*(Number(l.prix_unitaire)||0)*(Number(l.tva_taux)||20)/100,0);
   const handleSubmit=async(e)=>{e.preventDefault();setLoading(true);try{const{data:{user}}=await supabasePro.auth.getUser();const payload={...form,user_id:user.id,montant_ht:totalHT,tva_taux:lignes[0]?.tva_taux||20,montant_ttc:totalHT+totalTVA,description:JSON.stringify(lignes)};if(editData?.id){const{error:err}=await supabasePro.from('devis').update(payload).eq('id',editData.id);if(err)throw err;}else{const{error:err}=await supabasePro.from('devis').insert(payload);if(err)throw err;}onSave();}catch(err){setError(err.message);}setLoading(false);};
-  const iS={width:'100%',padding:'9px 12px',borderRadius:8,background:'#F8F9FB',border:'1px solid #E8EAF0',color:'#1A1C20',fontSize:13,outline:'none',boxSizing:'border-box'};
-  const lS={fontSize:11,fontWeight:600,color:'#5A6070',marginBottom:5,display:'flex',alignItems:'center',gap:4};
+  const iS={width:'100%',padding:'9px 12px',borderRadius:8,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',color:'#EDE8DB',fontSize:13,outline:'none',boxSizing:'border-box'};
+  const lS={fontSize:11,fontWeight:600,color:'rgba(237,232,219,0.5)',marginBottom:5,display:'flex',alignItems:'center',gap:4};
   return (
-    <form onSubmit={handleSubmit} style={{background:'#fff',border:`1px solid ${prefill?`${ACCENT}40`:'#E8EAF0'}`,borderRadius:14,padding:24,marginBottom:24,boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
+    <form onSubmit={handleSubmit} style={{background:'rgba(255,255,255,0.04)',border:`1px solid ${prefill?`${ACCENT}40`:'rgba(255,255,255,0.08)'}`,borderRadius:14,padding:24,marginBottom:24,boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
       {prefill && (
         <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 14px',borderRadius:9,background:`${ACCENT}10`,border:`1px solid ${ACCENT}30`,marginBottom:18}}>
           <CheckCircle size={14} color={ACCENT}/>
           <span style={{fontSize:13,fontWeight:600,color:ACCENT}}>Formulaire pré-rempli depuis l'analyse du document</span>
         </div>
       )}
-      <h3 style={{fontSize:15,fontWeight:700,color:'#1A1C20',marginBottom:20,display:'flex',alignItems:'center',gap:8}}>
+      <h3 style={{fontSize:15,fontWeight:700,color:'#EDE8DB',marginBottom:20,display:'flex',alignItems:'center',gap:8}}>
         {editData?'Modifier le devis':'Nouveau devis'} <Tooltip text={TIPS.devis} size={14}/>
       </h3>
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14,marginBottom:14}}>
@@ -241,7 +241,7 @@ function DevisForm({ clients, onSave, onCancel, editData=null, prefill=null }) {
       {error&&<div style={{color:'#C75B4E',fontSize:12,marginBottom:12}}>{error}</div>}
       <div style={{display:'flex',gap:10}}>
         <button type="submit" disabled={loading} style={{flex:1,padding:'11px',borderRadius:9,border:'none',background:loading?`${ACCENT}50`:ACCENT,color:'#fff',fontSize:13,fontWeight:700,cursor:'pointer'}}>{loading?'Enregistrement...':'✓ Enregistrer le devis'}</button>
-        <button type="button" onClick={onCancel} style={{padding:'11px 18px',borderRadius:9,border:'1px solid #E8EAF0',background:'#fff',color:'#5A6070',fontSize:13,cursor:'pointer'}}>Annuler</button>
+        <button type="button" onClick={onCancel} style={{padding:'11px 18px',borderRadius:9,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.04)',color:'rgba(237,232,219,0.5)',fontSize:13,cursor:'pointer'}}>Annuler</button>
       </div>
     </form>
   );
@@ -317,13 +317,13 @@ export default function RecettesPage() {
 
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:24,flexWrap:'wrap',gap:12}}>
         <div>
-          <h1 style={{fontFamily:"'Cormorant Garamond', serif",fontSize:26,fontWeight:600,color:'#1A1C20',margin:0,display:'flex',alignItems:'center',gap:8}}>
+          <h1 style={{fontFamily:"'Cormorant Garamond', serif",fontSize:26,fontWeight:600,color:'#EDE8DB',margin:0,display:'flex',alignItems:'center',gap:8}}>
             Recettes <Tooltip text={TIPS.recettes} size={16}/>
           </h1>
-          <p style={{fontSize:13,color:'#9AA0AE',marginTop:4}}>Devis, clients et suivi des encaissements</p>
+          <p style={{fontSize:13,color:'rgba(237,232,219,0.4)',marginTop:4}}>Devis, clients et suivi des encaissements</p>
         </div>
         <div style={{display:'flex',gap:10}}>
-          <button onClick={()=>navigate('/pro/profil')} style={{display:'flex',alignItems:'center',gap:6,padding:'9px 16px',borderRadius:9,border:'1px solid #E8EAF0',background:'#fff',color:'#5A6070',fontSize:12,fontWeight:600,cursor:'pointer'}}><Settings size={13}/> Mon profil</button>
+          <button onClick={()=>navigate('/pro/profil')} style={{display:'flex',alignItems:'center',gap:6,padding:'9px 16px',borderRadius:9,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.04)',color:'rgba(237,232,219,0.5)',fontSize:12,fontWeight:600,cursor:'pointer'}}><Settings size={13}/> Mon profil</button>
           <DateFilter onChange={setDateRange} color={ACCENT}/>
           <ExportButton data={devisExport} filename={`recettes-${new Date().getFullYear()}`} color={ACCENT}
             columns={[
@@ -332,7 +332,7 @@ export default function RecettesPage() {
               { key:'montant_ht', label:'HT (€)' }, { key:'tva_taux', label:'TVA %' },
               { key:'montant_ttc', label:'TTC (€)' }, { key:'statut', label:'Statut' }, { key:'relances', label:'Nb relances' },
             ]}/>
-          <button onClick={()=>{setShowClientForm(true);setShowDevisForm(false);}} style={{display:'flex',alignItems:'center',gap:6,padding:'9px 16px',borderRadius:9,border:`1px solid ${ACCENT}`,background:'#fff',color:ACCENT,fontSize:12,fontWeight:700,cursor:'pointer'}}><Users size={13}/> Nouveau client</button>
+          <button onClick={()=>{setShowClientForm(true);setShowDevisForm(false);}} style={{display:'flex',alignItems:'center',gap:6,padding:'9px 16px',borderRadius:9,border:`1px solid ${ACCENT}`,background:'rgba(255,255,255,0.04)',color:ACCENT,fontSize:12,fontWeight:700,cursor:'pointer'}}><Users size={13}/> Nouveau client</button>
           <button onClick={()=>{setShowDevisForm(true);setShowClientForm(false);setEditDevis(null);setOcrPrefill(null);}} style={{display:'flex',alignItems:'center',gap:6,padding:'9px 16px',borderRadius:9,border:'none',background:ACCENT,color:'#fff',fontSize:12,fontWeight:700,cursor:'pointer'}}><Plus size={13}/> Nouveau devis</button>
         </div>
       </div>
@@ -344,10 +344,10 @@ export default function RecettesPage() {
           {label:'En retard',     value:enRetard.length,           color:'#C75B4E', icon:AlertTriangle, alert:enRetard.length>0, tip:TIPS.statut_en_retard},
           {label:'Clients',       value:clients.length,            color:ACCENT,    icon:Users},
         ].map(s=>{const Icon=s.icon;return(
-          <div key={s.label} style={{background:'#fff',border:`1px solid ${s.alert?'rgba(199,91,78,0.3)':'#E8EAF0'}`,borderRadius:12,padding:'16px 18px',boxShadow:'0 1px 4px rgba(0,0,0,0.05)'}}>
+          <div key={s.label} style={{background:'rgba(255,255,255,0.04)',border:`1px solid ${s.alert?'rgba(199,91,78,0.3)':'rgba(255,255,255,0.08)'}`,borderRadius:12,padding:'16px 18px',boxShadow:'0 1px 4px rgba(0,0,0,0.05)'}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
               <div style={{display:'flex',alignItems:'center',gap:4}}>
-                <p style={{fontSize:11,color:'#9AA0AE',fontWeight:600,textTransform:'uppercase',letterSpacing:'0.06em',margin:0}}>{s.label}</p>
+                <p style={{fontSize:11,color:'rgba(237,232,219,0.4)',fontWeight:600,textTransform:'uppercase',letterSpacing:'0.06em',margin:0}}>{s.label}</p>
                 {s.tip && <Tooltip text={s.tip} size={11}/>}
               </div>
               <Icon size={14} color={s.color}/>
@@ -368,50 +368,50 @@ export default function RecettesPage() {
         />
       )}
 
-      <div style={{display:'flex',gap:4,marginBottom:18,background:'#F0F2F5',borderRadius:10,padding:4,width:'fit-content'}}>
-        {[{id:'devis',label:'Devis',icon:FileText},{id:'clients',label:'Clients',icon:Users}].map(t=>{const Icon=t.icon;return(<button key={t.id} onClick={()=>setTab(t.id)} style={{display:'flex',alignItems:'center',gap:6,padding:'7px 16px',borderRadius:8,border:'none',background:tab===t.id?'#fff':'transparent',color:tab===t.id?'#1A1C20':'#9AA0AE',fontSize:13,fontWeight:tab===t.id?700:500,cursor:'pointer',boxShadow:tab===t.id?'0 1px 3px rgba(0,0,0,0.08)':'none',transition:'all 150ms ease'}}><Icon size={13}/> {t.label}</button>);})}
+      <div style={{display:'flex',gap:4,marginBottom:18,background:'rgba(255,255,255,0.06)',borderRadius:10,padding:4,width:'fit-content'}}>
+        {[{id:'devis',label:'Devis',icon:FileText},{id:'clients',label:'Clients',icon:Users}].map(t=>{const Icon=t.icon;return(<button key={t.id} onClick={()=>setTab(t.id)} style={{display:'flex',alignItems:'center',gap:6,padding:'7px 16px',borderRadius:8,border:'none',background:tab===t.id?'rgba(91,163,199,0.15)':'transparent',color:tab===t.id?'#5BA3C7':'rgba(237,232,219,0.4)',fontSize:13,fontWeight:tab===t.id?700:500,cursor:'pointer',boxShadow:tab===t.id?'0 1px 3px rgba(0,0,0,0.08)':'none',transition:'all 150ms ease'}}><Icon size={13}/> {t.label}</button>);})}
       </div>
 
       {tab==='devis'&&(<>
         <div style={{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap',alignItems:'center'}}>
-          {[{id:'tous',label:'Tous',color:'#9AA0AE'},...STATUTS].map(s=>(
+          {[{id:'tous',label:'Tous',color:'rgba(237,232,219,0.4)'},...STATUTS].map(s=>(
             <div key={s.id} style={{display:'flex',alignItems:'center',gap:4}}>
-              <button onClick={()=>setFilterStatut(s.id)} style={{padding:'5px 14px',borderRadius:20,border:`1px solid ${filterStatut===s.id?s.color:'#E8EAF0'}`,background:filterStatut===s.id?`${s.color}15`:'#fff',color:filterStatut===s.id?s.color:'#5A6070',fontSize:12,fontWeight:filterStatut===s.id?700:500,cursor:'pointer'}}>{s.label}</button>
+              <button onClick={()=>setFilterStatut(s.id)} style={{padding:'5px 14px',borderRadius:20,border:`1px solid ${filterStatut===s.id?s.color:'rgba(255,255,255,0.1)'}`,background:filterStatut===s.id?`${s.color}15`:'transparent',color:filterStatut===s.id?s.color:'rgba(237,232,219,0.5)',fontSize:12,fontWeight:filterStatut===s.id?700:500,cursor:'pointer'}}>{s.label}</button>
               {STATUT_TIPS[s.id] && <Tooltip text={STATUT_TIPS[s.id]} size={11}/>}
             </div>
           ))}
         </div>
-        <div style={{background:'#fff',border:'1px solid #E8EAF0',borderRadius:14,overflow:'hidden',boxShadow:'0 1px 4px rgba(0,0,0,0.06)'}}>
-          {loading?<div style={{padding:40,textAlign:'center',color:'#9AA0AE',fontSize:13}}>Chargement...</div>
-          :filtered.length===0?<div style={{padding:48,textAlign:'center'}}><FileText size={32} color="#E8EAF0" style={{marginBottom:12}}/><p style={{color:'#9AA0AE',fontSize:13,margin:0}}>{devis.length===0?'Aucun devis — cliquez sur "Nouveau devis"':'Aucun devis pour ce filtre'}</p></div>
+        <div style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:14,overflow:'hidden',boxShadow:'0 1px 4px rgba(0,0,0,0.06)'}}>
+          {loading?<div style={{padding:40,textAlign:'center',color:'rgba(237,232,219,0.4)',fontSize:13}}>Chargement...</div>
+          :filtered.length===0?<div style={{padding:48,textAlign:'center'}}><FileText size={32} color="#E8EAF0" style={{marginBottom:12}}/><p style={{color:'rgba(237,232,219,0.4)',fontSize:13,margin:0}}>{devis.length===0?'Aucun devis — cliquez sur "Nouveau devis"':'Aucun devis pour ce filtre'}</p></div>
           :<table style={{width:'100%',borderCollapse:'collapse'}}>
             <thead>
-              <tr style={{borderBottom:'1px solid #F0F2F5'}}>
+              <tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
                 {[
                   'N° Devis','Client','Émission',
                   <span key="ech" style={{display:'flex',alignItems:'center',gap:4}}>Échéance <Tooltip text={TIPS.date_echeance} size={11}/></span>,
                   <span key="ttc" style={{display:'flex',alignItems:'center',gap:4}}>Montant TTC <Tooltip text={TIPS.ttc} size={11}/></span>,
                   'Statut','Relances','',
-                ].map((h,i)=>(<th key={i} style={{padding:'11px 14px',textAlign:'left',fontSize:10,fontWeight:700,color:'#9AA0AE',textTransform:'uppercase',letterSpacing:'0.06em'}}>{h}</th>))}
+                ].map((h,i)=>(<th key={i} style={{padding:'11px 14px',textAlign:'left',fontSize:10,fontWeight:700,color:'rgba(237,232,219,0.4)',textTransform:'uppercase',letterSpacing:'0.06em'}}>{h}</th>))}
               </tr>
             </thead>
             <tbody>
               {filtered.map((d,i)=>{
                 const days=daysUntil(d.date_echeance);const isLate=(d.statut==='signe'||d.statut==='envoye')&&days!==null&&days<0;
-                return(<tr key={d.id||i} style={{borderBottom:'1px solid #F8F9FB',background:isLate?'rgba(199,91,78,0.02)':'transparent'}} onMouseEnter={ev=>ev.currentTarget.style.background=isLate?'rgba(199,91,78,0.04)':'#FAFBFC'} onMouseLeave={ev=>ev.currentTarget.style.background=isLate?'rgba(199,91,78,0.02)':'transparent'}>
-                  <td style={{padding:'11px 14px',fontSize:12,fontWeight:700,color:'#1A1C20'}}>{d.numero}</td>
-                  <td style={{padding:'11px 14px',fontSize:13,color:'#1A1C20'}}>{d.clients?.nom||'—'}</td>
-                  <td style={{padding:'11px 14px',fontSize:12,color:'#5A6070'}}>{formatDate(d.date_emission)}</td>
-                  <td style={{padding:'11px 14px',fontSize:12,color:isLate?'#C75B4E':'#5A6070',fontWeight:isLate?700:400}}>{formatDate(d.date_echeance)}{isLate&&<span style={{fontSize:10,marginLeft:4}}>({Math.abs(days)}j)</span>}</td>
+                return(<tr key={d.id||i} style={{borderBottom:'1px solid rgba(255,255,255,0.04)',background:isLate?'rgba(199,91,78,0.02)':'transparent'}} onMouseEnter={ev=>ev.currentTarget.style.background=isLate?'rgba(199,91,78,0.04)':'#FAFBFC'} onMouseLeave={ev=>ev.currentTarget.style.background=isLate?'rgba(199,91,78,0.02)':'transparent'}>
+                  <td style={{padding:'11px 14px',fontSize:12,fontWeight:700,color:'#EDE8DB'}}>{d.numero}</td>
+                  <td style={{padding:'11px 14px',fontSize:13,color:'#EDE8DB'}}>{d.clients?.nom||'—'}</td>
+                  <td style={{padding:'11px 14px',fontSize:12,color:'rgba(237,232,219,0.5)'}}>{formatDate(d.date_emission)}</td>
+                  <td style={{padding:'11px 14px',fontSize:12,color:isLate?'#C75B4E':'rgba(237,232,219,0.4)',fontWeight:isLate?700:400}}>{formatDate(d.date_echeance)}{isLate&&<span style={{fontSize:10,marginLeft:4}}>({Math.abs(days)}j)</span>}</td>
                   <td style={{padding:'11px 14px',fontSize:13,fontWeight:700,color:ACCENT}}>{formatEuro(d.montant_ttc)}</td>
-                  <td style={{padding:'11px 14px'}}><select value={d.statut} onChange={e=>changerStatut(d.id,e.target.value)} style={{background:'transparent',border:'none',cursor:'pointer',fontSize:12,fontWeight:600,outline:'none',color:STATUTS.find(s=>s.id===d.statut)?.color||'#9AA0AE'}}>{STATUTS.map(s=><option key={s.id} value={s.id}>{s.label}</option>)}</select></td>
-                  <td style={{padding:'11px 14px',fontSize:12,color:'#9AA0AE'}}>{d.relance_count||0} relance{(d.relance_count||0)>1?'s':''}</td>
+                  <td style={{padding:'11px 14px'}}><select value={d.statut} onChange={e=>changerStatut(d.id,e.target.value)} style={{background:'transparent',border:'none',cursor:'pointer',fontSize:12,fontWeight:600,outline:'none',color:STATUTS.find(s=>s.id===d.statut)?.color||'rgba(237,232,219,0.4)'}}>{STATUTS.map(s=><option key={s.id} value={s.id}>{s.label}</option>)}</select></td>
+                  <td style={{padding:'11px 14px',fontSize:12,color:'rgba(237,232,219,0.4)'}}>{d.relance_count||0} relance{(d.relance_count||0)>1?'s':''}</td>
                   <td style={{padding:'11px 14px'}}>
                     <div style={{display:'flex',gap:4}}>
-                      <button onClick={()=>telechargerPDF(d)} title="PDF" style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'#9AA0AE'}} onMouseEnter={ev=>ev.currentTarget.style.color=ACCENT} onMouseLeave={ev=>ev.currentTarget.style.color='#9AA0AE'}><FileDown size={13}/></button>
+                      <button onClick={()=>telechargerPDF(d)} title="PDF" style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'rgba(237,232,219,0.4)'}} onMouseEnter={ev=>ev.currentTarget.style.color=ACCENT} onMouseLeave={ev=>ev.currentTarget.style.color='rgba(237,232,219,0.4)'}><FileDown size={13}/></button>
                       {(d.statut==='signe'||d.statut==='envoye')&&<button onClick={()=>envoyerRelance(d)} title="Relance" style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'#5BC78A'}}><RefreshCw size={13}/></button>}
-                      <button onClick={()=>{setEditDevis(d);setShowDevisForm(false);}} title="Modifier" style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'#9AA0AE'}} onMouseEnter={ev=>ev.currentTarget.style.color=ACCENT} onMouseLeave={ev=>ev.currentTarget.style.color='#9AA0AE'}><Edit2 size={13}/></button>
-                      <button onClick={()=>deleteDevis(d.id)} title="Supprimer" style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'#D0D4DC'}} onMouseEnter={ev=>ev.currentTarget.style.color='#C75B4E'} onMouseLeave={ev=>ev.currentTarget.style.color='#D0D4DC'}><Trash2 size={13}/></button>
+                      <button onClick={()=>{setEditDevis(d);setShowDevisForm(false);}} title="Modifier" style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'rgba(237,232,219,0.4)'}} onMouseEnter={ev=>ev.currentTarget.style.color=ACCENT} onMouseLeave={ev=>ev.currentTarget.style.color='rgba(237,232,219,0.4)'}><Edit2 size={13}/></button>
+                      <button onClick={()=>deleteDevis(d.id)} title="Supprimer" style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'rgba(237,232,219,0.2)'}} onMouseEnter={ev=>ev.currentTarget.style.color='#C75B4E'} onMouseLeave={ev=>ev.currentTarget.style.color='#D0D4DC'}><Trash2 size={13}/></button>
                     </div>
                   </td>
                 </tr>);
@@ -422,18 +422,18 @@ export default function RecettesPage() {
       </>)}
 
       {tab==='clients'&&(
-        <div style={{background:'#fff',border:'1px solid #E8EAF0',borderRadius:14,overflow:'hidden',boxShadow:'0 1px 4px rgba(0,0,0,0.06)'}}>
-          {clients.length===0?<div style={{padding:48,textAlign:'center'}}><Users size={32} color="#E8EAF0" style={{marginBottom:12}}/><p style={{color:'#9AA0AE',fontSize:13,margin:0}}>Aucun client — cliquez sur "Nouveau client"</p></div>
+        <div style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:14,overflow:'hidden',boxShadow:'0 1px 4px rgba(0,0,0,0.06)'}}>
+          {clients.length===0?<div style={{padding:48,textAlign:'center'}}><Users size={32} color="#E8EAF0" style={{marginBottom:12}}/><p style={{color:'rgba(237,232,219,0.4)',fontSize:13,margin:0}}>Aucun client — cliquez sur "Nouveau client"</p></div>
           :<table style={{width:'100%',borderCollapse:'collapse'}}>
             <thead>
-              <tr style={{borderBottom:'1px solid #F0F2F5'}}>
+              <tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
                 {['Nom','Email','Téléphone',
                   <span key="siret" style={{display:'flex',alignItems:'center',gap:4}}>SIRET <Tooltip text={TIPS.siret} size={11}/></span>,
                   '',
-                ].map((h,i)=>(<th key={i} style={{padding:'11px 14px',textAlign:'left',fontSize:10,fontWeight:700,color:'#9AA0AE',textTransform:'uppercase',letterSpacing:'0.06em'}}>{h}</th>))}
+                ].map((h,i)=>(<th key={i} style={{padding:'11px 14px',textAlign:'left',fontSize:10,fontWeight:700,color:'rgba(237,232,219,0.4)',textTransform:'uppercase',letterSpacing:'0.06em'}}>{h}</th>))}
               </tr>
             </thead>
-            <tbody>{clients.map((c,i)=>(<tr key={c.id||i} style={{borderBottom:'1px solid #F8F9FB'}} onMouseEnter={ev=>ev.currentTarget.style.background='#FAFBFC'} onMouseLeave={ev=>ev.currentTarget.style.background='transparent'}><td style={{padding:'11px 14px',fontSize:13,fontWeight:600,color:'#1A1C20'}}>{c.nom}</td><td style={{padding:'11px 14px',fontSize:12,color:'#5A6070'}}>{c.email}</td><td style={{padding:'11px 14px',fontSize:12,color:'#5A6070'}}>{c.telephone||'—'}</td><td style={{padding:'11px 14px',fontSize:12,color:'#5A6070'}}>{c.siret||'—'}</td><td style={{padding:'11px 14px'}}><button onClick={()=>deleteClient(c.id)} style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'#D0D4DC'}} onMouseEnter={ev=>ev.currentTarget.style.color='#C75B4E'} onMouseLeave={ev=>ev.currentTarget.style.color='#D0D4DC'}><Trash2 size={13}/></button></td></tr>))}</tbody>
+            <tbody>{clients.map((c,i)=>(<tr key={c.id||i} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}} onMouseEnter={ev=>ev.currentTarget.style.background='rgba(255,255,255,0.03)'} onMouseLeave={ev=>ev.currentTarget.style.background='transparent'}><td style={{padding:'11px 14px',fontSize:13,fontWeight:600,color:'#EDE8DB'}}>{c.nom}</td><td style={{padding:'11px 14px',fontSize:12,color:'rgba(237,232,219,0.5)'}}>{c.email}</td><td style={{padding:'11px 14px',fontSize:12,color:'rgba(237,232,219,0.5)'}}>{c.telephone||'—'}</td><td style={{padding:'11px 14px',fontSize:12,color:'rgba(237,232,219,0.5)'}}>{c.siret||'—'}</td><td style={{padding:'11px 14px'}}><button onClick={()=>deleteClient(c.id)} style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'rgba(237,232,219,0.2)'}} onMouseEnter={ev=>ev.currentTarget.style.color='#C75B4E'} onMouseLeave={ev=>ev.currentTarget.style.color='#D0D4DC'}><Trash2 size={13}/></button></td></tr>))}</tbody>
           </table>}
         </div>
       )}

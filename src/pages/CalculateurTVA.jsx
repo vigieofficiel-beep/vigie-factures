@@ -2,7 +2,7 @@ import { useState } from "react";
 import Tooltip from '../components/Tooltip';
 import { TIPS } from '../utils/tooltips';
 
-const C = { blue:'#5BA3C7', purple:'#A85BC7', dark:'#1A1C20', light:'#9AA0AE', border:'#E8EAF0', bg:'#F8F9FB', red:'#C75B4E', orange:'#5BC78A', green:'#5BC78A' };
+const C = { blue:'#5BA3C7', purple:'#A85BC7', dark:'#EDE8DB', light:'rgba(237,232,219,0.4)', border:'rgba(255,255,255,0.08)', bg:'rgba(255,255,255,0.06)', red:'#C75B4E', orange:'#5BC78A', green:'#5BC78A' };
 
 const TAUX_TVA = [
   { label:'20% — Taux normal',        value:20,  desc:'Biens et services courants' },
@@ -18,16 +18,16 @@ const REGIMES = [
   { label:'Réel normal',      seuils:null },
 ];
 
-const iS = { width:'100%', padding:'10px 14px', borderRadius:9, background:'#F8F9FB', border:'1px solid #E8EAF0', color:'#1A1C20', fontSize:14, outline:'none', boxSizing:'border-box', fontFamily:'inherit' };
-const lS = { fontSize:11, fontWeight:700, color:'#5A6070', marginBottom:6, display:'flex', alignItems:'center', gap:6, textTransform:'uppercase', letterSpacing:'0.05em' };
+const iS = { width:'100%', padding:'10px 14px', borderRadius:9, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', color:'#EDE8DB', fontSize:14, outline:'none', boxSizing:'border-box', fontFamily:'inherit' };
+const lS = { fontSize:11, fontWeight:700, color:'rgba(237,232,219,0.5)', marginBottom:6, display:'flex', alignItems:'center', gap:6, textTransform:'uppercase', letterSpacing:'0.05em' };
 
 function Card({ children, style={} }) {
-  return <div style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:14, padding:24, boxShadow:'0 1px 6px rgba(0,0,0,0.05)', ...style }}>{children}</div>;
+  return <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:24, boxShadow:'0 1px 6px rgba(0,0,0,0.05)', ...style }}>{children}</div>;
 }
 
 function ResultLine({ label, value, big=false, color=C.dark, sub=false }) {
   return (
-    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding: sub ? '6px 0' : '10px 0', borderBottom:'1px solid #F0F2F5' }}>
+    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding: sub ? '6px 0' : '10px 0', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
       <span style={{ fontSize: sub ? 12 : 13, color: sub ? C.light : '#5A6070' }}>{label}</span>
       <span style={{ fontSize: big ? 20 : 14, fontWeight: big ? 800 : 600, color }}>{value}</span>
     </div>
@@ -72,9 +72,9 @@ export default function CalculateurTVA() {
 
           <Card>
             <label style={lS}>Mode de calcul</label>
-            <div style={{ display:'flex', gap:4, background:'#F0F2F5', borderRadius:10, padding:4 }}>
+            <div style={{ display:'flex', gap:4, background:'rgba(255,255,255,0.06)', borderRadius:10, padding:4 }}>
               {[['ht_vers_ttc','HT → TTC'],['ttc_vers_ht','TTC → HT']].map(([val,lab])=>(
-                <button key={val} onClick={()=>setMode(val)} style={{ flex:1, padding:'9px', borderRadius:8, border:'none', background:mode===val?'#fff':'transparent', color:mode===val?C.dark:C.light, fontSize:13, fontWeight:mode===val?700:500, cursor:'pointer', boxShadow:mode===val?'0 1px 3px rgba(0,0,0,0.08)':'none', transition:'all 150ms' }}>
+                <button key={val} onClick={()=>setMode(val)} style={{ flex:1, padding:'9px', borderRadius:8, border:'none', background:mode===val?'rgba(91,163,199,0.15)':'transparent', color:mode===val?C.dark:C.light, fontSize:13, fontWeight:mode===val?700:500, cursor:'pointer', boxShadow:mode===val?'0 1px 3px rgba(0,0,0,0.08)':'none', transition:'all 150ms' }}>
                   {lab}
                 </button>
               ))}
@@ -93,7 +93,7 @@ export default function CalculateurTVA() {
             {TAUX_TVA.map(t=>(
               <div key={t.value} onClick={()=>setTaux(t.value)} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 12px', borderRadius:9, marginBottom:4, cursor:'pointer', background:taux===t.value?`${C.blue}10`:'transparent', border:`1px solid ${taux===t.value?C.blue:'transparent'}`, transition:'all 150ms' }}>
                 <div style={{ width:18, height:18, borderRadius:'50%', border:`2px solid ${taux===t.value?C.blue:'#D0D4DC'}`, background:taux===t.value?C.blue:'transparent', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                  {taux===t.value&&<div style={{ width:7, height:7, borderRadius:'50%', background:'#fff' }}/>}
+                  {taux===t.value&&<div style={{ width:7, height:7, borderRadius:'50%', background:'rgba(255,255,255,0.04)' }}/>}
                 </div>
                 <div>
                   <div style={{ fontSize:13, fontWeight:taux===t.value?700:500, color:taux===t.value?C.blue:C.dark }}>{t.label}</div>
@@ -109,12 +109,12 @@ export default function CalculateurTVA() {
 
           <Card style={{ background:`linear-gradient(135deg, ${C.blue}08, ${C.purple}08)`, border:`1px solid ${C.blue}30` }}>
             <h2 style={{ fontSize:12, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 16px' }}>Résultat</h2>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 0', borderBottom:'1px solid #F0F2F5' }}>
-              <span style={{ fontSize:13, color:'#5A6070', display:'flex', alignItems:'center', gap:5 }}>Montant HT <Tooltip text={TIPS.ht} size={12}/></span>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 0', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
+              <span style={{ fontSize:13, color:'rgba(237,232,219,0.5)', display:'flex', alignItems:'center', gap:5 }}>Montant HT <Tooltip text={TIPS.ht} size={12}/></span>
               <span style={{ fontSize:14, fontWeight:600, color:C.dark }}>{fmt(ht)}</span>
             </div>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 0', borderBottom:'1px solid #F0F2F5' }}>
-              <span style={{ fontSize:13, color:'#5A6070', display:'flex', alignItems:'center', gap:5 }}>TVA ({taux}%) <Tooltip text={TIPS.taux_tva} size={12}/></span>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 0', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
+              <span style={{ fontSize:13, color:'rgba(237,232,219,0.5)', display:'flex', alignItems:'center', gap:5 }}>TVA ({taux}%) <Tooltip text={TIPS.taux_tva} size={12}/></span>
               <span style={{ fontSize:14, fontWeight:600, color:C.orange }}>{fmt(tva)}</span>
             </div>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', paddingTop:14, marginTop:4 }}>
@@ -132,7 +132,7 @@ export default function CalculateurTVA() {
               </h2>
               <ResultLine label="TVA collectée (vente)"  value={fmt(tva)} color={C.red} sub />
               <ResultLine label="TVA déductible (achat)" value="À saisir dans vos dépenses" sub />
-              <div style={{ marginTop:12, background:'#F0FDF4', border:'1px solid #BBF7D0', borderRadius:9, padding:'10px 14px', fontSize:12, color:'#166534' }}>
+              <div style={{ marginTop:12, background:'#F0FDF4', border:'1px solid rgba(91,199,138,0.3)', borderRadius:9, padding:'10px 14px', fontSize:12, color:'#5BC78A' }}>
                 💡 TVA nette = TVA collectée − TVA déductible
               </div>
             </Card>
@@ -176,7 +176,7 @@ export default function CalculateurTVA() {
               </>
             )}
             {!seuils && (
-              <div style={{ background:'#F0F2F5', borderRadius:9, padding:'12px 14px', fontSize:13, color:C.light, textAlign:'center' }}>
+              <div style={{ background:'rgba(255,255,255,0.06)', borderRadius:9, padding:'12px 14px', fontSize:13, color:C.light, textAlign:'center' }}>
                 Régime au réel — TVA obligatoire sur toutes les factures.
               </div>
             )}
@@ -187,8 +187,8 @@ export default function CalculateurTVA() {
               Rappel des taux français <Tooltip text={TIPS.taux_tva} size={12}/>
             </h2>
             {TAUX_TVA.filter(t=>t.value>0).map(t=>(
-              <div key={t.value} style={{ display:'flex', justifyContent:'space-between', padding:'7px 0', borderBottom:'1px solid #F0F2F5' }}>
-                <span style={{ fontSize:12, color:'#5A6070' }}>{t.desc}</span>
+              <div key={t.value} style={{ display:'flex', justifyContent:'space-between', padding:'7px 0', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
+                <span style={{ fontSize:12, color:'rgba(237,232,219,0.5)' }}>{t.desc}</span>
                 <span style={{ fontSize:12, fontWeight:700, color:C.blue }}>{t.value}%</span>
               </div>
             ))}

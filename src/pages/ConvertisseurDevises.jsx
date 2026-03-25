@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 
-const C = { blue:'#5BA3C7', purple:'#A85BC7', dark:'#1A1C20', light:'#9AA0AE', border:'#E8EAF0', red:'#C75B4E', orange:'#5BC78A', green:'#5BC78A' };
+const C = { blue:'#5BA3C7', purple:'#A85BC7', dark:'#EDE8DB', light:'rgba(237,232,219,0.4)', border:'rgba(255,255,255,0.08)', red:'#C75B4E', orange:'#5BC78A', green:'#5BC78A' };
 
 const DEVISES = [
   { code:'EUR', label:'Euro',                  flag:'🇪🇺' },
@@ -23,8 +23,8 @@ const DEVISES = [
   { code:'TRY', label:'Livre turque',           flag:'🇹🇷' },
 ];
 
-const iS = { width:'100%', padding:'10px 14px', borderRadius:9, background:'#F8F9FB', border:'1px solid #E8EAF0', color:'#1A1C20', fontSize:14, outline:'none', boxSizing:'border-box', fontFamily:'inherit' };
-const lS = { fontSize:11, fontWeight:700, color:'#5A6070', marginBottom:6, display:'block', textTransform:'uppercase', letterSpacing:'0.05em' };
+const iS = { width:'100%', padding:'10px 14px', borderRadius:9, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', color:'#EDE8DB', fontSize:14, outline:'none', boxSizing:'border-box', fontFamily:'inherit' };
+const lS = { fontSize:11, fontWeight:700, color:'rgba(237,232,219,0.5)', marginBottom:6, display:'block', textTransform:'uppercase', letterSpacing:'0.05em' };
 
 function fmt(n, code) {
   if (!n && n !== 0) return '—';
@@ -88,9 +88,9 @@ export default function ConvertisseurDevises() {
       </div>
 
       {/* Tabs */}
-      <div style={{ display:'flex', gap:4, marginBottom:24, background:'#F0F2F5', borderRadius:10, padding:4, width:'fit-content' }}>
+      <div style={{ display:'flex', gap:4, marginBottom:24, background:'rgba(255,255,255,0.06)', borderRadius:10, padding:4, width:'fit-content' }}>
         {[['simple','Conversion simple'],['multi','Toutes les devises']].map(([val,lab])=>(
-          <button key={val} onClick={()=>setMode(val)} style={{ padding:'8px 18px', borderRadius:8, border:'none', background:mode===val?'#fff':'transparent', color:mode===val?C.dark:C.light, fontSize:13, fontWeight:mode===val?700:500, cursor:'pointer', boxShadow:mode===val?'0 1px 3px rgba(0,0,0,0.08)':'none', transition:'all 150ms' }}>
+          <button key={val} onClick={()=>setMode(val)} style={{ padding:'8px 18px', borderRadius:8, border:'none', background:mode===val?'rgba(91,163,199,0.15)':'transparent', color:mode===val?C.dark:C.light, fontSize:13, fontWeight:mode===val?700:500, cursor:'pointer', boxShadow:mode===val?'0 1px 3px rgba(0,0,0,0.08)':'none', transition:'all 150ms' }}>
             {lab}
           </button>
         ))}
@@ -109,13 +109,13 @@ export default function ConvertisseurDevises() {
           {/* Saisie */}
           <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
 
-            <div style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:14, padding:24, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+            <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:24, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
               <label style={lS}>Montant</label>
               <input type="number" value={montant} onChange={e=>setMontant(e.target.value)} placeholder="0" min="0" step="1"
                 style={{ ...iS, fontSize:22, fontWeight:700, textAlign:'right', color:C.blue }} />
             </div>
 
-            <div style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:14, padding:24, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+            <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:24, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
               <label style={lS}>De</label>
               <select value={de} onChange={e=>setDe(e.target.value)} style={{ ...iS, cursor:'pointer', marginBottom:16 }}>
                 {DEVISES.map(d=><option key={d.code} value={d.code}>{d.flag} {d.code} — {d.label}</option>)}
@@ -147,7 +147,7 @@ export default function ConvertisseurDevises() {
             <div style={{ background:`linear-gradient(135deg, ${C.blue}08, ${C.purple}08)`, border:`1px solid ${C.blue}30`, borderRadius:14, padding:28, boxShadow:'0 1px 6px rgba(0,0,0,0.05)', display:'flex', flexDirection:'column', gap:16 }}>
               <div style={{ fontSize:12, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:'0.06em' }}>Résultat</div>
 
-              <div style={{ display:'flex', alignItems:'center', gap:12, padding:'16px 0', borderBottom:'1px solid #F0F2F5' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:12, padding:'16px 0', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
                 <span style={{ fontSize:28 }}>{deviseFmt(de).flag}</span>
                 <div>
                   <div style={{ fontSize:13, color:C.light }}>{deviseFmt(de).label}</div>
@@ -178,13 +178,13 @@ export default function ConvertisseurDevises() {
 
             {/* Conversions rapides */}
             {taux && (
-              <div style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:14, padding:20, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+              <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:20, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
                 <div style={{ fontSize:12, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:14 }}>Conversions rapides</div>
                 {[100, 500, 1000, 5000, 10000].map(val => (
                   <div key={val} onClick={() => setMontant(String(val))} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'8px 10px', borderRadius:8, marginBottom:4, cursor:'pointer', background:m===val?`${C.blue}08`:'transparent', transition:'background 150ms' }}
                     onMouseEnter={e=>e.currentTarget.style.background=`${C.blue}08`}
                     onMouseLeave={e=>e.currentTarget.style.background=m===val?`${C.blue}08`:'transparent'}>
-                    <span style={{ fontSize:13, color:'#5A6070' }}>{fmt(val, de)}</span>
+                    <span style={{ fontSize:13, color:'rgba(237,232,219,0.5)' }}>{fmt(val, de)}</span>
                     <span style={{ fontSize:13, fontWeight:600, color:C.blue }}>{fmt(val * taux, vers)}</span>
                   </div>
                 ))}
@@ -196,8 +196,8 @@ export default function ConvertisseurDevises() {
 
       {/* Mode multi — tableau de toutes les devises */}
       {mode === 'multi' && tous && (
-        <div style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:14, overflow:'hidden', boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
-          <div style={{ padding:'16px 20px', borderBottom:'1px solid #F0F2F5', display:'flex', alignItems:'center', gap:16, flexWrap:'wrap' }}>
+        <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, overflow:'hidden', boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+          <div style={{ padding:'16px 20px', borderBottom:'1px solid rgba(255,255,255,0.06)', display:'flex', alignItems:'center', gap:16, flexWrap:'wrap' }}>
             <div>
               <label style={{ ...lS, marginBottom:4 }}>Montant de base</label>
               <input type="number" value={montant} onChange={e=>setMontant(e.target.value)} style={{ ...iS, width:140 }} />
@@ -211,7 +211,7 @@ export default function ConvertisseurDevises() {
           </div>
           <table style={{ width:'100%', borderCollapse:'collapse' }}>
             <thead>
-              <tr style={{ borderBottom:'1px solid #F0F2F5' }}>
+              <tr style={{ borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
                 {['Devise','Taux','Équivalent'].map(h=>(
                   <th key={h} style={{ padding:'11px 16px', textAlign:'left', fontSize:10, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:'0.06em' }}>{h}</th>
                 ))}
@@ -224,8 +224,8 @@ export default function ConvertisseurDevises() {
                 const t = rateVERS / rateDE;
                 const equiv = m * t;
                 return (
-                  <tr key={d.code} style={{ borderBottom:'1px solid #F8F9FB' }}
-                    onMouseEnter={ev=>ev.currentTarget.style.background='#FAFBFC'}
+                  <tr key={d.code} style={{ borderBottom:'1px solid rgba(255,255,255,0.04)' }}
+                    onMouseEnter={ev=>ev.currentTarget.style.background='rgba(255,255,255,0.03)'}
                     onMouseLeave={ev=>ev.currentTarget.style.background='transparent'}>
                     <td style={{ padding:'11px 16px' }}>
                       <div style={{ display:'flex', alignItems:'center', gap:8 }}>
@@ -236,14 +236,14 @@ export default function ConvertisseurDevises() {
                         </div>
                       </div>
                     </td>
-                    <td style={{ padding:'11px 16px', fontSize:12, color:'#5A6070' }}>1 {de} = {t.toFixed(4)} {d.code}</td>
+                    <td style={{ padding:'11px 16px', fontSize:12, color:'rgba(237,232,219,0.5)' }}>1 {de} = {t.toFixed(4)} {d.code}</td>
                     <td style={{ padding:'11px 16px', fontSize:14, fontWeight:700, color:C.blue }}>{fmt(equiv, d.code)}</td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
-          <div style={{ padding:'12px 16px', fontSize:11, color:C.light, borderTop:'1px solid #F0F2F5', textAlign:'right' }}>
+          <div style={{ padding:'12px 16px', fontSize:11, color:C.light, borderTop:'1px solid rgba(255,255,255,0.06)', textAlign:'right' }}>
             📊 Taux BCE via Frankfurter API · {lastUpdate?.toLocaleDateString('fr-FR')}
           </div>
         </div>

@@ -3,9 +3,9 @@ import { AE, SOCIETES, TRANCHES_IR, IS, SEUILS_FRANCHISE_TVA } from "../constant
 import Tooltip from '../components/Tooltip';
 import { TIPS } from '../utils/tooltips';
 
-const C = { blue:'#5BA3C7', purple:'#A85BC7', dark:'#1A1C20', light:'#9AA0AE', border:'#E8EAF0', red:'#C75B4E', orange:'#D4A853', green:'#5BC78A' };
-const iS = { width:'100%', padding:'10px 14px', borderRadius:9, background:'#F8F9FB', border:'1px solid #E8EAF0', color:'#1A1C20', fontSize:14, outline:'none', boxSizing:'border-box', fontFamily:'inherit' };
-const lS = { fontSize:11, fontWeight:700, color:'#5A6070', marginBottom:6, display:'flex', alignItems:'center', gap:6, textTransform:'uppercase', letterSpacing:'0.05em' };
+const C = { blue:'#5BA3C7', purple:'#A85BC7', dark:'#EDE8DB', light:'rgba(237,232,219,0.4)', border:'rgba(255,255,255,0.08)', red:'#C75B4E', orange:'#D4A853', green:'#5BC78A' };
+const iS = { width:'100%', padding:'10px 14px', borderRadius:9, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', color:'#EDE8DB', fontSize:14, outline:'none', boxSizing:'border-box', fontFamily:'inherit' };
+const lS = { fontSize:11, fontWeight:700, color:'rgba(237,232,219,0.5)', marginBottom:6, display:'flex', alignItems:'center', gap:6, textTransform:'uppercase', letterSpacing:'0.05em' };
 
 function fmt(n) { return new Intl.NumberFormat('fr-FR', { style:'currency', currency:'EUR', maximumFractionDigits:0 }).format(n||0); }
 function fmtPct(n) { return `${n.toFixed(1)}%`; }
@@ -49,7 +49,7 @@ function calculerSociete(remuneration, statut) {
 
 function Bloc({ label, value, color=C.dark, sub=false, highlight=false }) {
   return (
-    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:sub?'6px 0':'10px 0', borderBottom:'1px solid #F0F2F5', background:highlight?'rgba(91,163,199,0.04)':'transparent', borderRadius:highlight?6:0, paddingLeft:highlight?8:0, paddingRight:highlight?8:0 }}>
+    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:sub?'6px 0':'10px 0', borderBottom:'1px solid rgba(255,255,255,0.06)', background:highlight?'rgba(91,163,199,0.04)':'transparent', borderRadius:highlight?6:0, paddingLeft:highlight?8:0, paddingRight:highlight?8:0 }}>
       <span style={{ fontSize:sub?11:13, color:sub?C.light:'#5A6070' }}>{label}</span>
       <span style={{ fontSize:highlight?18:sub?12:14, fontWeight:highlight?800:sub?500:600, color }}>{value}</span>
     </div>
@@ -62,11 +62,11 @@ function AlerteMiseDeCoté({ cotisations, ir, label="charges sociales" }) {
     <div style={{ background:'rgba(199,91,78,0.06)', border:'1px solid rgba(199,91,78,0.2)', borderRadius:12, padding:'14px 16px', marginTop:8 }}>
       <div style={{ fontSize:12, fontWeight:700, color:C.red, marginBottom:8 }}>💰 À mettre de côté chaque mois</div>
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
-        <div style={{ background:'#fff', borderRadius:8, padding:'10px', textAlign:'center' }}>
+        <div style={{ background:'rgba(255,255,255,0.04)', borderRadius:8, padding:'10px', textAlign:'center' }}>
           <div style={{ fontSize:10, color:C.light, marginBottom:4, textTransform:'uppercase' }}>{label}</div>
           <div style={{ fontSize:16, fontWeight:700, color:C.red }}>{fmt(cotisations)}/mois</div>
         </div>
-        <div style={{ background:'#fff', borderRadius:8, padding:'10px', textAlign:'center' }}>
+        <div style={{ background:'rgba(255,255,255,0.04)', borderRadius:8, padding:'10px', textAlign:'center' }}>
           <div style={{ fontSize:10, color:C.light, marginBottom:4, textTransform:'uppercase' }}>Impôt sur le revenu</div>
           <div style={{ fontSize:16, fontWeight:700, color:C.orange }}>{fmt(ir)}/mois</div>
         </div>
@@ -113,7 +113,7 @@ export default function SimulateurCharges() {
         {/* Colonne gauche */}
         <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
 
-          <div style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:14, padding:24, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+          <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:24, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
             <label style={lS}>Votre statut juridique</label>
             {groupes.map(g=>(
               <div key={g.label}>
@@ -121,7 +121,7 @@ export default function SimulateurCharges() {
                 {g.items.map(([key,val])=>(
                   <div key={key} onClick={()=>setStatut(key)} style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'10px 12px', borderRadius:9, marginBottom:4, cursor:'pointer', background:statut===key?`${C.blue}10`:'transparent', border:`1px solid ${statut===key?C.blue:'transparent'}`, transition:'all 150ms' }}>
                     <div style={{ width:16, height:16, borderRadius:'50%', border:`2px solid ${statut===key?C.blue:'#D0D4DC'}`, background:statut===key?C.blue:'transparent', flexShrink:0, marginTop:2, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                      {statut===key&&<div style={{ width:6, height:6, borderRadius:'50%', background:'#fff' }}/>}
+                      {statut===key&&<div style={{ width:6, height:6, borderRadius:'50%', background:'rgba(255,255,255,0.04)' }}/>}
                     </div>
                     <div>
                       <div style={{ fontSize:12, fontWeight:statut===key?700:500, color:statut===key?C.blue:C.dark, lineHeight:1.4 }}>{val.label}</div>
@@ -133,7 +133,7 @@ export default function SimulateurCharges() {
             ))}
           </div>
 
-          <div style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:14, padding:24, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+          <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:24, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
             <label style={lS}>
               {isAE ? "Chiffre d'affaires annuel (€)" : "Rémunération annuelle souhaitée (€)"}
               <Tooltip text={TIPS.charges_sociales}/>
@@ -148,7 +148,7 @@ export default function SimulateurCharges() {
             )}
           </div>
 
-          <div style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:14, padding:20, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+          <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:20, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
             <div style={{ fontSize:12, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:12, display:'flex', alignItems:'center', gap:6 }}>
               Taux applicables 2025 <Tooltip text={TIPS.charges_sociales} size={11}/>
             </div>
@@ -168,7 +168,7 @@ export default function SimulateurCharges() {
         <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
 
           {m===0 && (
-            <div style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:14, padding:40, boxShadow:'0 1px 6px rgba(0,0,0,0.05)', display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:12, flex:1 }}>
+            <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:40, boxShadow:'0 1px 6px rgba(0,0,0,0.05)', display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:12, flex:1 }}>
               <span style={{ fontSize:32 }}>🧮</span>
               <p style={{ color:C.light, fontSize:13, textAlign:'center', margin:0 }}>Saisissez un montant pour voir la simulation</p>
             </div>
@@ -190,7 +190,7 @@ export default function SimulateurCharges() {
 
             <AlerteMiseDeCoté cotisations={resAE.cotisationsMensuelle} ir={resAE.irMensuel} label="charges sociales"/>
 
-            <div style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:14, padding:20, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+            <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:20, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
               <div style={{ fontSize:12, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:12 }}>Option versement libératoire</div>
               <Bloc label={`IR libératoire (${fmtPct(s.versement_liberatoire*100)} du CA)`} value={fmt(resAE.vlOption)} sub/>
               <Bloc label="Reste à vivre avec VL" value={fmt(resAE.resteVivreVL)} color={resAE.resteVivreVL>resAE.resteVivreBareme?C.green:C.orange}/>
@@ -199,10 +199,10 @@ export default function SimulateurCharges() {
               </div>
             </div>
 
-            <div style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:14, padding:20, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+            <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:20, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
               <div style={{ fontSize:12, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:12 }}>Taux global de prélèvement</div>
               <div style={{ display:'flex', alignItems:'center', gap:16, marginBottom:8 }}>
-                <div style={{ flex:1, height:12, background:'#F0F2F5', borderRadius:6, overflow:'hidden' }}>
+                <div style={{ flex:1, height:12, background:'rgba(255,255,255,0.06)', borderRadius:6, overflow:'hidden' }}>
                   <div style={{ width:`${Math.min(resAE.txEffectif,100)}%`, height:'100%', background:`linear-gradient(90deg, ${C.blue}, ${C.purple})`, borderRadius:6, transition:'width 0.6s ease' }}/>
                 </div>
                 <span style={{ fontSize:20, fontWeight:800, color:C.purple, flexShrink:0 }}>{fmtPct(resAE.txEffectif)}</span>
@@ -231,10 +231,10 @@ export default function SimulateurCharges() {
 
             <AlerteMiseDeCoté cotisations={resSoc.chargesMensuelles} ir={resSoc.irMensuel} label="charges sociales"/>
 
-            <div style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:14, padding:20, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+            <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:20, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
               <div style={{ fontSize:12, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:12 }}>Taux global de prélèvement</div>
               <div style={{ display:'flex', alignItems:'center', gap:16, marginBottom:8 }}>
-                <div style={{ flex:1, height:12, background:'#F0F2F5', borderRadius:6, overflow:'hidden' }}>
+                <div style={{ flex:1, height:12, background:'rgba(255,255,255,0.06)', borderRadius:6, overflow:'hidden' }}>
                   <div style={{ width:`${Math.min(resSoc.txEffectif,100)}%`, height:'100%', background:`linear-gradient(90deg, ${C.blue}, ${C.purple})`, borderRadius:6, transition:'width 0.6s ease' }}/>
                 </div>
                 <span style={{ fontSize:20, fontWeight:800, color:C.purple, flexShrink:0 }}>{fmtPct(resSoc.txEffectif)}</span>
