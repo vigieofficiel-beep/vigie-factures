@@ -152,18 +152,18 @@ export default function ExportsFEC() {
 
       {/* En-tête */}
       <div style={{ marginBottom:28 }}>
-        <h1 style={{ margin:0, fontSize:26, fontWeight:700, color:"#111827", fontFamily:"'Cormorant Garamond', serif", display:'flex', alignItems:'center', gap:10 }}>
+        <h1 style={{ margin:0, fontSize:26, fontWeight:700, color:"#EDE8DB", fontFamily:"'Cormorant Garamond', serif", display:'flex', alignItems:'center', gap:10 }}>
           Exports FEC <Tooltip text={TIPS.exports_fec} size={16}/>
         </h1>
-        <p style={{ margin:"4px 0 0", color:"#6b7280", fontSize:14 }}>
+        <p style={{ margin:"4px 0 0", color:"rgba(237,232,219,0.4)", fontSize:14 }}>
           Fichier des Écritures Comptables — Format légal pour le contrôle fiscal (art. L.47 A du LPF)
         </p>
       </div>
 
       {/* Bandeau info */}
-      <div style={{ background:"#eff6ff", border:"1px solid #bfdbfe", borderRadius:12, padding:"14px 18px", marginBottom:24, display:"flex", gap:12, alignItems:"flex-start" }}>
+      <div style={{ background:"rgba(91,163,199,0.08)", border:"1px solid rgba(91,163,199,0.3)", borderRadius:12, padding:"14px 18px", marginBottom:24, display:"flex", gap:12, alignItems:"flex-start" }}>
         <span style={{ color:"#2563eb", flexShrink:0, marginTop:1 }}><Icon.Info /></span>
-        <div style={{ fontSize:13, color:"#1e40af", lineHeight:1.6 }}>
+        <div style={{ fontSize:13, color:"#5BA3C7", lineHeight:1.6 }}>
           Le FEC est un fichier obligatoire remis à l'administration fiscale lors d'un contrôle. Il contient l'ensemble des écritures comptables de l'exercice dans un format normalisé.
           <br /><span style={{ fontWeight:700 }}>Ce fichier est à remettre à votre expert-comptable pour validation avant tout usage officiel.</span>
         </div>
@@ -192,7 +192,7 @@ export default function ExportsFEC() {
             <Field label="Granularité">
               <div style={{ display:"flex", gap:8 }}>
                 {[{id:"annee",label:"Année complète"},{id:"mois",label:"Période personnalisée"}].map(o=>(
-                  <button key={o.id} onClick={()=>setPeriodeType(o.id)} style={{ flex:1, padding:"7px 10px", borderRadius:8, border:"1px solid", borderColor:periodeType===o.id?"#6366f1":"#d1d5db", background:periodeType===o.id?"#eef2ff":"#fff", color:periodeType===o.id?"#4f46e5":"#374151", fontWeight:periodeType===o.id?700:400, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>{o.label}</button>
+                  <button key={o.id} onClick={()=>setPeriodeType(o.id)} style={{ flex:1, padding:"7px 10px", borderRadius:8, border:"1px solid", borderColor:periodeType===o.id?"#5BA3C7":"rgba(255,255,255,0.1)", background:periodeType===o.id?"rgba(91,163,199,0.08)":"rgba(255,255,255,0.04)", color:periodeType===o.id?"#5BA3C7":"#EDE8DB", fontWeight:periodeType===o.id?700:400, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>{o.label}</button>
                 ))}
               </div>
             </Field>
@@ -209,11 +209,11 @@ export default function ExportsFEC() {
               { k:"factures_fournisseurs", label:"Factures fournisseurs",        tip:null },
               { k:"transactions",          label:"Transactions bancaires",       tip:TIPS.rapprochement },
             ].map(s=>(
-              <div key={s.k} onClick={()=>toggleSource(s.k)} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", borderRadius:8, cursor:"pointer", border:`1px solid ${sources[s.k]?"#6366f1":"#e5e7eb"}`, background:sources[s.k]?"#eef2ff":"#f9fafb", transition:"all 150ms ease" }}>
-                <div style={{ width:20, height:20, borderRadius:6, flexShrink:0, background:sources[s.k]?"#6366f1":"#e5e7eb", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                  {sources[s.k]&&<span style={{ color:"#fff", fontSize:12 }}>✓</span>}
+              <div key={s.k} onClick={()=>toggleSource(s.k)} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", borderRadius:8, cursor:"pointer", border:`1px solid ${sources[s.k]?"#5BA3C7":"rgba(255,255,255,0.1)"}`, background:sources[s.k]?"rgba(91,163,199,0.08)":"rgba(255,255,255,0.03)", transition:"all 150ms ease" }}>
+                <div style={{ width:20, height:20, borderRadius:6, flexShrink:0, background:sources[s.k]?"#5BA3C7":"rgba(255,255,255,0.1)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                  {sources[s.k]&&<span style={{ color:"rgba(255,255,255,0.04)", fontSize:12 }}>✓</span>}
                 </div>
-                <span style={{ fontSize:14, color:sources[s.k]?"#4f46e5":"#6b7280", fontWeight:sources[s.k]?600:400, flex:1 }}>{s.label}</span>
+                <span style={{ fontSize:14, color:sources[s.k]?"#5BA3C7":"rgba(237,232,219,0.4)", fontWeight:sources[s.k]?600:400, flex:1 }}>{s.label}</span>
                 {s.tip && <Tooltip text={s.tip} size={11}/>}
               </div>
             ))}
@@ -225,34 +225,34 @@ export default function ExportsFEC() {
 
           <Section titre={<span style={{display:'flex',alignItems:'center',gap:6}}>Récapitulatif de la période <Tooltip text={TIPS.exports_fec} size={12}/></span>}>
             {loading ? (
-              <div style={{ textAlign:"center", padding:30, color:"#6b7280" }}>Analyse en cours...</div>
+              <div style={{ textAlign:"center", padding:30, color:"rgba(237,232,219,0.4)" }}>Analyse en cours...</div>
             ) : stats ? (
               <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                 {[
-                  { label:"Recettes",              nb:stats.nbRecettes,     montant:stats.totalRecettes,  color:"#10b981" },
+                  { label:"Recettes",              nb:stats.nbRecettes,     montant:stats.totalRecettes,  color:"#5BC78A" },
                   { label:"Dépenses",              nb:stats.nbDepenses,     montant:stats.totalDepenses,  color:"#ef4444" },
                   { label:"Factures fournisseurs", nb:stats.nbFactures,     montant:stats.totalFactures,  color:"#f59e0b" },
-                  { label:"Transactions bancaires",nb:stats.nbTransactions, montant:null,                  color:"#6366f1" },
+                  { label:"Transactions bancaires",nb:stats.nbTransactions, montant:null,                  color:"#5BA3C7" },
                 ].map(s=>(
-                  <div key={s.label} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 14px", background:"#f9fafb", borderRadius:8, border:"1px solid #e5e7eb" }}>
+                  <div key={s.label} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 14px", background:"rgba(255,255,255,0.03)", borderRadius:8, border:"1px solid rgba(255,255,255,0.08)" }}>
                     <div>
-                      <div style={{ fontSize:13, fontWeight:600, color:"#111827" }}>{s.label}</div>
-                      <div style={{ fontSize:12, color:"#6b7280" }}>{s.nb} entrée{s.nb!==1?"s":""}</div>
+                      <div style={{ fontSize:13, fontWeight:600, color:"#EDE8DB" }}>{s.label}</div>
+                      <div style={{ fontSize:12, color:"rgba(237,232,219,0.4)" }}>{s.nb} entrée{s.nb!==1?"s":""}</div>
                     </div>
                     {s.montant!==null && <div style={{ fontSize:14, fontWeight:700, color:s.color }}>{s.montant.toLocaleString("fr-FR",{style:"currency",currency:"EUR"})}</div>}
                   </div>
                 ))}
-                <div style={{ background:"#f0fdf4", border:"1px solid #bbf7d0", borderRadius:8, padding:"12px 14px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                  <span style={{ fontSize:14, fontWeight:700, color:"#166534" }}>Total écritures FEC</span>
-                  <span style={{ fontSize:18, fontWeight:800, color:"#166534" }}>{stats.total}</span>
+                <div style={{ background:"rgba(91,199,138,0.08)", border:"1px solid rgba(91,199,138,0.3)", borderRadius:8, padding:"12px 14px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                  <span style={{ fontSize:14, fontWeight:700, color:"#5BC78A" }}>Total écritures FEC</span>
+                  <span style={{ fontSize:18, fontWeight:800, color:"#5BC78A" }}>{stats.total}</span>
                 </div>
               </div>
-            ) : <div style={{ textAlign:"center", padding:30, color:"#9ca3af" }}>Aucune donnée</div>}
+            ) : <div style={{ textAlign:"center", padding:30, color:"rgba(237,232,219,0.4)" }}>Aucune donnée</div>}
           </Section>
 
           {preview.length>0 && (
             <Section titre="Aperçu des premières écritures">
-              <div style={{ overflowX:"auto", fontSize:11, fontFamily:"monospace", background:"#1e293b", color:"#e2e8f0", borderRadius:8, padding:12, lineHeight:1.8 }}>
+              <div style={{ overflowX:"auto", fontSize:11, fontFamily:"monospace", background:"rgba(0,0,0,0.4)", color:"#EDE8DB", borderRadius:8, padding:12, lineHeight:1.8 }}>
                 <div style={{ color:"#94a3b8", marginBottom:6, fontSize:10 }}>JournalCode|JournalLib|EcritureNum|EcritureDate|CompteNum|...</div>
                 {preview.map((ligne,i)=>(
                   <div key={i} style={{ borderBottom:"1px solid rgba(255,255,255,0.05)", paddingBottom:2 }}>
@@ -264,14 +264,14 @@ export default function ExportsFEC() {
           )}
 
           <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-            <button onClick={exporterFEC} disabled={loading||!stats||stats.total===0} style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, background:stats&&stats.total>0?"#6366f1":"#e5e7eb", color:stats&&stats.total>0?"#fff":"#9ca3af", border:"none", padding:"14px 20px", borderRadius:10, fontWeight:700, fontSize:15, cursor:stats&&stats.total>0?"pointer":"not-allowed", fontFamily:"inherit", transition:"background 150ms ease" }}>
+            <button onClick={exporterFEC} disabled={loading||!stats||stats.total===0} style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, background:stats&&stats.total>0?"#5BA3C7":"rgba(255,255,255,0.1)", color:stats&&stats.total>0?"rgba(255,255,255,0.04)":"rgba(237,232,219,0.4)", border:"none", padding:"14px 20px", borderRadius:10, fontWeight:700, fontSize:15, cursor:stats&&stats.total>0?"pointer":"not-allowed", fontFamily:"inherit", transition:"background 150ms ease" }}>
               <Icon.Download/>
               {loading?"Génération en cours...":`Exporter le FEC ${annee}`}
             </button>
-            {siren && <div style={{ fontSize:12, color:"#6b7280", textAlign:"center" }}>Nom du fichier : <span style={{ fontFamily:"monospace", color:"#374151" }}>{siren}FEC{annee}1231.txt</span></div>}
-            <div style={{ background:"#fefce8", border:"1px solid #fde68a", borderRadius:10, padding:"12px 14px", display:"flex", gap:10 }}>
+            {siren && <div style={{ fontSize:12, color:"rgba(237,232,219,0.4)", textAlign:"center" }}>Nom du fichier : <span style={{ fontFamily:"monospace", color:"#EDE8DB" }}>{siren}FEC{annee}1231.txt</span></div>}
+            <div style={{ background:"rgba(212,168,83,0.08)", border:"1px solid rgba(212,168,83,0.3)", borderRadius:10, padding:"12px 14px", display:"flex", gap:10 }}>
               <span style={{ color:"#d97706", flexShrink:0 }}><Icon.Alert/></span>
-              <p style={{ margin:0, fontSize:12, color:"#92400e", lineHeight:1.6 }}>Ce fichier est généré à titre préparatoire. Il doit être vérifié et validé par votre expert-comptable avant toute remise à l'administration fiscale.</p>
+              <p style={{ margin:0, fontSize:12, color:"#D4A853", lineHeight:1.6 }}>Ce fichier est généré à titre préparatoire. Il doit être vérifié et validé par votre expert-comptable avant toute remise à l'administration fiscale.</p>
             </div>
           </div>
         </div>
@@ -282,8 +282,8 @@ export default function ExportsFEC() {
 
 function Section({ titre, children }) {
   return (
-    <div style={{ background:"#fff", border:"1px solid #e5e7eb", borderRadius:12, padding:20, boxShadow:"0 1px 4px rgba(0,0,0,0.05)" }}>
-      <h3 style={{ margin:"0 0 14px", fontSize:14, fontWeight:700, color:"#111827", textTransform:"uppercase", letterSpacing:"0.05em", display:'flex', alignItems:'center', gap:6 }}>{titre}</h3>
+    <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:12, padding:20, boxShadow:"0 1px 4px rgba(0,0,0,0.05)" }}>
+      <h3 style={{ margin:"0 0 14px", fontSize:14, fontWeight:700, color:"#EDE8DB", textTransform:"uppercase", letterSpacing:"0.05em", display:'flex', alignItems:'center', gap:6 }}>{titre}</h3>
       <div style={{ display:"flex", flexDirection:"column", gap:10 }}>{children}</div>
     </div>
   );
@@ -292,10 +292,10 @@ function Section({ titre, children }) {
 function Field({ label, children }) {
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
-      <label style={{ fontSize:12, fontWeight:600, color:"#6b7280", display:'flex', alignItems:'center', gap:4 }}>{label}</label>
+      <label style={{ fontSize:12, fontWeight:600, color:"rgba(237,232,219,0.4)", display:'flex', alignItems:'center', gap:4 }}>{label}</label>
       {children}
     </div>
   );
 }
 
-const inputStyle = { padding:"8px 12px", border:"1px solid #d1d5db", borderRadius:8, fontSize:14, color:"#111827", background:"#fff", outline:"none", fontFamily:"inherit", width:"100%", boxSizing:"border-box" };
+const inputStyle = { padding:"8px 12px", border:"1px solid rgba(255,255,255,0.08)", borderRadius:8, fontSize:14, color:"#EDE8DB", background:"rgba(255,255,255,0.04)", outline:"none", fontFamily:"inherit", width:"100%", boxSizing:"border-box" };

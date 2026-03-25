@@ -30,8 +30,8 @@ const TAB_LABELS = {
 
 const STATUT_COLORS = {
   envoyé:   { bg: "#d1fae5", text: "#065f46" },
-  échec:    { bg: "#fee2e2", text: "#991b1b" },
-  brouillon:{ bg: "#f3f4f6", text: "#374151" },
+  échec:    { bg: "rgba(199,91,78,0.08)", text: "#991b1b" },
+  brouillon:{ bg: "rgba(255,255,255,0.06)", text: "#EDE8DB" },
 };
 
 // ─── Appel Claude API ─────────────────────────────────────────────────
@@ -166,7 +166,7 @@ function OngletRediger({ config, onEmailEnvoye }) {
       {/* Formulaire */}
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         <div style={card}>
-          <h3 style={cardTitle}>Paramètres de l'email</h3>
+          <h3 style={cardTitle}>Paramètres du courriel</h3>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <Field label="Destinataire (email)">
               <input type="email" value={form.destinataire} onChange={e => set("destinataire", e.target.value)}
@@ -204,8 +204,8 @@ function OngletRediger({ config, onEmailEnvoye }) {
             <button onClick={generer} disabled={generating} style={{
               ...btnPrimary,
               justifyContent: "center",
-              background: generating ? "#e5e7eb" : "linear-gradient(135deg, #6366f1, #8b5cf6)",
-              color: generating ? "#9ca3af" : "#fff",
+              background: generating ? "rgba(255,255,255,0.1)" : "linear-gradient(135deg, #6366f1, #8b5cf6)",
+              color: generating ? "rgba(237,232,219,0.4)" : "rgba(255,255,255,0.04)",
             }}>
               <Icon.Sparkle />
               {generating ? "Génération en cours..." : "Générer"}
@@ -216,8 +216,8 @@ function OngletRediger({ config, onEmailEnvoye }) {
         {(error || success) && (
           <div style={{
             padding: "10px 14px", borderRadius: 8, fontSize: 13,
-            background: error ? "#fef2f2" : "#f0fdf4",
-            color: error ? "#dc2626" : "#166534",
+            background: error ? "rgba(199,91,78,0.08)" : "rgba(91,199,138,0.08)",
+            color: error ? "#C75B4E" : "#5BC78A",
             border: `1px solid ${error ? "#fca5a5" : "#bbf7d0"}`,
           }}>
             {error || success}
@@ -228,7 +228,7 @@ function OngletRediger({ config, onEmailEnvoye }) {
       {/* Aperçu email */}
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         {!email ? (
-          <div style={{ ...card, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 300, color: "#9ca3af", textAlign: "center" }}>
+          <div style={{ ...card, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 300, color: "rgba(237,232,219,0.4)", textAlign: "center" }}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>✉️</div>
             <p style={{ margin: 0, fontSize: 14 }}>Le courriel généré apparaîtra ici</p>
             <p style={{ margin: "8px 0 0", fontSize: 12 }}>Remplissez le formulaire et cliquez sur "Générer"</p>
@@ -265,8 +265,8 @@ function OngletRediger({ config, onEmailEnvoye }) {
 
             <button onClick={envoyer} disabled={sending || !form.destinataire} style={{
               ...btnPrimary, justifyContent: "center", marginTop: 14,
-              background: !form.destinataire ? "#e5e7eb" : "#10b981",
-              color: !form.destinataire ? "#9ca3af" : "#fff",
+              background: !form.destinataire ? "rgba(255,255,255,0.1)" : "#5BC78A",
+              color: !form.destinataire ? "rgba(237,232,219,0.4)" : "rgba(255,255,255,0.04)",
               cursor: !form.destinataire ? "not-allowed" : "pointer",
             }}>
               <Icon.Send />
@@ -360,19 +360,19 @@ function OngletRelances({ config, onEmailEnvoye }) {
     return diff;
   };
 
-  if (loading) return <div style={{ textAlign: "center", padding: 60, color: "#6b7280" }}>Chargement...</div>;
+  if (loading) return <div style={{ textAlign: "center", padding: 60, color: "rgba(237,232,219,0.4)" }}>Chargement...</div>;
 
   if (factures.length === 0) return (
-    <div style={{ textAlign: "center", padding: 60, color: "#6b7280", background: "#f0fdf4", borderRadius: 12, border: "2px dashed #bbf7d0" }}>
+    <div style={{ textAlign: "center", padding: 60, color: "rgba(237,232,219,0.4)", background: "rgba(91,199,138,0.08)", borderRadius: 12, border: "2px dashed #bbf7d0" }}>
       <div style={{ fontSize: 36, marginBottom: 12 }}>✅</div>
-      <p style={{ margin: 0, fontWeight: 600, color: "#166534" }}>Aucune facture en retard !</p>
+      <p style={{ margin: 0, fontWeight: 600, color: "#5BC78A" }}>Aucune facture en retard !</p>
       <p style={{ margin: "6px 0 0", fontSize: 13 }}>Toutes vos factures sont à jour.</p>
     </div>
   );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ background: "#fef3c7", border: "1px solid #fde68a", borderRadius: 10, padding: "10px 16px", fontSize: 13, color: "#92400e", display: "flex", gap: 8 }}>
+      <div style={{ background: "rgba(212,168,83,0.08)", border: "1px solid rgba(212,168,83,0.3)", borderRadius: 10, padding: "10px 16px", fontSize: 13, color: "#D4A853", display: "flex", gap: 8 }}>
         <Icon.Alert />
         <span><b>{factures.length} facture{factures.length > 1 ? "s" : ""}</b> en retard de paiement détectée{factures.length > 1 ? "s" : ""}. Les courriels de relance peuvent être générés automatiquement.</span>
       </div>
@@ -387,36 +387,36 @@ function OngletRelances({ config, onEmailEnvoye }) {
           <div key={f.id} style={{ ...card, borderLeft: `4px solid ${retard > 30 ? "#ef4444" : "#f59e0b"}` }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
               <div>
-                <div style={{ fontWeight: 700, fontSize: 15, color: "#111827" }}>{f.clients?.nom || "Client inconnu"}</div>
-                <div style={{ fontSize: 13, color: "#6b7280", marginTop: 2 }}>
+                <div style={{ fontWeight: 700, fontSize: 15, color: "#EDE8DB" }}>{f.clients?.nom || "Client inconnu"}</div>
+                <div style={{ fontSize: 13, color: "rgba(237,232,219,0.4)", marginTop: 2 }}>
                   {f.numero || `FAC-${f.id.substring(0, 8).toUpperCase()}`} — {f.montant_ttc ? `${Number(f.montant_ttc).toLocaleString("fr-FR")} € TTC` : "Montant non défini"}
                 </div>
-                <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>
+                <div style={{ fontSize: 12, color: "rgba(237,232,219,0.4)", marginTop: 2 }}>
                   Échéance : {f.date_echeance ? new Date(f.date_echeance + "T12:00:00").toLocaleDateString("fr-FR") : "—"}
                 </div>
               </div>
               <span style={{
                 fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 20,
-                background: retard > 30 ? "#fee2e2" : "#fef3c7",
-                color: retard > 30 ? "#991b1b" : "#92400e",
+                background: retard > 30 ? "rgba(199,91,78,0.08)" : "rgba(212,168,83,0.08)",
+                color: retard > 30 ? "#991b1b" : "#D4A853",
               }}>
                 {retard}j de retard
               </span>
             </div>
 
             {isSuccess ? (
-              <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "#166534", fontWeight: 600, textAlign: "center" }}>
+              <div style={{ background: "rgba(91,199,138,0.08)", border: "1px solid rgba(91,199,138,0.3)", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "#5BC78A", fontWeight: 600, textAlign: "center" }}>
                 ✅ Relance envoyée avec succès à {f.clients?.email}
               </div>
             ) : emailGenere ? (
-              <div style={{ background: "#f8fafc", border: "1px solid #e5e7eb", borderRadius: 8, padding: 14 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: "#6b7280", marginBottom: 6, textTransform: "uppercase" }}>Aperçu courriel généré</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#111827", marginBottom: 8 }}>Objet : {emailGenere.sujet}</div>
-                <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.6, maxHeight: 100, overflow: "hidden", whiteSpace: "pre-line" }}>
+              <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, padding: 14 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(237,232,219,0.4)", marginBottom: 6, textTransform: "uppercase" }}>Aperçu courriel généré</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#EDE8DB", marginBottom: 8 }}>Objet : {emailGenere.sujet}</div>
+                <div style={{ fontSize: 12, color: "#EDE8DB", lineHeight: 1.6, maxHeight: 100, overflow: "hidden", whiteSpace: "pre-line" }}>
                   {emailGenere.corps.substring(0, 200)}...
                 </div>
                 <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-                  <button onClick={() => envoyerRelance(f)} disabled={isSending === "sending"} style={{ ...btnPrimary, flex: 1, justifyContent: "center", background: "#10b981", fontSize: 13 }}>
+                  <button onClick={() => envoyerRelance(f)} disabled={isSending === "sending"} style={{ ...btnPrimary, flex: 1, justifyContent: "center", background: "#5BC78A", fontSize: 13 }}>
                     <Icon.Send /> {isSending === "sending" ? "Envoi..." : `Envoyer à ${f.clients?.email || "..."}`}
                   </button>
                   <button onClick={() => genererRelance(f)} style={{ ...btnSecondary, fontSize: 13 }}>
@@ -469,55 +469,55 @@ function OngletHistorique({ refresh }) {
     echecs: logs.filter(l => l.statut === "échec").length,
   };
 
-  if (loading) return <div style={{ textAlign: "center", padding: 60, color: "#6b7280" }}>Chargement...</div>;
+  if (loading) return <div style={{ textAlign: "center", padding: 60, color: "rgba(237,232,219,0.4)" }}>Chargement...</div>;
 
   return (
     <div>
       {/* KPIs */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 20 }}>
         {[
-          { label: "Total envoyés", value: stats.total, color: "#6366f1" },
-          { label: "Succès", value: stats.envoyes, color: "#10b981" },
+          { label: "Total envoyés", value: stats.total, color: "#5BA3C7" },
+          { label: "Succès", value: stats.envoyes, color: "#5BC78A" },
           { label: "Échecs", value: stats.echecs, color: "#ef4444" },
         ].map(k => (
-          <div key={k.label} style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 10, padding: "14px 16px" }}>
+          <div key={k.label} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "14px 16px" }}>
             <div style={{ fontSize: 22, fontWeight: 800, color: k.color }}>{k.value}</div>
-            <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>{k.label}</div>
+            <div style={{ fontSize: 12, color: "rgba(237,232,219,0.4)", marginTop: 2 }}>{k.label}</div>
           </div>
         ))}
       </div>
 
       {/* Recherche */}
       <div style={{ position: "relative", marginBottom: 16 }}>
-        <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#9ca3af" }}><Icon.Search /></span>
+        <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "rgba(237,232,219,0.4)" }}><Icon.Search /></span>
         <input placeholder="Rechercher dans l'historique..." value={search} onChange={e => setSearch(e.target.value)}
           style={{ ...inputStyle, paddingLeft: 36 }} />
       </div>
 
       {/* Liste */}
       {filtered.length === 0 ? (
-        <div style={{ textAlign: "center", padding: 40, color: "#9ca3af" }}>Aucun courriel dans l'historique.</div>
+        <div style={{ textAlign: "center", padding: 40, color: "rgba(237,232,219,0.4)" }}>Aucun courriel dans l'historique.</div>
       ) : (
-        <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 12, overflow: "hidden" }}>
+        <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, overflow: "hidden" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr style={{ background: "#f9fafb" }}>
+              <tr style={{ background: "rgba(255,255,255,0.03)" }}>
                 {["Date", "Destinataire", "Objet", "Type", "Statut", ""].map(h => (
-                  <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", borderBottom: "1px solid #e5e7eb" }}>{h}</th>
+                  <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "rgba(237,232,219,0.4)", textTransform: "uppercase", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {filtered.map((l, i) => {
-                const sc = STATUT_COLORS[l.statut] || { bg: "#f3f4f6", text: "#374151" };
+                const sc = STATUT_COLORS[l.statut] || { bg: "rgba(255,255,255,0.06)", text: "#EDE8DB" };
                 return (
-                  <tr key={l.id} style={{ borderBottom: "1px solid #f3f4f6", background: i % 2 === 0 ? "#fff" : "#fafafa" }}>
-                    <td style={{ padding: "10px 14px", fontSize: 13, color: "#6b7280" }}>
+                  <tr key={l.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", background: i % 2 === 0 ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.02)" }}>
+                    <td style={{ padding: "10px 14px", fontSize: 13, color: "rgba(237,232,219,0.4)" }}>
                       {new Date(l.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                     </td>
-                    <td style={{ padding: "10px 14px", fontSize: 13, color: "#111827", fontWeight: 600 }}>{l.destinataire}</td>
-                    <td style={{ padding: "10px 14px", fontSize: 13, color: "#374151", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.sujet}</td>
-                    <td style={{ padding: "10px 14px", fontSize: 12, color: "#6b7280" }}>{l.type}</td>
+                    <td style={{ padding: "10px 14px", fontSize: 13, color: "#EDE8DB", fontWeight: 600 }}>{l.destinataire}</td>
+                    <td style={{ padding: "10px 14px", fontSize: 13, color: "#EDE8DB", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.sujet}</td>
+                    <td style={{ padding: "10px 14px", fontSize: 12, color: "rgba(237,232,219,0.4)" }}>{l.type}</td>
                     <td style={{ padding: "10px 14px" }}>
                       <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 20, background: sc.bg, color: sc.text }}>{l.statut}</span>
                     </td>
@@ -535,21 +535,21 @@ function OngletHistorique({ refresh }) {
       {/* Modal aperçu courriel */}
       {selected && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
-          <div style={{ background: "#fff", borderRadius: 14, width: "100%", maxWidth: 560, maxHeight: "80vh", overflow: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
+          <div style={{ background: "rgba(255,255,255,0.04)", borderRadius: 14, width: "100%", maxWidth: 560, maxHeight: "80vh", overflow: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
             <div style={{ padding: "18px 22px 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Contenu de l'email</h3>
               <button onClick={() => setSelected(null)} style={btnIcon}><Icon.Close /></button>
             </div>
             <div style={{ padding: 22 }}>
               <div style={{ marginBottom: 10 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: "#6b7280", textTransform: "uppercase" }}>À</span>
-                <span style={{ fontSize: 13, color: "#111827", marginLeft: 8 }}>{selected.destinataire}</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(237,232,219,0.4)", textTransform: "uppercase" }}>À</span>
+                <span style={{ fontSize: 13, color: "#EDE8DB", marginLeft: 8 }}>{selected.destinataire}</span>
               </div>
               <div style={{ marginBottom: 14 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: "#6b7280", textTransform: "uppercase" }}>Objet</span>
-                <span style={{ fontSize: 14, fontWeight: 600, color: "#111827", marginLeft: 8 }}>{selected.sujet}</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(237,232,219,0.4)", textTransform: "uppercase" }}>Objet</span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: "#EDE8DB", marginLeft: 8 }}>{selected.sujet}</span>
               </div>
-              <div style={{ background: "#f8fafc", border: "1px solid #e5e7eb", borderRadius: 8, padding: 16, fontSize: 13, color: "#374151", lineHeight: 1.8, whiteSpace: "pre-line" }}>
+              <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, padding: 16, fontSize: 13, color: "#EDE8DB", lineHeight: 1.8, whiteSpace: "pre-line" }}>
                 {selected.corps}
               </div>
             </div>
@@ -593,9 +593,9 @@ function OngletParametres({ config, onSave }) {
       <div style={card}>
         <h3 style={cardTitle}>Configuration de l'expédition</h3>
 
-        <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 8, padding: "12px 14px", marginBottom: 16, fontSize: 13, color: "#1e40af" }}>
+        <div style={{ background: "rgba(91,163,199,0.08)", border: "1px solid rgba(91,163,199,0.3)", borderRadius: 8, padding: "12px 14px", marginBottom: 16, fontSize: 13, color: "#5BA3C7" }}>
           Le Mail Agent utilise <b>Resend</b> pour envoyer les courriels. Créez un compte gratuit sur{" "}
-          <a href="https://resend.com" target="_blank" rel="noreferrer" style={{ color: "#6366f1" }}>resend.com</a>{" "}
+          <a href="https://resend.com" target="_blank" rel="noreferrer" style={{ color: "#5BA3C7" }}>resend.com</a>{" "}
           et récupérez votre clé API. Vous pouvez envoyer jusqu'à 3 000 courriels/mois gratuitement.
         </div>
 
@@ -623,7 +623,7 @@ function OngletParametres({ config, onSave }) {
           </button>
 
           {success && (
-            <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "#166534", textAlign: "center", fontWeight: 600 }}>
+            <div style={{ background: "rgba(91,199,138,0.08)", border: "1px solid rgba(91,199,138,0.3)", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "#5BC78A", textAlign: "center", fontWeight: 600 }}>
               ✅ Configuration sauvegardée avec succès !
             </div>
           )}
@@ -632,9 +632,9 @@ function OngletParametres({ config, onSave }) {
 
       <div style={{ ...card, marginTop: 16 }}>
         <h3 style={cardTitle}>Supabase Edge Function</h3>
-        <div style={{ fontSize: 13, color: "#6b7280", lineHeight: 1.7 }}>
+        <div style={{ fontSize: 13, color: "rgba(237,232,219,0.4)", lineHeight: 1.7 }}>
           Pour que l'envoi de courriels fonctionne, vous devez déployer une Edge Function Supabase nommée{" "}
-          <code style={{ background: "#f3f4f6", padding: "2px 6px", borderRadius: 4, color: "#4f46e5" }}>send-email</code>{" "}
+          <code style={{ background: "rgba(255,255,255,0.06)", padding: "2px 6px", borderRadius: 4, color: "#5BA3C7" }}>send-email</code>{" "}
           qui utilisera votre clé API Resend. Cette fonction est disponible dans la documentation Supabase.
           Rendez-vous dans votre dashboard Supabase → Edge Functions → New Function.
         </div>
@@ -665,15 +665,15 @@ export default function MailAgent() {
 
       {/* En-tête */}
       <div style={{ marginBottom: 28 }}>
-        <h1 style={{ margin: 0, fontSize: 26, fontWeight: 800, color: "#111827" }}>Mail Agent</h1>
-        <p style={{ margin: "4px 0 0", color: "#6b7280", fontSize: 14 }}>
+        <h1 style={{ margin: 0, fontSize: 26, fontWeight: 800, color: "#EDE8DB" }}>Mail Agent</h1>
+        <p style={{ margin: "4px 0 0", color: "rgba(237,232,219,0.4)", fontSize: 14 }}>
           Rédigez et envoyez des courriels professionnels · Mode sortant uniquement
         </p>
       </div>
 
       {/* Alerte si pas configuré */}
       {!config?.email_expediteur && (
-        <div style={{ background: "#fef3c7", border: "1px solid #fde68a", borderRadius: 10, padding: "12px 16px", marginBottom: 20, fontSize: 13, color: "#92400e", display: "flex", gap: 10, alignItems: "center" }}>
+        <div style={{ background: "rgba(212,168,83,0.08)", border: "1px solid rgba(212,168,83,0.3)", borderRadius: 10, padding: "12px 16px", marginBottom: 20, fontSize: 13, color: "#D4A853", display: "flex", gap: 10, alignItems: "center" }}>
           <Icon.Alert />
           <span>Configurez votre courriel d'expédition dans les <b>Paramètres</b> pour pouvoir envoyer des courriels.</span>
           <button onClick={() => setTab("parametres")} style={{ ...btnSecondary, marginLeft: "auto", fontSize: 12, padding: "5px 12px" }}>
@@ -683,7 +683,7 @@ export default function MailAgent() {
       )}
 
       {/* Onglets */}
-      <div style={{ display: "flex", gap: 4, marginBottom: 24, background: "#f3f4f6", borderRadius: 10, padding: 4, width: "fit-content" }}>
+      <div style={{ display: "flex", gap: 4, marginBottom: 24, background: "rgba(255,255,255,0.06)", borderRadius: 10, padding: 4, width: "fit-content" }}>
         {TABS.map(t => {
           const TabIcon = TAB_LABELS[t].icon;
           return (
@@ -691,8 +691,8 @@ export default function MailAgent() {
               display: "flex", alignItems: "center", gap: 6,
               padding: "8px 16px", borderRadius: 8, border: "none",
               fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
-              background: tab === t ? "#fff" : "transparent",
-              color: tab === t ? "#111827" : "#6b7280",
+              background: tab === t ? "rgba(255,255,255,0.04)" : "transparent",
+              color: tab === t ? "#EDE8DB" : "rgba(237,232,219,0.4)",
               boxShadow: tab === t ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
               transition: "all 150ms ease",
             }}>
@@ -715,15 +715,15 @@ export default function MailAgent() {
 function Field({ label, children }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-      <label style={{ fontSize: 11, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</label>
+      <label style={{ fontSize: 11, fontWeight: 700, color: "rgba(237,232,219,0.4)", textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</label>
       {children}
     </div>
   );
 }
 
-const card = { background: "#fff", border: "1px solid #e5e7eb", borderRadius: 12, padding: 20, boxShadow: "0 1px 4px rgba(0,0,0,0.05)" };
-const cardTitle = { margin: "0 0 14px", fontSize: 13, fontWeight: 700, color: "#111827", textTransform: "uppercase", letterSpacing: "0.05em" };
-const inputStyle = { padding: "8px 12px", border: "1px solid #d1d5db", borderRadius: 8, fontSize: 14, color: "#111827", background: "#fff", outline: "none", fontFamily: "inherit", width: "100%", boxSizing: "border-box" };
-const btnPrimary = { display: "flex", alignItems: "center", gap: 6, background: "#6366f1", color: "#fff", border: "none", padding: "9px 18px", borderRadius: 8, fontWeight: 600, fontSize: 14, cursor: "pointer", fontFamily: "inherit" };
-const btnSecondary = { display: "flex", alignItems: "center", gap: 6, background: "#fff", color: "#374151", border: "1px solid #d1d5db", padding: "7px 14px", borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: "inherit" };
-const btnIcon = { background: "none", border: "none", cursor: "pointer", color: "#6b7280", padding: 5, borderRadius: 6, display: "flex" };
+const card = { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 20, boxShadow: "0 1px 4px rgba(0,0,0,0.05)" };
+const cardTitle = { margin: "0 0 14px", fontSize: 13, fontWeight: 700, color: "#EDE8DB", textTransform: "uppercase", letterSpacing: "0.05em" };
+const inputStyle = { padding: "8px 12px", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, fontSize: 14, color: "#EDE8DB", background: "rgba(255,255,255,0.04)", outline: "none", fontFamily: "inherit", width: "100%", boxSizing: "border-box" };
+const btnPrimary = { display: "flex", alignItems: "center", gap: 6, background: "#5BA3C7", color: "rgba(255,255,255,0.04)", border: "none", padding: "9px 18px", borderRadius: 8, fontWeight: 600, fontSize: 14, cursor: "pointer", fontFamily: "inherit" };
+const btnSecondary = { display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.06)", color: "#EDE8DB", border: "1px solid rgba(255,255,255,0.1)", padding: "7px 14px", borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: "inherit" };
+const btnIcon = { background: "none", border: "none", cursor: "pointer", color: "rgba(237,232,219,0.4)", padding: 5, borderRadius: 6, display: "flex" };

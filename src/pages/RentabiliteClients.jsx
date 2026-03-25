@@ -132,7 +132,7 @@ export default function RentabiliteClients() {
                 const isSelected = selected?.client.id === s.client.id;
                 return (
                   <div key={s.client.id} onClick={() => setSelected(isSelected ? null : s)}
-                    style={{ background:'rgba(255,255,255,0.04)', border:`1px solid ${isSelected ? C.blue : '#E8EAF0'}`, borderRadius:12, padding:'16px 20px', cursor:'pointer', boxShadow: isSelected ? `0 0 0 2px ${C.blue}30` : '0 1px 4px rgba(0,0,0,0.05)', transition:'all 150ms' }}
+                    style={{ background:'rgba(255,255,255,0.04)', border:`1px solid ${isSelected ? C.blue : 'rgba(255,255,255,0.08)'}`, borderRadius:12, padding:'16px 20px', cursor:'pointer', boxShadow: isSelected ? `0 0 0 2px ${C.blue}30` : '0 1px 4px rgba(0,0,0,0.05)', transition:'all 150ms' }}
                     onMouseEnter={e => { if (!isSelected) e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}
                     onMouseLeave={e => { if (!isSelected) e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}>
 

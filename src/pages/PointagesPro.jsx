@@ -50,8 +50,8 @@ const Icon = {
 // ─── Helpers ─────────────────────────────────────────────────────────
 const TYPES = ["Travail", "Congé payé", "RTT", "Maladie", "Télétravail", "Formation", "Absence non justifiée"];
 const TYPE_COLOR = {
-  Travail: "#6366f1",
-  "Congé payé": "#10b981",
+  Travail: "#5BA3C7",
+  "Congé payé": "#5BC78A",
   RTT: "#3b82f6",
   Maladie: "#f59e0b",
   Télétravail: "#8b5cf6",
@@ -125,9 +125,9 @@ function PointageModal({ pointage, employes, onClose, onSave }) {
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
-      <div style={{ background: "#fff", borderRadius: 16, width: "100%", maxWidth: 520, overflow: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
+      <div style={{ background: "rgba(255,255,255,0.04)", borderRadius: 16, width: "100%", maxWidth: 520, overflow: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
         <div style={{ padding: "22px 24px 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h2 style={{ margin: 0, fontSize: 19, fontWeight: 700, color: "#111827" }}>
+          <h2 style={{ margin: 0, fontSize: 19, fontWeight: 700, color: "#EDE8DB" }}>
             {form.id ? "Modifier le pointage" : "Saisir un pointage"}
           </h2>
           <button onClick={onClose} style={btnIcon}><Icon.Close /></button>
@@ -170,7 +170,7 @@ function PointageModal({ pointage, employes, onClose, onSave }) {
                 <input type="number" min="0" max="240" value={form.pause_minutes} onChange={e => set("pause_minutes", e.target.value)} style={inputStyle} />
               </div>
               <div style={{ display: "flex", alignItems: "flex-end", paddingBottom: 2 }}>
-                <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 8, padding: "8px 14px", fontSize: 14, fontWeight: 700, color: "#0369a1" }}>
+                <div style={{ background: "rgba(91,163,199,0.08)", border: "1px solid #bae6fd", borderRadius: 8, padding: "8px 14px", fontSize: 14, fontWeight: 700, color: "#5BA3C7" }}>
                   ≈ {dureeHeures(form.heure_debut, form.heure_fin)} travaillées
                 </div>
               </div>
@@ -182,7 +182,7 @@ function PointageModal({ pointage, employes, onClose, onSave }) {
             <textarea value={form.notes} onChange={e => set("notes", e.target.value)} rows={2} style={{ ...inputStyle, resize: "vertical", width: "100%", boxSizing: "border-box" }} placeholder="Commentaire optionnel..." />
           </div>
           {error && (
-            <div style={{ gridColumn: "1/-1", color: "#dc2626", fontSize: 13, background: "#fef2f2", padding: "8px 12px", borderRadius: 8 }}>{error}</div>
+            <div style={{ gridColumn: "1/-1", color: "#C75B4E", fontSize: 13, background: "rgba(199,91,78,0.08)", padding: "8px 12px", borderRadius: 8 }}>{error}</div>
           )}
           <div style={{ gridColumn: "1/-1", display: "flex", gap: 10, justifyContent: "flex-end" }}>
             <button onClick={onClose} style={btnSecondary}>Annuler</button>
@@ -293,8 +293,8 @@ export default function PointagesPro() {
       {/* En-tête */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28 }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 26, fontWeight: 800, color: "#111827" }}>Pointages</h1>
-          <p style={{ margin: "4px 0 0", color: "#6b7280", fontSize: 14 }}>Suivi des présences, absences et congés</p>
+          <h1 style={{ margin: 0, fontSize: 26, fontWeight: 800, color: "#EDE8DB" }}>Pointages</h1>
+          <p style={{ margin: "4px 0 0", color: "rgba(237,232,219,0.4)", fontSize: 14 }}>Suivi des présences, absences et congés</p>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           <button onClick={exportCSV} style={btnSecondary}><Icon.Download /> Export CSV</button>
@@ -305,7 +305,7 @@ export default function PointagesPro() {
       </div>
 
       {employes.length === 0 && (
-        <div style={{ background: "#fef3c7", border: "1px solid #fcd34d", borderRadius: 10, padding: "12px 16px", marginBottom: 20, fontSize: 14, color: "#92400e" }}>
+        <div style={{ background: "rgba(212,168,83,0.08)", border: "1px solid rgba(212,168,83,0.3)", borderRadius: 10, padding: "12px 16px", marginBottom: 20, fontSize: 14, color: "#D4A853" }}>
           ⚠️ Aucun membre dans l'équipe. Ajoutez d'abord des collaborateurs dans le module <strong>Équipe</strong>.
         </div>
       )}
@@ -313,7 +313,7 @@ export default function PointagesPro() {
       {/* Navigation mois */}
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 16, marginBottom: 24 }}>
         <button onClick={() => naviguerMois(-1)} style={btnIcon}><Icon.ChevronLeft /></button>
-        <span style={{ fontSize: 18, fontWeight: 700, color: "#111827", minWidth: 180, textAlign: "center" }}>
+        <span style={{ fontSize: 18, fontWeight: 700, color: "#EDE8DB", minWidth: 180, textAlign: "center" }}>
           {MOIS_FR[mois]} {annee}
         </span>
         <button onClick={() => naviguerMois(1)} style={btnIcon}><Icon.ChevronRight /></button>
@@ -322,14 +322,14 @@ export default function PointagesPro() {
       {/* KPIs */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
         {[
-          { label: "Pointages saisis", value: filtered.length, color: "#6366f1" },
-          { label: "Heures travaillées", value: `${totalH}h${String(totalM).padStart(2,"0")}`, color: "#10b981" },
+          { label: "Pointages saisis", value: filtered.length, color: "#5BA3C7" },
+          { label: "Heures travaillées", value: `${totalH}h${String(totalM).padStart(2,"0")}`, color: "#5BC78A" },
           { label: "Jours de congé", value: joursConge, color: "#f59e0b" },
           { label: "Jours maladie", value: joursMaladie, color: "#ef4444" },
         ].map(k => (
-          <div key={k.label} style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 12, padding: "16px 18px", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
+          <div key={k.label} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "16px 18px", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
             <div style={{ fontSize: 24, fontWeight: 800, color: k.color }}>{k.value}</div>
-            <div style={{ fontSize: 13, color: "#6b7280", marginTop: 2 }}>{k.label}</div>
+            <div style={{ fontSize: 13, color: "rgba(237,232,219,0.4)", marginTop: 2 }}>{k.label}</div>
           </div>
         ))}
       </div>
@@ -348,9 +348,9 @@ export default function PointagesPro() {
           {["liste", "recap"].map(m => (
             <button key={m} onClick={() => setVueMode(m)} style={{
               ...btnSecondary, padding: "8px 14px", fontSize: 13,
-              background: vueMode === m ? "#6366f1" : "#fff",
-              color: vueMode === m ? "#fff" : "#374151",
-              borderColor: vueMode === m ? "#6366f1" : "#d1d5db",
+              background: vueMode === m ? "#5BA3C7" : "rgba(255,255,255,0.04)",
+              color: vueMode === m ? "rgba(255,255,255,0.04)" : "#EDE8DB",
+              borderColor: vueMode === m ? "#5BA3C7" : "rgba(255,255,255,0.1)",
             }}>
               {m === "liste" ? "Liste" : "Récapitulatif"}
             </button>
@@ -361,41 +361,41 @@ export default function PointagesPro() {
       {/* LISTE */}
       {vueMode === "liste" && (
         loading ? (
-          <div style={{ textAlign: "center", padding: 60, color: "#6b7280" }}>Chargement...</div>
+          <div style={{ textAlign: "center", padding: 60, color: "rgba(237,232,219,0.4)" }}>Chargement...</div>
         ) : filtered.length === 0 ? (
-          <div style={{ textAlign: "center", padding: 60, color: "#6b7280", background: "#f9fafb", borderRadius: 12, border: "2px dashed #e5e7eb" }}>
+          <div style={{ textAlign: "center", padding: 60, color: "rgba(237,232,219,0.4)", background: "rgba(255,255,255,0.03)", borderRadius: 12, border: "2px dashed rgba(255,255,255,0.1)" }}>
             <Icon.Clock />
             <p style={{ marginTop: 12 }}>Aucun pointage pour cette période.</p>
           </div>
         ) : (
-          <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 12, overflow: "hidden", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
+          <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, overflow: "hidden", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
-                <tr style={{ background: "#f9fafb" }}>
+                <tr style={{ background: "rgba(255,255,255,0.03)" }}>
                   {["Date","Collaborateur","Type","Horaires","Durée","Notes",""].map(h => (
-                    <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontSize: 12, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.04em", borderBottom: "1px solid #e5e7eb" }}>{h}</th>
+                    <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontSize: 12, fontWeight: 700, color: "rgba(237,232,219,0.4)", textTransform: "uppercase", letterSpacing: "0.04em", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((p, i) => {
-                  const color = TYPE_COLOR[p.type] || "#6b7280";
+                  const color = TYPE_COLOR[p.type] || "rgba(237,232,219,0.4)";
                   const duree = p.duree_minutes ? `${Math.floor(p.duree_minutes/60)}h${String(p.duree_minutes%60).padStart(2,"0")}` : "—";
                   const horaires = p.heure_debut ? `${formatHeure(p.heure_debut)} → ${formatHeure(p.heure_fin)}` : "—";
                   return (
-                    <tr key={p.id} style={{ borderBottom: "1px solid #f3f4f6", background: i % 2 === 0 ? "#fff" : "#fafafa" }}>
-                      <td style={{ padding: "10px 14px", fontSize: 14, color: "#374151", fontWeight: 600 }}>
+                    <tr key={p.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", background: i % 2 === 0 ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.02)" }}>
+                      <td style={{ padding: "10px 14px", fontSize: 14, color: "#EDE8DB", fontWeight: 600 }}>
                         {new Date(p.date + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" })}
                       </td>
-                      <td style={{ padding: "10px 14px", fontSize: 14, color: "#111827" }}>{nomEmploye(p.employe_id)}</td>
+                      <td style={{ padding: "10px 14px", fontSize: 14, color: "#EDE8DB" }}>{nomEmploye(p.employe_id)}</td>
                       <td style={{ padding: "10px 14px" }}>
                         <span style={{ fontSize: 12, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: color + "18", color }}>
                           {p.type}
                         </span>
                       </td>
-                      <td style={{ padding: "10px 14px", fontSize: 13, color: "#6b7280", fontFamily: "monospace" }}>{horaires}</td>
-                      <td style={{ padding: "10px 14px", fontSize: 14, fontWeight: 700, color: "#111827" }}>{duree}</td>
-                      <td style={{ padding: "10px 14px", fontSize: 13, color: "#6b7280", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.notes || "—"}</td>
+                      <td style={{ padding: "10px 14px", fontSize: 13, color: "rgba(237,232,219,0.4)", fontFamily: "monospace" }}>{horaires}</td>
+                      <td style={{ padding: "10px 14px", fontSize: 14, fontWeight: 700, color: "#EDE8DB" }}>{duree}</td>
+                      <td style={{ padding: "10px 14px", fontSize: 13, color: "rgba(237,232,219,0.4)", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.notes || "—"}</td>
                       <td style={{ padding: "10px 14px" }}>
                         <div style={{ display: "flex", gap: 6 }}>
                           <button onClick={() => setModal(p)} style={btnIcon}><Icon.Edit /></button>
@@ -415,16 +415,16 @@ export default function PointagesPro() {
       {vueMode === "recap" && (
         <div>
           {recapParEmploye.length === 0 ? (
-            <div style={{ textAlign: "center", padding: 60, color: "#6b7280", background: "#f9fafb", borderRadius: 12, border: "2px dashed #e5e7eb" }}>
+            <div style={{ textAlign: "center", padding: 60, color: "rgba(237,232,219,0.4)", background: "rgba(255,255,255,0.03)", borderRadius: 12, border: "2px dashed rgba(255,255,255,0.1)" }}>
               Aucune donnée pour cette période.
             </div>
           ) : (
-            <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 12, overflow: "hidden", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
+            <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, overflow: "hidden", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
-                  <tr style={{ background: "#f9fafb" }}>
+                  <tr style={{ background: "rgba(255,255,255,0.03)" }}>
                     {["Collaborateur","Jours pointés","Heures travaillées","Congés payés","Maladie"].map(h => (
-                      <th key={h} style={{ padding: "12px 16px", textAlign: "left", fontSize: 12, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.04em", borderBottom: "1px solid #e5e7eb" }}>{h}</th>
+                      <th key={h} style={{ padding: "12px 16px", textAlign: "left", fontSize: 12, fontWeight: 700, color: "rgba(237,232,219,0.4)", textTransform: "uppercase", letterSpacing: "0.04em", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -433,23 +433,23 @@ export default function PointagesPro() {
                     const h = Math.floor(e.mins / 60);
                     const m = e.mins % 60;
                     return (
-                      <tr key={e.id} style={{ borderBottom: "1px solid #f3f4f6", background: i % 2 === 0 ? "#fff" : "#fafafa" }}>
+                      <tr key={e.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", background: i % 2 === 0 ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.02)" }}>
                         <td style={{ padding: "12px 16px" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                            <div style={{ width: 34, height: 34, borderRadius: "50%", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: 13 }}>
+                            <div style={{ width: 34, height: 34, borderRadius: "50%", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.04)", fontWeight: 700, fontSize: 13 }}>
                               {(e.prenom[0] + e.nom[0]).toUpperCase()}
                             </div>
-                            <span style={{ fontWeight: 600, color: "#111827" }}>{e.prenom} {e.nom}</span>
+                            <span style={{ fontWeight: 600, color: "#EDE8DB" }}>{e.prenom} {e.nom}</span>
                           </div>
                         </td>
-                        <td style={{ padding: "12px 16px", color: "#374151" }}>{e.jours} j</td>
-                        <td style={{ padding: "12px 16px", fontWeight: 700, color: "#10b981" }}>
+                        <td style={{ padding: "12px 16px", color: "#EDE8DB" }}>{e.jours} j</td>
+                        <td style={{ padding: "12px 16px", fontWeight: 700, color: "#5BC78A" }}>
                           {e.mins > 0 ? `${h}h${String(m).padStart(2,"0")}` : "—"}
                         </td>
-                        <td style={{ padding: "12px 16px", color: e.conges > 0 ? "#f59e0b" : "#9ca3af", fontWeight: e.conges > 0 ? 700 : 400 }}>
+                        <td style={{ padding: "12px 16px", color: e.conges > 0 ? "#f59e0b" : "rgba(237,232,219,0.4)", fontWeight: e.conges > 0 ? 700 : 400 }}>
                           {e.conges > 0 ? `${e.conges} j` : "—"}
                         </td>
-                        <td style={{ padding: "12px 16px", color: e.maladies > 0 ? "#ef4444" : "#9ca3af", fontWeight: e.maladies > 0 ? 700 : 400 }}>
+                        <td style={{ padding: "12px 16px", color: e.maladies > 0 ? "#ef4444" : "rgba(237,232,219,0.4)", fontWeight: e.maladies > 0 ? 700 : 400 }}>
                           {e.maladies > 0 ? `${e.maladies} j` : "—"}
                         </td>
                       </tr>
@@ -477,27 +477,27 @@ export default function PointagesPro() {
 
 // ─── Helpers UI ───────────────────────────────────────────────────────
 function Label({ children }) {
-  return <label style={{ display: "block", marginBottom: 4, fontSize: 12, fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>{children}</label>;
+  return <label style={{ display: "block", marginBottom: 4, fontSize: 12, fontWeight: 600, color: "rgba(237,232,219,0.4)", textTransform: "uppercase", letterSpacing: "0.05em" }}>{children}</label>;
 }
 
 const inputStyle = {
-  padding: "8px 12px", border: "1px solid #d1d5db", borderRadius: 8,
-  fontSize: 14, color: "#111827", background: "#fff", outline: "none",
+  padding: "8px 12px", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8,
+  fontSize: 14, color: "#EDE8DB", background: "rgba(255,255,255,0.04)", outline: "none",
   fontFamily: "inherit", width: "100%", boxSizing: "border-box",
 };
 const btnPrimary = {
   display: "flex", alignItems: "center", gap: 6,
-  background: "#6366f1", color: "#fff", border: "none",
+  background: "#5BA3C7", color: "rgba(255,255,255,0.04)", border: "none",
   padding: "9px 18px", borderRadius: 8, fontWeight: 600,
   fontSize: 14, cursor: "pointer", fontFamily: "inherit",
 };
 const btnSecondary = {
   display: "flex", alignItems: "center", gap: 6,
-  background: "#fff", color: "#374151", border: "1px solid #d1d5db",
+  background: "rgba(255,255,255,0.04)", color: "#EDE8DB", border: "1px solid rgba(255,255,255,0.08)",
   padding: "9px 16px", borderRadius: 8, fontWeight: 600,
   fontSize: 14, cursor: "pointer", fontFamily: "inherit",
 };
 const btnIcon = {
-  background: "none", border: "none", cursor: "pointer", color: "#6b7280",
+  background: "none", border: "none", cursor: "pointer", color: "rgba(237,232,219,0.4)",
   padding: 5, borderRadius: 6, display: "flex",
 };
