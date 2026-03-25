@@ -2,12 +2,12 @@ import { useState, useMemo } from 'react';
 import Tooltip from '../components/Tooltip';
 import { TIPS } from '../utils/tooltips';
 
-const C = { blue:'#5BA3C7', green:'#5BC78A', orange:'#5BC78A', red:'#C75B4E', purple:'#A85BC7', dark:'#1A1C20', light:'#9AA0AE', border:'#E8EAF0', bg:'#F8F9FB' };
+const C = { blue:'#5BA3C7', green:'#5BC78A', orange:'#5BC78A', red:'#C75B4E', purple:'#A85BC7', dark:'#EDE8DB', light:'rgba(237,232,219,0.4)', border:'rgba(255,255,255,0.08)', bg:'rgba(255,255,255,0.04)' };
 const euro = (n) => new Intl.NumberFormat('fr-FR', { style:'currency', currency:'EUR', maximumFractionDigits:0 }).format(n??0);
 const pct  = (n) => `${Number(n).toFixed(1)}%`;
 
-const iS = { width:'100%', padding:'10px 14px', borderRadius:9, background:'#fff', border:`1px solid #E8EAF0`, color:'#1A1C20', fontSize:14, outline:'none', boxSizing:'border-box', fontFamily:'inherit' };
-const lS = { fontSize:11, fontWeight:700, color:'#5A6070', marginBottom:6, display:'flex', alignItems:'center', gap:6, textTransform:'uppercase', letterSpacing:'0.05em' };
+const iS = { width:'100%', padding:'10px 14px', borderRadius:9, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', color:'#EDE8DB', fontSize:14, outline:'none', boxSizing:'border-box', fontFamily:'inherit' };
+const lS = { fontSize:11, fontWeight:700, color:'rgba(237,232,219,0.4)', marginBottom:6, display:'flex', alignItems:'center', gap:6, textTransform:'uppercase', letterSpacing:'0.05em' };
 
 const EXEMPLES = [
   { label:'Consultant freelance', chargesFixes:2000,  tauxCV:15, prixVente:500, qteVendues:12  },
@@ -74,15 +74,15 @@ export default function CalculateurSeuilRentabilite() {
     const seuilX = xScale(seuil_CA);
     return (
       <svg width="100%" viewBox={`0 0 ${svgW} ${svgH+24}`} style={{ overflow:'visible' }}>
-        {[0.25,0.5,0.75,1].map(t=><line key={t} x1={0} y1={svgH*t} x2={svgW} y2={svgH*t} stroke="#F0F2F5" strokeWidth={1}/>)}
+        {[0.25,0.5,0.75,1].map(t=><line key={t} x1={0} y1={svgH*t} x2={svgW} y2={svgH*t} stroke="rgba(255,255,255,0.06)" strokeWidth={1}/>)}
         <path d={caPath} fill="none" stroke={C.blue} strokeWidth={2.5} strokeLinecap="round"/>
         <path d={chPath} fill="none" stroke={C.red} strokeWidth={2.5} strokeLinecap="round" strokeDasharray="6,3"/>
         <line x1={seuilX} y1={0} x2={seuilX} y2={svgH} stroke={C.orange} strokeWidth={2} strokeDasharray="4,3"/>
         <text x={seuilX+4} y={16} fontSize={10} fill={C.orange} fontWeight="700">Seuil</text>
-        <circle cx={seuilX} cy={yScale(seuil_CA)} r={5} fill={C.orange} stroke="#fff" strokeWidth={2}/>
+        <circle cx={seuilX} cy={yScale(seuil_CA)} r={5} fill={C.orange} stroke="rgba(255,255,255,0.15)" strokeWidth={2}/>
         {result.ca_reel && (<>
           <line x1={xScale(result.ca_reel)} y1={0} x2={xScale(result.ca_reel)} y2={svgH} stroke={result.atteint?C.green:C.red} strokeWidth={1.5} strokeDasharray="4,3"/>
-          <circle cx={xScale(result.ca_reel)} cy={yScale(result.ca_reel)} r={5} fill={result.atteint?C.green:C.red} stroke="#fff" strokeWidth={2}/>
+          <circle cx={xScale(result.ca_reel)} cy={yScale(result.ca_reel)} r={5} fill={result.atteint?C.green:C.red} stroke="rgba(255,255,255,0.15)" strokeWidth={2}/>
           <text x={xScale(result.ca_reel)+4} y={svgH-4} fontSize={9} fill={result.atteint?C.green:C.red} fontWeight="700">CA réel</text>
         </>)}
         <g transform={`translate(0,${svgH+12})`}>
@@ -108,9 +108,9 @@ export default function CalculateurSeuilRentabilite() {
       <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:20 }}>
         <span style={{ fontSize:11, color:C.light, alignSelf:'center', fontWeight:600 }}>Exemples :</span>
         {EXEMPLES.map(ex=>(
-          <button key={ex.label} onClick={()=>appliquerExemple(ex)} style={{ padding:'5px 12px', borderRadius:20, border:`1px solid ${C.border}`, background:'#fff', color:C.dark, fontSize:12, cursor:'pointer', fontFamily:'inherit', transition:'all 150ms' }}
+          <button key={ex.label} onClick={()=>appliquerExemple(ex)} style={{ padding:'5px 12px', borderRadius:20, border:`1px solid ${C.border}`, background:'rgba(255,255,255,0.04)', color:'#EDE8DB', fontSize:12, cursor:'pointer', fontFamily:'inherit', transition:'all 150ms' }}
             onMouseEnter={e=>{e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}}
-            onMouseLeave={e=>{e.currentTarget.style.borderColor=C.border;e.currentTarget.style.color=C.dark;}}>
+            onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.08)';e.currentTarget.style.color='#EDE8DB';}}>
             {ex.label}
           </button>
         ))}
@@ -121,12 +121,12 @@ export default function CalculateurSeuilRentabilite() {
         {/* Colonne gauche */}
         <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
 
-          <div style={{ background:'#fff', border:`1px solid ${C.border}`, borderRadius:14, padding:22, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+          <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:22, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
             <label style={lS}>Nom du projet / activité</label>
             <input value={nom} onChange={e=>setNom(e.target.value)} placeholder="Ex : Mon activité de conseil" style={iS}/>
           </div>
 
-          <div style={{ background:'#fff', border:`1px solid ${C.border}`, borderRadius:14, padding:22, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+          <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:22, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
             <label style={lS}>
               Charges fixes mensuelles (€) <Tooltip text={TIPS.seuil_rentabilite}/>
             </label>
@@ -134,20 +134,20 @@ export default function CalculateurSeuilRentabilite() {
             <p style={{ fontSize:11, color:C.light, marginTop:6, marginBottom:0 }}>Loyer, salaires, assurances, abonnements, remboursements…</p>
           </div>
 
-          <div style={{ background:'#fff', border:`1px solid ${C.border}`, borderRadius:14, padding:22, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+          <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:22, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
             <label style={lS}>Taux de charges variables (%)</label>
             <input type="number" value={tauxCV} onChange={e=>setTauxCV(e.target.value)} placeholder="Ex : 30 (matières premières, commissions…)" style={iS} min="0" max="99"/>
             <p style={{ fontSize:11, color:C.light, marginTop:6, marginBottom:0 }}>Part des charges qui varient avec le CA (achats, sous-traitance…)</p>
           </div>
 
-          <div style={{ background:'#fff', border:`1px solid ${C.border}`, borderRadius:14, padding:22, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+          <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:22, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
             <label style={lS}>
               Prix de vente unitaire (€) <Tooltip text={TIPS.ht}/>
             </label>
             <input type="number" value={prixVente} onChange={e=>setPrixVente(e.target.value)} placeholder="Ex : 150" style={iS} min="0"/>
           </div>
 
-          <div style={{ background:'#fff', border:`1px solid ${C.border}`, borderRadius:14, padding:22, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+          <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:22, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
             <label style={lS}>
               Quantités vendues / mois
               <span style={{ color:C.light, fontWeight:400, textTransform:'none', fontSize:10 }}>(optionnel)</span>
@@ -179,7 +179,7 @@ export default function CalculateurSeuilRentabilite() {
                 { label:'Seuil annuel',            value:euro(result.seuil_CA*12),  color:C.orange, tip:TIPS.seuil_rentabilite },
                 { label:'Taux charges variables', value:pct(parseFloat(tauxCV)),   color:C.light,  tip:null },
               ].map(k=>(
-                <div key={k.label} style={{ background:'#fff', border:`1px solid ${C.border}`, borderRadius:12, padding:'14px 16px', boxShadow:'0 1px 4px rgba(0,0,0,0.04)' }}>
+                <div key={k.label} style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:12, padding:'14px 16px', boxShadow:'0 1px 4px rgba(0,0,0,0.04)' }}>
                   <div style={{ fontSize:10, color:C.light, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.05em', marginBottom:6, display:'flex', alignItems:'center', gap:4 }}>
                     {k.label} {k.tip && <Tooltip text={k.tip} size={10}/>}
                   </div>
@@ -201,7 +201,7 @@ export default function CalculateurSeuilRentabilite() {
                     { label:'Indice de sécurité',  value:pct(result.indice_securite),   color:C.blue },
                     { label:'Levier opérationnel', value:result.levier_operationnel?`×${result.levier_operationnel.toFixed(2)}`:'—', color:C.orange },
                   ].map(k=>(
-                    <div key={k.label} style={{ background:'rgba(255,255,255,0.6)', borderRadius:9, padding:'10px 12px' }}>
+                    <div key={k.label} style={{ background:'rgba(255,255,255,0.06)', borderRadius:9, padding:'10px 12px' }}>
                       <div style={{ fontSize:10, color:C.light, fontWeight:600, textTransform:'uppercase', marginBottom:4 }}>{k.label}</div>
                       <div style={{ fontSize:16, fontWeight:700, color:k.color }}>{k.value}</div>
                     </div>
@@ -211,17 +211,17 @@ export default function CalculateurSeuilRentabilite() {
             )}
 
             {/* Graphique */}
-            <div style={{ background:'#fff', border:`1px solid ${C.border}`, borderRadius:14, padding:20, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+            <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:20, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
               <div style={{ fontSize:12, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:14 }}>Graphique de rentabilité</div>
               {renderGraphique()}
             </div>
 
           </>) : (
-            <div style={{ background:'#fff', border:`1px solid ${C.border}`, borderRadius:14, padding:40, textAlign:'center', color:C.light, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+            <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:40, textAlign:'center', color:C.light, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
               <div style={{ fontSize:40, marginBottom:12 }}>📊</div>
               <div style={{ fontSize:14, fontWeight:600 }}>Renseignez vos charges fixes</div>
               <div style={{ fontSize:12, marginTop:6 }}>Le seuil de rentabilité apparaîtra ici</div>
-              <div style={{ fontSize:11, color:C.border, marginTop:12 }}>Ou utilisez un exemple ci-dessus →</div>
+              <div style={{ fontSize:11, color:'rgba(237,232,219,0.2)', marginTop:12 }}>Ou utilisez un exemple ci-dessus →</div>
             </div>
           )}
         </div>
