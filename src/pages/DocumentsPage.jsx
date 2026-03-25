@@ -46,7 +46,7 @@ export default function DocumentsPage() {
 
       <div style={{
         display: 'flex', gap: 4, marginBottom: 28,
-        background: 'rgba(15,23,42,0.06)', borderRadius: 12, padding: 4, width: 'fit-content',
+        background: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 4, width: 'fit-content',
       }}>
         {[
           { id: 'factures', label: 'Factures', icon: FileText },
@@ -58,8 +58,8 @@ export default function DocumentsPage() {
             <button key={tab.id} onClick={() => switchTab(tab.id)} style={{
               display: 'flex', alignItems: 'center', gap: 8,
               padding: '9px 20px', borderRadius: 9, border: 'none',
-              background: isActive ? '#fff' : 'transparent',
-              color: isActive ? '#5BA3C7' : '#64748B',
+              background: isActive ? 'rgba(91,163,199,0.15)' : 'transparent',
+              color: isActive ? '#5BA3C7' : 'rgba(237,232,219,0.4)',
               fontWeight: isActive ? 700 : 500, fontSize: 13, cursor: 'pointer',
               boxShadow: isActive ? '0 2px 8px rgba(15,23,42,0.1)' : 'none',
               transition: 'all 180ms ease', fontFamily: "'Nunito Sans', sans-serif",

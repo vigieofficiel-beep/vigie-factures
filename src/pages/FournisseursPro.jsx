@@ -100,8 +100,8 @@ function analyserPrixFournisseurs(fournisseurs, expenses, inflationData = {}) {
 /* ══ STYLES ══════════════════════════════════════════════════════════ */
 const C = { blue:'#5BA3C7', purple:'#A85BC7', dark:'#1A1C20', light:'#9AA0AE', border:'#E8EAF0', bg:'#F8F9FB', red:'#C75B4E', orange:'#5BC78A', green:'#5BC78A' };
 const CATEGORIES = ["Toutes","Informatique","Fournitures","Loyer","Transport","Alimentation","Communication","Énergie","Assurance","Comptabilité","Juridique","Marketing","RH","Autre"];
-const iS = { width:'100%', padding:'9px 12px', borderRadius:8, background:'#F8F9FB', border:'1px solid #E8EAF0', color:'#1A1C20', fontSize:13, outline:'none', boxSizing:'border-box', fontFamily:'inherit' };
-const lS = { fontSize:11, fontWeight:600, color:'#5A6070', marginBottom:5, display:'block', textTransform:'uppercase', letterSpacing:'0.05em' };
+const iS = { width:'100%', padding:'9px 12px', borderRadius:8, background:'#F8F9FB', border:'1px solid rgba(255,255,255,0.08)', color:'#EDE8DB', fontSize:13, outline:'none', boxSizing:'border-box', fontFamily:'inherit' };
+const lS = { fontSize:11, fontWeight:600, color:'rgba(237,232,219,0.5)', marginBottom:5, display:'block', textTransform:'uppercase', letterSpacing:'0.05em' };
 
 /* ══ FORMULAIRE FOURNISSEUR ══════════════════════════════════════════ */
 function FournisseurForm({ onSave, onCancel, editData=null }) {
@@ -122,7 +122,7 @@ function FournisseurForm({ onSave, onCancel, editData=null }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:14, padding:24, marginBottom:24, boxShadow:'0 2px 12px rgba(0,0,0,0.06)' }}>
+    <form onSubmit={handleSubmit} style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:24, marginBottom:24, boxShadow:'0 2px 12px rgba(0,0,0,0.06)' }}>
       <h3 style={{ fontSize:15, fontWeight:700, color:C.dark, marginBottom:20 }}>{editData ? 'Modifier le fournisseur' : 'Nouveau fournisseur'}</h3>
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, marginBottom:14 }}>
         <div><label style={lS}>Nom *</label><input value={form.nom} onChange={set('nom')} required style={iS} placeholder="SARL Dupont"/></div>
@@ -143,7 +143,7 @@ function FournisseurForm({ onSave, onCancel, editData=null }) {
       {error && <div style={{ color:C.red, fontSize:12, marginBottom:12 }}>{error}</div>}
       <div style={{ display:'flex', gap:10 }}>
         <button type="submit" disabled={loading} style={{ flex:1, padding:'11px', borderRadius:9, border:'none', background:C.blue, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer' }}>{loading?'Enregistrement...':'✓ Enregistrer'}</button>
-        <button type="button" onClick={onCancel} style={{ padding:'11px 18px', borderRadius:9, border:'1px solid #E8EAF0', background:'#fff', color:'#5A6070', fontSize:13, cursor:'pointer' }}>Annuler</button>
+        <button type="button" onClick={onCancel} style={{ padding:'11px 18px', borderRadius:9, border:'1px solid rgba(255,255,255,0.08)', background:'rgba(255,255,255,0.04)', color:'rgba(237,232,219,0.5)', fontSize:13, cursor:'pointer' }}>Annuler</button>
       </div>
     </form>
   );
@@ -291,7 +291,7 @@ export default function FournisseursPro() {
           <p style={{ fontSize:13, color:C.light, marginTop:4 }}>Gestion et analyse · indices de prix INSEE</p>
         </div>
         <div style={{ display:'flex', gap:10 }}>
-          <button onClick={() => enrichirAvecINSEE(fournisseurs, expenses)} title="Actualiser les indices INSEE" style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 16px', borderRadius:9, border:'1px solid #E8EAF0', background:'#fff', color:'#5A6070', fontSize:12, fontWeight:600, cursor:'pointer' }}>
+          <button onClick={() => enrichirAvecINSEE(fournisseurs, expenses)} title="Actualiser les indices INSEE" style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 16px', borderRadius:9, border:'1px solid rgba(255,255,255,0.08)', background:'rgba(255,255,255,0.04)', color:'rgba(237,232,219,0.5)', fontSize:12, fontWeight:600, cursor:'pointer' }}>
             <RefreshCw size={13}/> INSEE
           </button>
           <ExportButton
@@ -323,7 +323,7 @@ export default function FournisseursPro() {
           { label:'Alertes prix', value:alertes.length, color:alertes.length>0?C.red:C.green, icon:TrendingUp },
           { label:'Total dépenses', value:new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(totalDepenses), color:C.purple, icon:BarChart2 },
         ].map(s => { const Icon = s.icon; return (
-          <div key={s.label} style={{ background:'#fff', border:`1px solid ${alertes.length>0&&s.label==='Alertes prix'?'rgba(199,91,78,0.3)':'#E8EAF0'}`, borderRadius:12, padding:'16px 18px', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }}>
+          <div key={s.label} style={{ background:'rgba(255,255,255,0.04)', border:`1px solid ${alertes.length>0&&s.label==='Alertes prix'?'rgba(199,91,78,0.3)':'#E8EAF0'}`, borderRadius:12, padding:'16px 18px', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
               <p style={{ fontSize:11, color:C.light, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.06em', margin:0 }}>{s.label}</p>
               <Icon size={14} color={s.color}/>
@@ -352,7 +352,7 @@ export default function FournisseursPro() {
           </select>
         </div>
 
-        <div style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:14, overflow:'hidden', boxShadow:'0 1px 4px rgba(0,0,0,0.06)' }}>
+        <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, overflow:'hidden', boxShadow:'0 1px 4px rgba(0,0,0,0.06)' }}>
           {loading?<div style={{ padding:40, textAlign:'center', color:C.light, fontSize:13 }}>Chargement...</div>
           :filtered.length===0?<div style={{ padding:48, textAlign:'center' }}><ShoppingCart size={32} color="#E8EAF0" style={{ marginBottom:12 }}/><p style={{ color:C.light, fontSize:13, margin:0 }}>{fournisseurs.length===0?'Aucun fournisseur — cliquez sur "Nouveau fournisseur"':'Aucun résultat'}</p></div>
           :<table style={{ width:'100%', borderCollapse:'collapse' }}>
@@ -360,7 +360,7 @@ export default function FournisseursPro() {
             <tbody>
               {filtered.map((f,i)=>{
                 const aAlerte=alertes.some(a=>a.fournisseur?.toLowerCase()===f.nom?.toLowerCase());
-                return(<tr key={f.id||i} style={{ borderBottom:'1px solid #F8F9FB', background:aAlerte?'rgba(212,168,83,0.03)':'transparent', cursor:'pointer' }}
+                return(<tr key={f.id||i} style={{ borderBottom:'1px solid rgba(255,255,255,0.04)', background:aAlerte?'rgba(212,168,83,0.03)':'transparent', cursor:'pointer' }}
                   onMouseEnter={ev=>ev.currentTarget.style.background=aAlerte?'rgba(212,168,83,0.06)':'#FAFBFC'}
                   onMouseLeave={ev=>ev.currentTarget.style.background=aAlerte?'rgba(212,168,83,0.03)':'transparent'}
                   onClick={()=>setSelected(selected?.id===f.id?null:f)}>
@@ -372,9 +372,9 @@ export default function FournisseursPro() {
                     {f.ville&&<div style={{ fontSize:11, color:C.light, marginTop:1 }}>{f.ville}</div>}
                   </td>
                   <td style={{ padding:'11px 14px' }}><span style={{ fontSize:11, fontWeight:600, background:`${C.blue}12`, color:C.blue, padding:'3px 8px', borderRadius:20 }}>{f.categorie||'—'}</span></td>
-                  <td style={{ padding:'11px 14px', fontSize:12, color:'#5A6070' }}>{f.email||'—'}</td>
-                  <td style={{ padding:'11px 14px', fontSize:12, color:'#5A6070' }}>{f.telephone||'—'}</td>
-                  <td style={{ padding:'11px 14px', fontSize:12, color:'#5A6070' }}>{f.conditions_paiement||'—'}</td>
+                  <td style={{ padding:'11px 14px', fontSize:12, color:'rgba(237,232,219,0.5)' }}>{f.email||'—'}</td>
+                  <td style={{ padding:'11px 14px', fontSize:12, color:'rgba(237,232,219,0.5)' }}>{f.telephone||'—'}</td>
+                  <td style={{ padding:'11px 14px', fontSize:12, color:'rgba(237,232,219,0.5)' }}>{f.conditions_paiement||'—'}</td>
                   <td style={{ padding:'11px 14px' }}>
                     <div style={{ display:'flex', gap:4 }} onClick={e=>e.stopPropagation()}>
                       <button onClick={()=>{setEditData(f);setShowForm(false);}} style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:C.light }} onMouseEnter={e=>e.currentTarget.style.color=C.blue} onMouseLeave={e=>e.currentTarget.style.color=C.light}><Edit2 size={13}/></button>
@@ -388,7 +388,7 @@ export default function FournisseursPro() {
         </div>
 
         {selected&&(
-          <div style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:14, padding:22, marginTop:16, boxShadow:'0 2px 12px rgba(0,0,0,0.07)' }}>
+          <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:22, marginTop:16, boxShadow:'0 2px 12px rgba(0,0,0,0.07)' }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
               <h3 style={{ fontSize:16, fontWeight:700, color:C.dark, margin:0 }}>{selected.nom}</h3>
               <button onClick={()=>setSelected(null)} style={{ background:'none', border:'none', cursor:'pointer', color:C.light }}><X size={16}/></button>
@@ -413,7 +413,7 @@ export default function FournisseursPro() {
       </>)}
 
       {tab==='analyse'&&(
-        <div style={{ background:'#fff', border:'1px solid #E8EAF0', borderRadius:14, padding:22, boxShadow:'0 1px 4px rgba(0,0,0,0.06)' }}>
+        <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:22, boxShadow:'0 1px 4px rgba(0,0,0,0.06)' }}>
           <h2 style={{ fontSize:13, fontWeight:700, color:C.dark, textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 20px' }}>Dépenses par catégorie · inflation INSEE</h2>
           {Object.keys(statsCategorie).length===0?(
             <p style={{ color:C.light, fontSize:13, textAlign:'center', padding:24 }}>Aucune donnée — ajoutez des fournisseurs et des dépenses.</p>
@@ -426,7 +426,7 @@ export default function FournisseursPro() {
               <div key={cat} style={{ marginBottom:16 }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:5 }}>
                   <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                    <span style={{ fontSize:13, color:'#5A6070', fontWeight:600 }}>{cat}</span>
+                    <span style={{ fontSize:13, color:'rgba(237,232,219,0.5)', fontWeight:600 }}>{cat}</span>
                     <span style={{ fontSize:11, color:C.light }}>({stats.count} fournisseur{stats.count>1?'s':''})</span>
                     {infl&&<span style={{ fontSize:10, background:'rgba(91,163,199,0.1)', color:C.blue, padding:'1px 6px', borderRadius:10, fontWeight:600 }}>INSEE +{infl.inflation12m}%/an</span>}
                     {aAlertesCat>0&&<span style={{ fontSize:9, background:'rgba(212,168,83,0.15)', color:C.orange, padding:'1px 6px', borderRadius:10, fontWeight:700 }}>⚠️ {aAlertesCat} alerte{aAlertesCat>1?'s':''}</span>}
