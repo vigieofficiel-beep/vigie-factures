@@ -15,9 +15,9 @@ const formatEuro = (n) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n ?? 0);
 
 const ALERTE_STYLE = {
-  critique : { bg: 'rgba(199,91,78,0.08)',  border: 'rgba(199,91,78,0.3)',  color: '#C75B4E', label: 'Urgent'    },
-  attention: { bg: 'rgba(212,168,83,0.08)', border: 'rgba(212,168,83,0.3)', color: '#D4A853', label: 'Attention' },
-  info     : { bg: 'rgba(91,163,199,0.08)', border: 'rgba(91,163,199,0.3)', color: '#5BA3C7', label: 'Info'      },
+  critique : { bg: 'rgba(199,91,78,0.08)',  border: 'rgba(199,91,78,0.2)',  color: '#C75B4E', label: 'Urgent'    },
+  attention: { bg: 'rgba(212,168,83,0.08)', border: 'rgba(212,168,83,0.15)', color: '#D4A853', label: 'Attention' },
+  info     : { bg: 'rgba(91,163,199,0.08)', border: 'rgba(91,163,199,0.2)', color: '#5BA3C7', label: 'Info'      },
 };
 const ICONE_MAP = { Percent, FileText, ClipboardCheck, AlertCircle, FileCheck };
 
@@ -168,7 +168,7 @@ function BandeauAlertes({ alertes, onDismiss }) {
   if (visibles.length === 0) return null;
 
   return (
-    <div style={{ background:critiques>0?'rgba(199,91,78,0.08)':'rgba(212,168,83,0.08)', border:`1px solid ${critiques>0?'rgba(199,91,78,0.3)':'rgba(212,168,83,0.3)'}`, borderRadius:14, marginBottom:24, overflow:'hidden' }}>
+    <div style={{ background:critiques>0?'rgba(199,91,78,0.08)':'rgba(212,168,83,0.08)', border:`1px solid ${critiques>0?'rgba(199,91,78,0.2)':'rgba(212,168,83,0.15)'}`, borderRadius:14, marginBottom:24, overflow:'hidden' }}>
       <div onClick={() => setCollapsed(c => !c)} style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', cursor:'pointer' }}>
         <Bell size={15} color={critiques>0?'#C75B4E':'#D4A853'} />
         <span style={{ fontSize:13, fontWeight:700, color:critiques>0?'#C75B4E':'#D4A853', flex:1 }}>
