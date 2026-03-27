@@ -56,16 +56,13 @@ export default function ProSignup() {
 
   const set = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }));
 
-  // FIX : Google OAuth — vérifie si l'email existe avant de rediriger
-  // Sur ProSignup, Google = inscription uniquement
-  // On laisse Supabase gérer : si l'utilisateur n'existe pas, il sera créé
-  // La vraie vérification "email non inscrit" est sur ProLogin
+  // FIX : redirectTo vers /pro/auth/callback pour que AuthCallback gère la session
   const handleGoogle = async () => {
     setGoogleLoading(true); setError(null);
     const { error } = await supabasePro.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/pro`,
+        redirectTo: `${window.location.origin}/pro/auth/callback`,
         queryParams: { access_type: 'offline', prompt: 'consent' },
       },
     });
@@ -79,7 +76,7 @@ export default function ProSignup() {
     const { error } = await supabasePro.auth.signUp({
       email: form.email, password: form.password,
       options: {
-        emailRedirectTo: `${window.location.origin}/pro`,
+        emailRedirectTo: `${window.location.origin}/pro/auth/callback`,
         data: { full_name:`${form.firstName} ${form.lastName}`, first_name:form.firstName, last_name:form.lastName, birth_date:form.birthDate, city:form.city },
       },
     });

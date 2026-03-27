@@ -40,20 +40,22 @@ import VigieFacturesWrapper from './pages/VigieFacturesWrapper';
 import ProHome from './pages/ProHome';
 import DocumentsPage from './pages/DocumentsPage';
 import ModuleLock from './components/ModuleLock';
+import AuthCallback from './pages/AuthCallback';
 
 const router = createBrowserRouter([
 
   // ═══ Pages publiques ═══
-  { path: '/',                  element: <HomeHub /> },
-  { path: '/login',             element: <Login /> },
-  { path: '/signup',            element: <Signup /> },
-  { path: '/pro/login',         element: <ProLogin /> },
-  { path: '/pro/signup',        element: <ProSignup /> },
-  { path: '/tarifs',            element: <Tarifs /> },
-  { path: '/cgu',               element: <CGU /> },
-  { path: '/contact',           element: <Contact /> },
-  { path: '/mentions-legales',  element: <MentionsLegales /> },
-  { path: '/confidentialite',   element: <Confidentialite /> },
+  { path: '/',                       element: <HomeHub /> },
+  { path: '/login',                  element: <Login /> },
+  { path: '/signup',                 element: <Signup /> },
+  { path: '/pro/login',              element: <ProLogin /> },
+  { path: '/pro/signup',             element: <ProSignup /> },
+  { path: '/pro/auth/callback',      element: <AuthCallback /> },
+  { path: '/tarifs',                 element: <Tarifs /> },
+  { path: '/cgu',                    element: <CGU /> },
+  { path: '/contact',                element: <Contact /> },
+  { path: '/mentions-legales',       element: <MentionsLegales /> },
+  { path: '/confidentialite',        element: <Confidentialite /> },
   { path: '/pro/nouveau-mot-de-passe', element: <NouveauMotDePasse /> },
 
   // ═══ Espace Perso ═══
