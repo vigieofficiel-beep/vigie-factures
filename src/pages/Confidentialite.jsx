@@ -16,11 +16,11 @@ const SECTIONS = [
     title: "1. Responsable du traitement",
     content: `Le responsable du traitement des données personnelles collectées via Vigie Pro est :
 
-• Nom : Narcisse
+• Nom : Lucien Doppler
 • Forme juridique : Auto-entrepreneur
 • SIRET : 888 362 118 00026
-• Email : contact@vigiepro.fr
-• Adresse : 37 bis rue du 13 octobre 1918, 02000 Laon`
+• Email : vigie-officiel@gmail.com
+• Adresse : France`
   },
   {
     title: "2. Données collectées",
@@ -94,7 +94,7 @@ Aucun transfert de données hors de l'Espace Économique Européen (EEE) n'est e
 • Droit d'opposition : vous opposer à certains traitements
 • Droit à la limitation : demander la limitation du traitement dans certains cas
 
-Pour exercer ces droits, contactez-nous à : contact@vigiepro.fr
+Pour exercer ces droits, contactez-nous à : vigie-officiel@gmail.com
 
 Nous nous engageons à répondre à toute demande dans un délai maximum de 30 jours. En cas de réponse insatisfaisante, vous pouvez introduire une réclamation auprès de la CNIL (www.cnil.fr).`
   },
@@ -206,7 +206,7 @@ export default function Confidentialite() {
               <p style={{ fontSize: 15, fontWeight: 700, color: '#fff', margin: '0 0 6px' }}>Exercer vos droits RGPD</p>
               <p style={{ fontSize: 13, color: C.light, margin: 0, maxWidth: 420 }}>Pour toute demande d'accès, rectification, suppression ou portabilité de vos données, contactez-nous directement.</p>
             </div>
-            <a href="mailto:contact@vigiepro.fr?subject=Demande RGPD — Vigie Pro" style={{ padding: '10px 22px', borderRadius: 8, background: 'linear-gradient(135deg,#5BC78A,#3da86a)', color: '#fff', fontSize: 13, fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            <a href="mailto:vigie-officiel@gmail.com?subject=Demande RGPD — Vigie Pro" style={{ padding: '10px 22px', borderRadius: 8, background: 'linear-gradient(135deg,#5BC78A,#3da86a)', color: '#fff', fontSize: 13, fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}>
               Exercer mes droits →
             </a>
           </div>
