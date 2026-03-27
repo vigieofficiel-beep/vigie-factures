@@ -1,9 +1,44 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabasePro } from '../lib/supabasePro';
-import { Save, User, Building2, CreditCard, MapPin, CheckCircle, Camera, Upload, Zap, ExternalLink, Loader, Trash2, AlertTriangle } from 'lucide-react';
+import { Save, User, Building2, CreditCard, MapPin, CheckCircle, Camera, Upload, Zap, ExternalLink, Loader, Trash2, AlertTriangle, ChevronDown } from 'lucide-react';
 import { useStripe } from '../hooks/useStripe';
 import { usePlan, PLANS } from '../hooks/usePlan';
 import { useNavigate } from 'react-router-dom';
+
+import React from 'react';
+
+const FORMES = ['Auto-entrepreneur','EURL','SARL','SAS','SASU','SA','EI','Association'];
+
+function CustomSelectForme({ value, onChange }) {
+  const [open, setOpen] = React.useState(false);
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+  return (
+    <div ref={ref} style={{ position:'relative', userSelect:'none' }}>
+      <div onClick={() => setOpen(o => !o)}
+        style={{ width:'100%', padding:'10px 12px', borderRadius:9, background:'rgba(255,255,255,0.06)', border:`1px solid ${open?'rgba(91,163,199,0.5)':'rgba(255,255,255,0.1)'}`, color: value ? '#EDE8DB' : 'rgba(237,232,219,0.3)', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', boxSizing:'border-box', fontFamily:'inherit' }}>
+        <span>{value || 'Sélectionner'}</span>
+        <ChevronDown size={13} style={{ color:'rgba(237,232,219,0.4)', transform:open?'rotate(180deg)':'rotate(0deg)', transition:'transform 200ms' }}/>
+      </div>
+      {open && (
+        <div style={{ position:'absolute', top:'calc(100% + 4px)', left:0, right:0, background:'#1a1d24', border:'1px solid rgba(255,255,255,0.1)', borderRadius:10, zIndex:100, overflow:'hidden', boxShadow:'0 8px 24px rgba(0,0,0,0.4)' }}>
+          {FORMES.map(f => (
+            <div key={f} onClick={() => { onChange(f); setOpen(false); }}
+              style={{ padding:'9px 12px', fontSize:13, color: value===f?'#5BA3C7':'#EDE8DB', background:value===f?'rgba(91,163,199,0.1)':'transparent', cursor:'pointer' }}
+              onMouseEnter={e => { if(value!==f) e.currentTarget.style.background='rgba(255,255,255,0.05)'; }}
+              onMouseLeave={e => { if(value!==f) e.currentTarget.style.background='transparent'; }}>
+              {f}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const C = {
   blue:   '#5BA3C7',
@@ -229,10 +264,7 @@ export default function ProfilPro() {
           <div><label style={labelStyle}>Raison sociale</label><input value={form.company_name||''} onChange={set('company_name')} style={inputStyle} placeholder="SARL Dupont"/></div>
           <div>
             <label style={labelStyle}>Forme juridique</label>
-            <select value={form.forme_juridique||''} onChange={set('forme_juridique')} style={{ ...inputStyle, cursor:'pointer' }}>
-              <option value="">Sélectionner</option>
-              {['Auto-entrepreneur','EURL','SARL','SAS','SASU','SA','EI','Association'].map(f => <option key={f}>{f}</option>)}
-            </select>
+            <CustomSelectForme value={form.forme_juridique||''} onChange={(v) => setForm(f => ({...f, forme_juridique: v}))} />
           </div>
           <div><label style={labelStyle}>SIRET</label><input value={form.siret||''} onChange={set('siret')} style={inputStyle} placeholder="000 000 000 00000"/></div>
           <div><label style={labelStyle}>N° TVA intracommunautaire</label><input value={form.tva_intracommunautaire||''} onChange={set('tva_intracommunautaire')} style={inputStyle} placeholder="FR00000000000"/></div>

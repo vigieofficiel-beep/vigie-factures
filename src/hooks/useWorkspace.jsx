@@ -11,7 +11,9 @@ export function WorkspaceProvider({ children }) {
   useEffect(() => { loadWorkspaces(); }, []);
 
   const loadWorkspaces = async () => {
-    const { data: { user } } = await supabasePro.auth.getUser();
+    // FIX : getSession au lieu de getUser — évite le 403 après OAuth Google
+    const { data: { session } } = await supabasePro.auth.getSession();
+    const user = session?.user;
     if (!user) { setLoading(false); return; }
 
     const { data } = await supabasePro
@@ -23,6 +25,24 @@ export function WorkspaceProvider({ children }) {
     const list = data || [];
     setWorkspaces(list);
 
+    // Si aucun workspace — en créer un par défaut automatiquement
+    if (list.length === 0) {
+      try {
+        const { data: newWs } = await supabasePro
+          .from('workspaces')
+          .insert({ user_id: user.id, name: 'Mon bureau' })
+          .select()
+          .single();
+        if (newWs) {
+          setWorkspaces([newWs]);
+          setActiveWorkspace(newWs);
+          localStorage.setItem('vigie_active_workspace', newWs.id);
+          setLoading(false);
+          return;
+        }
+      } catch (_) {}
+    }
+
     const saved = localStorage.getItem('vigie_active_workspace');
     const found = list.find(w => w.id === saved);
     const initial = found || list[0] || null;
@@ -31,12 +51,13 @@ export function WorkspaceProvider({ children }) {
   };
 
   const switchWorkspace = useCallback((workspace) => {
-    setActiveWorkspace({ ...workspace }); // spread pour forcer nouveau objet = re-render garanti
+    setActiveWorkspace({ ...workspace });
     localStorage.setItem('vigie_active_workspace', workspace.id);
   }, []);
 
   const createWorkspace = async (name) => {
-    const { data: { user } } = await supabasePro.auth.getUser();
+    const { data: { session } } = await supabasePro.auth.getSession();
+    const user = session?.user;
     if (!user) return null;
     const { data, error } = await supabasePro
       .from('workspaces')
