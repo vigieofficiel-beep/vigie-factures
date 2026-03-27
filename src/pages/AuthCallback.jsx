@@ -6,21 +6,53 @@ export default function AuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Supabase lit le hash #access_token dans l'URL et établit la session
-    supabasePro.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        // Nettoyer le hash et rediriger vers le dashboard
-        window.history.replaceState(null, '', '/pro/auth/callback');
-        navigate('/pro', { replace: true });
-      }
-    });
+    const handleCallback = async () => {
+      // Extraire le hash de l'URL (#access_token=...&refresh_token=...&type=...)
+      const hash = window.location.hash;
 
-    // Fallback : si la session est déjà là
-    supabasePro.auth.getSession().then(({ data }) => {
-      if (data.session) {
-        navigate('/pro', { replace: true });
+      if (hash && hash.includes('access_token')) {
+        // Laisser Supabase parser le hash et établir la session
+        const { data, error } = await supabasePro.auth.getSession();
+
+        if (error) {
+          console.error('[AuthCallback] Erreur session:', error.message);
+          navigate('/pro/login', { replace: true });
+          return;
+        }
+
+        if (data.session) {
+          window.history.replaceState(null, '', '/pro/auth/callback');
+          navigate('/pro', { replace: true });
+          return;
+        }
+
+        // Si getSession ne donne rien, écouter onAuthStateChange
+        const { data: { subscription } } = supabasePro.auth.onAuthStateChange((event, session) => {
+          if (event === 'SIGNED_IN' && session) {
+            subscription.unsubscribe();
+            window.history.replaceState(null, '', '/pro/auth/callback');
+            navigate('/pro', { replace: true });
+          }
+        });
+
+        // Timeout de sécurité — si rien après 5s, rediriger vers login
+        setTimeout(() => {
+          subscription.unsubscribe();
+          navigate('/pro/login', { replace: true });
+        }, 5000);
+
+      } else {
+        // Pas de hash — vérifier si session existe déjà
+        const { data } = await supabasePro.auth.getSession();
+        if (data.session) {
+          navigate('/pro', { replace: true });
+        } else {
+          navigate('/pro/login', { replace: true });
+        }
       }
-    });
+    };
+
+    handleCallback();
   }, [navigate]);
 
   return (
