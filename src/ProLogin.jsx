@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabasePro } from './lib/supabasePro';
 
@@ -36,7 +36,49 @@ export default function ProLogin() {
   const [success,       setSuccess]       = useState(false);
   const [loading,       setLoading]       = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+
+  // FIX : état pour proposer l'inscription si Google non inscrit
+  const [googleEmail,      setGoogleEmail]      = useState(null);
+  const [showSignupPrompt, setShowSignupPrompt] = useState(false);
+
   const navigate = useNavigate();
+
+  // FIX : intercepter le retour OAuth Google
+  // Supabase déclenche onAuthStateChange après le redirect
+  // On vérifie si l'utilisateur a un profil — sinon on le déconnecte
+  useEffect(() => {
+    const { data: { subscription } } = supabasePro.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        const user = session.user;
+
+        // Vérifier si c'est une connexion Google (provider = google)
+        const isGoogle = user.app_metadata?.provider === 'google';
+        if (!isGoogle) return; // connexion email/mdp gérée ailleurs
+
+        // Vérifier si un profil existe dans user_profiles
+        const { data: profile, error: profileError } = await supabasePro
+          .from('user_profiles')
+          .select('id')
+          .eq('id', user.id)
+          .single();
+
+        if (profileError || !profile) {
+          // Pas de profil = compte non inscrit via le flow normal
+          // On déconnecte immédiatement
+          await supabasePro.auth.signOut();
+          setGoogleEmail(user.email);
+          setShowSignupPrompt(true);
+          setGoogleLoading(false);
+          return;
+        }
+
+        // Profil trouvé = connexion autorisée
+        navigate('/pro', { replace: true });
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault(); setError(null); setLoading(true);
@@ -47,10 +89,15 @@ export default function ProLogin() {
   };
 
   const handleGoogle = async () => {
-    setGoogleLoading(true); setError(null);
+    setGoogleLoading(true);
+    setError(null);
+    setShowSignupPrompt(false);
     const { error } = await supabasePro.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/pro`, queryParams: { access_type: 'offline', prompt: 'consent' } },
+      options: {
+        redirectTo: `${window.location.origin}/pro/login`,
+        queryParams: { access_type: 'offline', prompt: 'consent' },
+      },
     });
     if (error) { setError(translateError(error.message)); setGoogleLoading(false); }
   };
@@ -65,7 +112,6 @@ export default function ProLogin() {
     else setSuccess(true);
   };
 
-  // Fond commun
   const bg = (
     <>
       <div style={{ position:'fixed', inset:0, backgroundImage:'url(/hero-bg.jpg)', backgroundSize:'cover', backgroundPosition:'center 40%', zIndex:0 }}/>
@@ -95,7 +141,6 @@ export default function ProLogin() {
     <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column', fontFamily:"'Nunito Sans', sans-serif", position:'relative' }}>
       {bg}
 
-      {/* Navbar */}
       <nav style={{ position:'relative', zIndex:10, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 6%', height:64 }}>
         <Link to="/" style={{ display:'flex', alignItems:'center', gap:10, textDecoration:'none' }}>
           <img src="/logo-vigie.png" alt="Vigie" style={{ height:32, width:'auto', objectFit:'contain' }} onError={e => { e.currentTarget.style.display='none'; e.currentTarget.nextSibling.style.display='block'; }}/>
@@ -104,7 +149,6 @@ export default function ProLogin() {
         <Link to="/pro/signup" style={{ padding:'8px 18px', borderRadius:8, background:'linear-gradient(135deg, #5BA3C7, #3d7fa8)', color:'#fff', fontSize:13, fontWeight:700, textDecoration:'none' }}>S'inscrire</Link>
       </nav>
 
-      {/* Carte login */}
       <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px 16px 40px', position:'relative', zIndex:10 }}>
         <div style={{ background:'linear-gradient(135deg, rgba(91,163,199,0.1), rgba(91,163,199,0.04))', backdropFilter:'blur(24px)', border:'1px solid rgba(91,163,199,0.2)', borderRadius:20, padding:'36px 40px', width:'100%', maxWidth:420 }}>
 
@@ -116,11 +160,32 @@ export default function ProLogin() {
             {mode === 'login' ? 'Ravi de vous revoir !' : 'Réinitialiser votre mot de passe'}
           </p>
 
+          {/* FIX : Bloc affiché si Google non inscrit */}
+          {showSignupPrompt && (
+            <div style={{ marginBottom:20, padding:'14px 16px', background:'rgba(199,91,78,0.1)', border:'1px solid rgba(199,91,78,0.3)', borderRadius:12 }}>
+              <p style={{ fontSize:13, color:'#EDE8DB', fontWeight:700, marginBottom:6 }}>
+                Aucun compte trouvé
+              </p>
+              <p style={{ fontSize:12, color:'rgba(237,232,219,0.6)', marginBottom:12, lineHeight:1.6 }}>
+                L'adresse <strong style={{ color:'#5BA3C7' }}>{googleEmail}</strong> n'est pas encore inscrite sur Vigie Pro.
+              </p>
+              <Link
+                to="/pro/signup"
+                style={{ display:'inline-block', padding:'8px 18px', borderRadius:9, background:'linear-gradient(135deg, #2563EB, #5BA3C7)', color:'#fff', fontSize:12, fontWeight:700, textDecoration:'none' }}
+              >
+                Créer un compte avec cet email →
+              </Link>
+            </div>
+          )}
+
           {mode === 'login' && (<>
-            <button onClick={handleGoogle} disabled={googleLoading} style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:10, padding:'11px 16px', borderRadius:10, marginBottom:16, background:googleLoading?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.14)', color:'#F8FAFC', fontSize:13, fontWeight:600, cursor:googleLoading?'wait':'pointer', fontFamily:"'Nunito Sans', sans-serif", transition:'all 150ms ease' }}
+            <button onClick={handleGoogle} disabled={googleLoading}
+              style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:10, padding:'11px 16px', borderRadius:10, marginBottom:16, background:googleLoading?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.14)', color:'#F8FAFC', fontSize:13, fontWeight:600, cursor:googleLoading?'wait':'pointer', fontFamily:"'Nunito Sans', sans-serif", transition:'all 150ms ease' }}
               onMouseEnter={e => { if (!googleLoading) e.currentTarget.style.background='rgba(255,255,255,0.13)'; }}
               onMouseLeave={e => { e.currentTarget.style.background=googleLoading?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.08)'; }}>
-              {googleLoading ? <span style={{ fontSize:12, color:'rgba(255,255,255,0.4)' }}>Redirection vers Google…</span> : <><GoogleIcon /> Continuer avec Google</>}
+              {googleLoading
+                ? <span style={{ fontSize:12, color:'rgba(255,255,255,0.4)' }}>Redirection vers Google…</span>
+                : <><GoogleIcon /> Continuer avec Google</>}
             </button>
 
             <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
@@ -142,7 +207,8 @@ export default function ProLogin() {
                 <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required style={iS}/>
               </div>
               {error && <div style={{ color:'#C75B4E', fontSize:11, background:'rgba(199,91,78,0.12)', padding:'8px 12px', borderRadius:6 }}>{error}</div>}
-              <button type="submit" disabled={loading} style={{ width:'100%', padding:'12px', borderRadius:10, border:'none', background:loading?'rgba(91,163,199,0.3)':'linear-gradient(135deg, #2563EB, #5BA3C7)', color:'#fff', fontSize:14, fontWeight:700, cursor:loading?'not-allowed':'pointer', marginTop:4, fontFamily:'inherit' }}>
+              <button type="submit" disabled={loading}
+                style={{ width:'100%', padding:'12px', borderRadius:10, border:'none', background:loading?'rgba(91,163,199,0.3)':'linear-gradient(135deg, #2563EB, #5BA3C7)', color:'#fff', fontSize:14, fontWeight:700, cursor:loading?'not-allowed':'pointer', marginTop:4, fontFamily:'inherit' }}>
                 {loading ? 'Connexion...' : 'Se connecter'}
               </button>
             </form>
@@ -158,12 +224,18 @@ export default function ProLogin() {
                 <label style={lS}>Votre adresse email</label>
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="votre@email.fr" required style={iS}/>
               </div>
-              <p style={{ fontSize:12, color:'rgba(255,255,255,0.35)', margin:0, lineHeight:1.6 }}>Nous vous enverrons un lien pour créer un nouveau mot de passe.</p>
+              <p style={{ fontSize:12, color:'rgba(255,255,255,0.35)', margin:0, lineHeight:1.6 }}>
+                Nous vous enverrons un lien pour créer un nouveau mot de passe.
+              </p>
               {error && <div style={{ color:'#C75B4E', fontSize:11, background:'rgba(199,91,78,0.12)', padding:'8px 12px', borderRadius:6 }}>{error}</div>}
-              <button type="submit" disabled={loading} style={{ width:'100%', padding:'12px', borderRadius:10, border:'none', background:loading?'rgba(91,163,199,0.3)':'linear-gradient(135deg, #2563EB, #5BA3C7)', color:'#fff', fontSize:14, fontWeight:700, cursor:loading?'not-allowed':'pointer', fontFamily:'inherit' }}>
+              <button type="submit" disabled={loading}
+                style={{ width:'100%', padding:'12px', borderRadius:10, border:'none', background:loading?'rgba(91,163,199,0.3)':'linear-gradient(135deg, #2563EB, #5BA3C7)', color:'#fff', fontSize:14, fontWeight:700, cursor:loading?'not-allowed':'pointer', fontFamily:'inherit' }}>
                 {loading ? 'Envoi...' : 'Envoyer le lien de réinitialisation'}
               </button>
-              <button type="button" onClick={() => { setMode('login'); setError(null); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:12, color:'rgba(255,255,255,0.35)', fontFamily:'inherit' }}>← Retour à la connexion</button>
+              <button type="button" onClick={() => { setMode('login'); setError(null); }}
+                style={{ background:'none', border:'none', cursor:'pointer', fontSize:12, color:'rgba(255,255,255,0.35)', fontFamily:'inherit' }}>
+                ← Retour à la connexion
+              </button>
             </form>
           )}
 
