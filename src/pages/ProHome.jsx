@@ -240,8 +240,14 @@ export default function ProHome() {
 
   const fetchAll = async () => {
     setLoading(true);
-    const { data: { user } } = await supabasePro.auth.getUser();
-    if (!user) return;
+
+    // FIX : getSession au lieu de getUser — évite le 403 après OAuth Google
+    const { data: { session } } = await supabasePro.auth.getSession();
+    const user = session?.user;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
     let qExp = supabasePro.from('expenses').select('amount_ttc, type, etablissement, date, notes').eq('user_id', user.id).order('date', { ascending: false }).limit(50);
     if (activeWorkspace?.id) qExp = qExp.eq('workspace_id', activeWorkspace.id);
@@ -270,7 +276,6 @@ export default function ProHome() {
   const depensesByType = expenses.reduce((acc, e) => { const t = e.type || 'Autre'; acc[t] = (acc[t] || 0) + (e.amount_ttc || 0); return acc; }, {});
   const critiques      = alertes.filter(a => a.niveau === URGENCE.CRITIQUE).length;
 
-  // Nom du bureau actif
   const nomBureau = activeWorkspace?.name || profil.company_name || (profil.first_name ? `Bureau de ${profil.first_name}` : 'Bureau');
 
   if (loading) return (
@@ -280,7 +285,6 @@ export default function ProHome() {
   return (
     <div style={{ fontFamily:"'Nunito Sans', sans-serif", padding:'32px 28px', maxWidth:1000, margin:'0 auto' }}>
 
-      {/* En-tête */}
       <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:28 }}>
         <div>
           <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:28, fontWeight:600, color:'#EDE8DB', margin:0 }}>
@@ -294,15 +298,12 @@ export default function ProHome() {
         <ClocheNotifications notifs={notifs} setNotifs={setNotifs} />
       </div>
 
-      {/* Graphique CA */}
       <div style={{ marginBottom:24, background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:16, overflow:'hidden' }}>
         <GraphiqueCA compact={true} />
       </div>
 
-      {/* Alertes */}
       {alertes.length > 0 && <BandeauAlertes alertes={alertes} onDismiss={() => setAlertes([])} />}
 
-      {/* Anomalies */}
       {anomalies.length > 0 && showAnomalies && (
         <div style={{ background:'rgba(199,91,78,0.06)', border:'1px solid rgba(199,91,78,0.25)', borderRadius:14, marginBottom:24, overflow:'hidden' }}>
           <div style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px' }}>
@@ -318,7 +319,6 @@ export default function ProHome() {
         </div>
       )}
 
-      {/* KPIs */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:14, marginBottom:28 }}>
         {[
           { label:'Dépenses (mois)',     value:formatEuro(totalDepenses), color:'#C75B4E', icon:TrendingDown, action:() => navigate('/pro/depenses') },
@@ -342,7 +342,6 @@ export default function ProHome() {
         })}
       </div>
 
-      {/* Dépenses par catégorie */}
       {Object.keys(depensesByType).length > 0 && (
         <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:22, marginBottom:20 }}>
           <h2 style={{ fontSize:13, fontWeight:700, color:'rgba(237,232,219,0.6)', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 16px' }}>Dépenses par catégorie</h2>
@@ -364,7 +363,6 @@ export default function ProHome() {
         </div>
       )}
 
-      {/* Raccourcis */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:12 }}>
         {[
           { label:'Nouvelle dépense',  color:'#5BC78A', path:'/pro/depenses'   },
