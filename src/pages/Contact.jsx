@@ -1,6 +1,56 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Mail, MessageCircle, Clock, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Mail, MessageCircle, Clock, CheckCircle, ChevronDown } from 'lucide-react';
+
+const SUJETS = [
+  { value: 'bug',        label: '🐛 Signaler un bug' },
+  { value: 'question',   label: '❓ Question sur le service' },
+  { value: 'facturation',label: '💳 Facturation / abonnement' },
+  { value: 'suggestion', label: '💡 Suggestion d\'amélioration' },
+  { value: 'rgpd',       label: '🔒 Demande RGPD' },
+  { value: 'autre',      label: '📩 Autre' },
+];
+
+function CustomSelect({ value, onChange, placeholder }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const selected = SUJETS.find(s => s.value === value);
+
+  return (
+    <div ref={ref} style={{ position:'relative', userSelect:'none' }}>
+      <div
+        onClick={() => setOpen(o => !o)}
+        style={{ width:'100%', padding:'11px 14px', borderRadius:10, background:'rgba(255,255,255,0.04)', border:`1px solid ${open ? 'rgba(91,163,199,0.5)' : 'rgba(255,255,255,0.08)'}`, color: selected ? '#EDE8DB' : 'rgba(237,232,219,0.3)', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', boxSizing:'border-box', transition:'border 150ms' }}
+      >
+        <span>{selected ? selected.label : placeholder}</span>
+        <ChevronDown size={14} style={{ color:'rgba(237,232,219,0.4)', transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition:'transform 200ms' }}/>
+      </div>
+
+      {open && (
+        <div style={{ position:'absolute', top:'calc(100% + 4px)', left:0, right:0, background:'#1a1d24', border:'1px solid rgba(255,255,255,0.1)', borderRadius:10, zIndex:100, overflow:'hidden', boxShadow:'0 8px 24px rgba(0,0,0,0.4)' }}>
+          {SUJETS.map(s => (
+            <div
+              key={s.value}
+              onClick={() => { onChange(s.value); setOpen(false); }}
+              style={{ padding:'10px 14px', fontSize:13, color: value === s.value ? '#5BA3C7' : '#EDE8DB', background: value === s.value ? 'rgba(91,163,199,0.1)' : 'transparent', cursor:'pointer', transition:'background 100ms' }}
+              onMouseEnter={e => { if (value !== s.value) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+              onMouseLeave={e => { if (value !== s.value) e.currentTarget.style.background = 'transparent'; }}
+            >
+              {s.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Contact() {
   const [form,    setForm]    = useState({ nom:'', email:'', sujet:'', message:'' });
@@ -11,8 +61,8 @@ export default function Contact() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!form.sujet) return;
     setLoading(true);
-    // Simulation envoi — à brancher sur Resend si besoin
     await new Promise(r => setTimeout(r, 1200));
     setLoading(false);
     setEnvoye(true);
@@ -41,7 +91,6 @@ export default function Contact() {
   return (
     <div style={{ minHeight:'100vh', background:'#08090C', fontFamily:"'Nunito Sans', sans-serif", color:'#EDE8DB' }}>
 
-      {/* Navbar */}
       <nav style={{ position:'sticky', top:0, zIndex:100, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 6%', height:64, background:'rgba(8,9,12,0.95)', backdropFilter:'blur(20px)', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
         <Link to="/" style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:20, fontWeight:700, color:'#EDE8DB', textDecoration:'none' }}>Vigie</Link>
         <Link to="/" style={{ display:'flex', alignItems:'center', gap:6, background:'none', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'7px 14px', color:'rgba(237,232,219,0.5)', fontSize:13, textDecoration:'none' }}>
@@ -50,8 +99,6 @@ export default function Contact() {
       </nav>
 
       <div style={{ maxWidth:840, margin:'0 auto', padding:'60px 6%' }}>
-
-        {/* En-tête */}
         <div style={{ marginBottom:48, textAlign:'center' }}>
           <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'clamp(32px, 5vw, 52px)', fontWeight:700, color:'#EDE8DB', marginBottom:12 }}>
             Contactez-nous
@@ -63,11 +110,10 @@ export default function Contact() {
 
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1.6fr', gap:24 }}>
 
-          {/* Infos contact */}
           <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
             {[
               { icon:Mail,          titre:'Email',           valeur:'vigie-officiel@gmail.com', href:'mailto:vigie-officiel@gmail.com' },
-              { icon:MessageCircle, titre:'Assistant Vigil', valeur:'Disponible dans l\'app',   href:'/pro' },
+              { icon:MessageCircle, titre:'Assistant Vigil', valeur:"Disponible dans l'app",    href:'/pro' },
               { icon:Clock,         titre:'Délai de réponse',valeur:'Sous 48h ouvrées',          href:null },
             ].map(item => {
               const Icon = item.icon;
@@ -78,17 +124,14 @@ export default function Contact() {
                   </div>
                   <div>
                     <div style={{ fontSize:12, fontWeight:700, color:'rgba(237,232,219,0.5)', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:4 }}>{item.titre}</div>
-                    {item.href ? (
-                      <a href={item.href} style={{ fontSize:13, color:'#EDE8DB', textDecoration:'none', fontWeight:500 }}>{item.valeur}</a>
-                    ) : (
-                      <div style={{ fontSize:13, color:'#EDE8DB', fontWeight:500 }}>{item.valeur}</div>
-                    )}
+                    {item.href
+                      ? <a href={item.href} style={{ fontSize:13, color:'#EDE8DB', textDecoration:'none', fontWeight:500 }}>{item.valeur}</a>
+                      : <div style={{ fontSize:13, color:'#EDE8DB', fontWeight:500 }}>{item.valeur}</div>}
                   </div>
                 </div>
               );
             })}
 
-            {/* Liens utiles */}
             <div style={{ background:'rgba(91,163,199,0.06)', border:'1px solid rgba(91,163,199,0.15)', borderRadius:14, padding:'18px 20px' }}>
               <div style={{ fontSize:12, fontWeight:700, color:'#5BA3C7', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:12 }}>Liens utiles</div>
               {[
@@ -97,7 +140,8 @@ export default function Contact() {
                 { label:'Confidentialité',     to:'/confidentialite' },
                 { label:'CGU',                 to:'/cgu' },
               ].map(l => (
-                <Link key={l.label} to={l.to} style={{ display:'block', fontSize:13, color:'rgba(237,232,219,0.5)', textDecoration:'none', padding:'4px 0', transition:'color 150ms' }}
+                <Link key={l.label} to={l.to}
+                  style={{ display:'block', fontSize:13, color:'rgba(237,232,219,0.5)', textDecoration:'none', padding:'4px 0', transition:'color 150ms' }}
                   onMouseEnter={e => e.currentTarget.style.color='#5BA3C7'}
                   onMouseLeave={e => e.currentTarget.style.color='rgba(237,232,219,0.5)'}>
                   → {l.label}
@@ -106,7 +150,6 @@ export default function Contact() {
             </div>
           </div>
 
-          {/* Formulaire */}
           <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:20, padding:'32px 28px' }}>
             <form onSubmit={handleSubmit} style={{ display:'flex', flexDirection:'column', gap:16 }}>
 
@@ -123,15 +166,11 @@ export default function Contact() {
 
               <div>
                 <label style={lS}>Sujet</label>
-                <select value={form.sujet} onChange={set('sujet')} required style={iS}>
-                  <option value="">Choisir un sujet…</option>
-                  <option value="bug">🐛 Signaler un bug</option>
-                  <option value="question">❓ Question sur le service</option>
-                  <option value="facturation">💳 Facturation / abonnement</option>
-                  <option value="suggestion">💡 Suggestion d'amélioration</option>
-                  <option value="rgpd">🔒 Demande RGPD</option>
-                  <option value="autre">📩 Autre</option>
-                </select>
+                <CustomSelect
+                  value={form.sujet}
+                  onChange={(val) => setForm(f => ({ ...f, sujet: val }))}
+                  placeholder="Choisir un sujet…"
+                />
               </div>
 
               <div>
@@ -139,7 +178,8 @@ export default function Contact() {
                 <textarea value={form.message} onChange={set('message')} placeholder="Décrivez votre demande en détail…" required rows={5} style={{ ...iS, resize:'vertical', lineHeight:1.6 }}/>
               </div>
 
-              <button type="submit" disabled={loading} style={{ padding:'13px', borderRadius:12, border:'none', background:loading?'rgba(91,163,199,0.3)':'linear-gradient(135deg, #5BA3C7, #3d7fa8)', color:'#fff', fontSize:14, fontWeight:700, cursor:loading?'not-allowed':'pointer', fontFamily:'inherit', transition:'all 200ms' }}>
+              <button type="submit" disabled={loading || !form.sujet}
+                style={{ padding:'13px', borderRadius:12, border:'none', background: (loading || !form.sujet) ? 'rgba(91,163,199,0.3)' : 'linear-gradient(135deg, #5BA3C7, #3d7fa8)', color:'#fff', fontSize:14, fontWeight:700, cursor:(loading || !form.sujet) ? 'not-allowed' : 'pointer', fontFamily:'inherit', transition:'all 200ms' }}>
                 {loading ? 'Envoi en cours…' : 'Envoyer le message →'}
               </button>
 
