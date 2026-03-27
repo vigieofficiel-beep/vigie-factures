@@ -22,9 +22,13 @@ export default function Footer() {
               { label:'Tarifs',      to:'/tarifs' },
               { label:'Contact',     to:'/contact'},
             ].map(link => (
-              <Link key={link.to} to={link.to} style={{ fontSize:14, color:'#BDBABB', textDecoration:'none', transition:'color 150ms ease' }}
+              <Link
+                key={link.to}
+                to={link.to}
+                style={{ fontSize:14, color:'#BDBABB', textDecoration:'none', transition:'color 150ms ease' }}
                 onMouseEnter={e => e.currentTarget.style.color='#5BC78A'}
-                onMouseLeave={e => e.currentTarget.style.color='#BDBABB'}>
+                onMouseLeave={e => e.currentTarget.style.color='#BDBABB'}
+              >
                 {link.label}
               </Link>
             ))}
@@ -39,9 +43,13 @@ export default function Footer() {
               { label:'Confidentialité',  to:'/confidentialite'  },
               { label:'CGU',              to:'/cgu'              },
             ].map(link => (
-              <Link key={link.label} to={link.to} style={{ fontSize:14, color:'#BDBABB', textDecoration:'none', transition:'color 150ms ease' }}
+              <Link
+                key={link.label}
+                to={link.to}
+                style={{ fontSize:14, color:'#BDBABB', textDecoration:'none', transition:'color 150ms ease' }}
                 onMouseEnter={e => e.currentTarget.style.color='#5BC78A'}
-                onMouseLeave={e => e.currentTarget.style.color='#BDBABB'}>
+                onMouseLeave={e => e.currentTarget.style.color='#BDBABB'}
+              >
                 {link.label}
               </Link>
             ))}
@@ -51,19 +59,29 @@ export default function Footer() {
         <div>
           <h4 style={{ fontSize:13, fontWeight:700, letterSpacing:1.4, color:'#D8D5CF', textTransform:'uppercase', marginBottom:16 }}>Contact</h4>
           <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-            <a href="mailto:vigie-officiel@gmail.com" style={{ fontSize:14, color:'#BDBABB', textDecoration:'none', transition:'color 150ms ease' }}
+            <a
+              href="mailto:vigie-officiel@gmail.com"
+              style={{ fontSize:14, color:'#BDBABB', textDecoration:'none', transition:'color 150ms ease' }}
               onMouseEnter={e => e.currentTarget.style.color='#5BC78A'}
-              onMouseLeave={e => e.currentTarget.style.color='#BDBABB'}>
+              onMouseLeave={e => e.currentTarget.style.color='#BDBABB'}
+            >
               vigie-officiel@gmail.com
             </a>
-            <Link to="/contact" style={{ fontSize:14, color:'#BDBABB', textDecoration:'none', transition:'color 150ms ease' }}
+            <Link
+              to="/contact"
+              style={{ fontSize:14, color:'#BDBABB', textDecoration:'none', transition:'color 150ms ease' }}
               onMouseEnter={e => e.currentTarget.style.color='#5BC78A'}
-              onMouseLeave={e => e.currentTarget.style.color='#BDBABB'}>
+              onMouseLeave={e => e.currentTarget.style.color='#BDBABB'}
+            >
               Formulaire de contact
             </Link>
-            <Link to="/tarifs#faq" style={{ fontSize:14, color:'#BDBABB', textDecoration:'none', transition:'color 150ms ease' }}
+            {/* FIX : lien FAQ renvoie vers /tarifs avec ancre #faq */}
+            <Link
+              to="/tarifs#faq"
+              style={{ fontSize:14, color:'#BDBABB', textDecoration:'none', transition:'color 150ms ease' }}
               onMouseEnter={e => e.currentTarget.style.color='#5BC78A'}
-              onMouseLeave={e => e.currentTarget.style.color='#BDBABB'}>
+              onMouseLeave={e => e.currentTarget.style.color='#BDBABB'}
+            >
               FAQ
             </Link>
           </div>
