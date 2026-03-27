@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabasePro } from '../lib/supabasePro';
 
 const FR_ERRORS = {
@@ -44,6 +44,7 @@ function GoogleIcon() {
 }
 
 export default function ProSignup() {
+  const navigate = useNavigate();
   const [form, setForm] = useState({ firstName:'', lastName:'', birthDate:'', city:'', email:'', password:'', confirmPassword:'' });
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
@@ -55,11 +56,18 @@ export default function ProSignup() {
 
   const set = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }));
 
+  // FIX : Google OAuth — vérifie si l'email existe avant de rediriger
+  // Sur ProSignup, Google = inscription uniquement
+  // On laisse Supabase gérer : si l'utilisateur n'existe pas, il sera créé
+  // La vraie vérification "email non inscrit" est sur ProLogin
   const handleGoogle = async () => {
     setGoogleLoading(true); setError(null);
     const { error } = await supabasePro.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/pro`, queryParams: { access_type: 'offline', prompt: 'consent' } },
+      options: {
+        redirectTo: `${window.location.origin}/pro`,
+        queryParams: { access_type: 'offline', prompt: 'consent' },
+      },
     });
     if (error) { setError(toFr(error.message)); setGoogleLoading(false); }
   };
@@ -70,7 +78,10 @@ export default function ProSignup() {
     setLoading(true);
     const { error } = await supabasePro.auth.signUp({
       email: form.email, password: form.password,
-      options: { emailRedirectTo: `${window.location.origin}/pro`, data: { full_name:`${form.firstName} ${form.lastName}`, first_name:form.firstName, last_name:form.lastName, birth_date:form.birthDate, city:form.city } },
+      options: {
+        emailRedirectTo: `${window.location.origin}/pro`,
+        data: { full_name:`${form.firstName} ${form.lastName}`, first_name:form.firstName, last_name:form.lastName, birth_date:form.birthDate, city:form.city },
+      },
     });
     setLoading(false);
     if (error) setError(toFr(error.message)); else setSuccess(true);
@@ -111,8 +122,6 @@ export default function ProSignup() {
   return (
     <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column', fontFamily:"'Nunito Sans', sans-serif", position:'relative' }}>
       {bg}
-
-      {/* Navbar */}
       <nav style={{ position:'relative', zIndex:10, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 6%', height:64 }}>
         <Link to="/" style={{ display:'flex', alignItems:'center', gap:10, textDecoration:'none' }}>
           <img src="/logo-vigie.png" alt="Vigie" style={{ height:32, width:'auto', objectFit:'contain' }} onError={e => { e.currentTarget.style.display='none'; e.currentTarget.nextSibling.style.display='block'; }}/>
@@ -129,7 +138,8 @@ export default function ProSignup() {
           </Link>
           <p style={{ fontSize:12, color:'rgba(255,255,255,0.35)', marginBottom:24 }}>Créez votre compte <span style={{ color:'#5BA3C7' }}>Pro</span> gratuitement</p>
 
-          <button onClick={handleGoogle} disabled={googleLoading} style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:10, padding:'11px 16px', borderRadius:10, marginBottom:16, background:googleLoading?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.14)', color:'#F8FAFC', fontSize:13, fontWeight:600, cursor:googleLoading?'wait':'pointer', fontFamily:"'Nunito Sans', sans-serif", transition:'all 150ms ease' }}
+          <button onClick={handleGoogle} disabled={googleLoading}
+            style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:10, padding:'11px 16px', borderRadius:10, marginBottom:16, background:googleLoading?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.14)', color:'#F8FAFC', fontSize:13, fontWeight:600, cursor:googleLoading?'wait':'pointer', fontFamily:"'Nunito Sans', sans-serif", transition:'all 150ms ease' }}
             onMouseEnter={e => { if (!googleLoading) e.currentTarget.style.background='rgba(255,255,255,0.13)'; }}
             onMouseLeave={e => { e.currentTarget.style.background=googleLoading?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.08)'; }}>
             {googleLoading ? <span style={{ fontSize:12, color:'rgba(255,255,255,0.4)' }}>Redirection vers Google…</span> : <><GoogleIcon /> S'inscrire avec Google</>}
@@ -183,7 +193,8 @@ export default function ProSignup() {
             <div>
               <label style={labelStyle}>Confirmer le mot de passe</label>
               <div style={{ position:'relative' }}>
-                <input type={showConfirm?'text':'password'} value={form.confirmPassword} onChange={set('confirmPassword')} placeholder="••••••••" required minLength={6} style={{ ...inputStyle, paddingRight:40, border:confirmOk?'1px solid rgba(91,199,138,0.4)':confirmErr?'1px solid rgba(199,91,78,0.4)':'1px solid rgba(255,255,255,0.1)', fontFamily:showConfirm?'monospace':'inherit', letterSpacing:showConfirm?'0.05em':'normal' }}/>
+                <input type={showConfirm?'text':'password'} value={form.confirmPassword} onChange={set('confirmPassword')} placeholder="••••••••" required minLength={6}
+                  style={{ ...inputStyle, paddingRight:40, border:confirmOk?'1px solid rgba(91,199,138,0.4)':confirmErr?'1px solid rgba(199,91,78,0.4)':'1px solid rgba(255,255,255,0.1)', fontFamily:showConfirm?'monospace':'inherit', letterSpacing:showConfirm?'0.05em':'normal' }}/>
                 <button type="button" onClick={() => setShowConfirm(v => !v)} style={{ position:'absolute', right:8, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.3)', fontSize:14, padding:2 }}>{showConfirm?'🙈':'👁️'}</button>
               </div>
               {confirmOk  && <p style={{ fontSize:10, color:'#5BC78A', marginTop:4, fontWeight:600 }}>✓ Les mots de passe correspondent</p>}

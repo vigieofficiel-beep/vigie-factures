@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabasePro } from '../lib/supabasePro';
-import { Save, User, Building2, CreditCard, MapPin, CheckCircle, Camera, Upload, Zap, ExternalLink, Loader } from 'lucide-react';
+import { Save, User, Building2, CreditCard, MapPin, CheckCircle, Camera, Upload, Zap, ExternalLink, Loader, Trash2, AlertTriangle } from 'lucide-react';
 import { useStripe } from '../hooks/useStripe';
 import { usePlan, PLANS } from '../hooks/usePlan';
+import { useNavigate } from 'react-router-dom';
 
 const C = {
   blue:   '#5BA3C7',
@@ -29,6 +30,8 @@ const labelStyle = {
 export default function ProfilPro() {
   const { startCheckout, openPortal, loading: stripeLoading, error: stripeError } = useStripe();
   const { plan: currentPlan } = usePlan();
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
     first_name: '', last_name: '', phone: '',
     company_name: '', siret: '', forme_juridique: '',
@@ -42,6 +45,12 @@ export default function ProfilPro() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [photoPreview,   setPhotoPreview]   = useState(null);
   const fileRef = useRef(null);
+
+  // FIX : suppression de compte
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteInput,       setDeleteInput]       = useState('');
+  const [deleting,          setDeleting]          = useState(false);
+  const [deleteError,       setDeleteError]       = useState('');
 
   useEffect(() => { loadProfil(); }, []);
 
@@ -97,6 +106,43 @@ export default function ProfilPro() {
       setTimeout(() => setSaved(false), 3000);
     } catch (e) { setError(e.message); }
     setSaving(false);
+  };
+
+  // FIX : suppression compte + profil
+  const handleDeleteAccount = async () => {
+    if (deleteInput !== 'SUPPRIMER') {
+      setDeleteError('Tapez exactement SUPPRIMER pour confirmer.');
+      return;
+    }
+    setDeleting(true); setDeleteError('');
+    try {
+      const { data: { user } } = await supabasePro.auth.getUser();
+      if (!user) throw new Error('Utilisateur non trouvé.');
+
+      // 1. Supprimer le profil
+      await supabasePro.from('user_profiles').delete().eq('id', user.id);
+
+      // 2. Supprimer l'avatar du storage
+      try {
+        await supabasePro.storage.from('avatars').remove([`${user.id}/avatar.jpg`, `${user.id}/avatar.png`, `${user.id}/avatar.webp`]);
+      } catch (_) { /* ignorer si pas d'avatar */ }
+
+      // 3. Déconnecter
+      await supabasePro.auth.signOut();
+
+      // 4. Appeler la route API pour supprimer auth.users (nécessite service role)
+      await fetch('/api/delete-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id }),
+      });
+
+      // 5. Rediriger vers l'accueil
+      navigate('/');
+    } catch (e) {
+      setDeleteError('Erreur lors de la suppression : ' + e.message);
+      setDeleting(false);
+    }
   };
 
   const initiales = [form.first_name?.[0], form.last_name?.[0]].filter(Boolean).join('').toUpperCase() || '?';
@@ -255,9 +301,57 @@ export default function ProfilPro() {
       {error && <div style={{ color:C.red, fontSize:12, marginBottom:12, padding:'8px 12px', background:'rgba(199,91,78,0.07)', borderRadius:8, border:'1px solid rgba(199,91,78,0.2)' }}>{error}</div>}
 
       <button onClick={handleSave} disabled={saving}
-        style={{ width:'100%', padding:'13px', borderRadius:11, border:'none', background:saved?C.green:C.blue, color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'background 0.3s ease', fontFamily:'inherit' }}>
+        style={{ width:'100%', padding:'13px', borderRadius:11, border:'none', background:saved?C.green:C.blue, color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'background 0.3s ease', fontFamily:'inherit', marginBottom:32 }}>
         {saved ? <><CheckCircle size={16}/> Profil enregistré !</> : saving ? 'Enregistrement…' : <><Save size={16}/> Enregistrer mon profil</>}
       </button>
+
+      {/* FIX : Zone suppression compte */}
+      <div style={{ background:'rgba(199,91,78,0.04)', border:'1px solid rgba(199,91,78,0.15)', borderRadius:16, padding:24, marginBottom:16 }}>
+        {sectionTitle(<Trash2 size={13} color={C.red}/>, 'Zone de danger')}
+
+        {!showDeleteConfirm ? (
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
+            <div>
+              <p style={{ fontSize:13, color:'#EDE8DB', fontWeight:600, marginBottom:4 }}>Supprimer mon compte</p>
+              <p style={{ fontSize:12, color:C.light, margin:0 }}>Supprime définitivement votre compte, profil et toutes vos données.</p>
+            </div>
+            <button onClick={() => setShowDeleteConfirm(true)}
+              style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 18px', borderRadius:9, border:`1px solid ${C.red}`, background:'rgba(199,91,78,0.08)', color:C.red, fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap' }}>
+              <Trash2 size={13}/> Supprimer mon compte
+            </button>
+          </div>
+        ) : (
+          <div>
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12, padding:'10px 14px', background:'rgba(199,91,78,0.1)', borderRadius:10, border:'1px solid rgba(199,91,78,0.2)' }}>
+              <AlertTriangle size={15} color={C.red}/>
+              <p style={{ fontSize:12, color:C.red, margin:0, fontWeight:600 }}>
+                Action irréversible — toutes vos données seront supprimées définitivement.
+              </p>
+            </div>
+            <p style={{ fontSize:12, color:C.light, marginBottom:10 }}>
+              Tapez <strong style={{ color:'#EDE8DB' }}>SUPPRIMER</strong> pour confirmer :
+            </p>
+            <input
+              value={deleteInput}
+              onChange={e => setDeleteInput(e.target.value)}
+              placeholder="SUPPRIMER"
+              style={{ ...inputStyle, marginBottom:12, border:'1px solid rgba(199,91,78,0.3)' }}
+            />
+            {deleteError && <p style={{ fontSize:11, color:C.red, marginBottom:10 }}>{deleteError}</p>}
+            <div style={{ display:'flex', gap:10 }}>
+              <button onClick={() => { setShowDeleteConfirm(false); setDeleteInput(''); setDeleteError(''); }}
+                style={{ flex:1, padding:'10px', borderRadius:9, border:'1px solid rgba(255,255,255,0.1)', background:'transparent', color:C.light, fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>
+                Annuler
+              </button>
+              <button onClick={handleDeleteAccount} disabled={deleting || deleteInput !== 'SUPPRIMER'}
+                style={{ flex:1, padding:'10px', borderRadius:9, border:'none', background:deleteInput==='SUPPRIMER'?C.red:'rgba(199,91,78,0.2)', color:'#fff', fontSize:13, fontWeight:700, cursor:deleteInput==='SUPPRIMER'?'pointer':'not-allowed', fontFamily:'inherit', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
+                {deleting ? <><Loader size={13} style={{ animation:'spin 1s linear infinite' }}/> Suppression…</> : <><Trash2 size={13}/> Confirmer la suppression</>}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
       <style>{`@keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }`}</style>
     </div>
   );
