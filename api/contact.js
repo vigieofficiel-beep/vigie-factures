@@ -19,8 +19,8 @@ export default async function handler(req, res) {
 
   try {
     await resend.emails.send({
-      from: 'Vigie Pro <noreply@vigie-officiel.com>',
-      to: 'vigie-officiel@gmail.com',
+      from: 'Vigie Pro <noreply@vigie.officiel.com>',
+      to: 'vigie.officiel@gmail.com',
       replyTo: email,
       subject: `[Contact Vigie Pro] ${SUJETS[sujet] || sujet}`,
       html: `
@@ -35,7 +35,7 @@ export default async function handler(req, res) {
             <p style="color:#94A3B8;font-size:12px;margin:0 0 8px;text-transform:uppercase;letter-spacing:0.05em;">Message</p>
             <p style="color:#EDE8DB;font-size:14px;line-height:1.7;margin:0;">${message.replace(/\n/g, '<br/>')}</p>
           </div>
-          <p style="margin-top:20px;font-size:11px;color:rgba(237,232,219,0.3);">Vigie Pro · vigie-officiel.com</p>
+          <p style="margin-top:20px;font-size:11px;color:rgba(237,232,219,0.3);">Vigie Pro · vigie.officiel.com</p>
         </div>
       `,
     });

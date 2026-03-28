@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Tooltip from '../components/Tooltip';
 import { TIPS } from '../utils/tooltips';
+import { ChevronDown } from 'lucide-react';
 
 const C = { blue:'#5BA3C7', purple:'#A85BC7', dark:'#EDE8DB', light:'rgba(237,232,219,0.4)', border:'rgba(255,255,255,0.08)', bg:'rgba(255,255,255,0.06)', red:'#C75B4E', orange:'#5BC78A', green:'#5BC78A' };
 
@@ -12,10 +13,13 @@ const TAUX_TVA = [
   { label:'0% — Exonéré',             value:0,   desc:'Exportations, auto-entrepreneur sans TVA' },
 ];
 
+// Mis à jour janvier 2026 — vérifier janvier 2027 (seuils franchise TVA)
 const REGIMES = [
-  { label:'Franchise en base (auto-entrepreneur)', seuils:{ services:37500, commerce:85000 } },
-  { label:'Réel simplifié',   seuils:null },
-  { label:'Réel normal',      seuils:null },
+  { label:'Franchise en base (auto-entrepreneur)',    seuils:{ services:37500,  commerce:85000  } },
+  { label:'Franchise en base (PME — seuil majoré)',   seuils:{ services:41250,  commerce:93500  } },
+  { label:'Réel simplifié',                           seuils:null },
+  { label:'Réel normal',                              seuils:null },
+  { label:'Mini-réel',                                seuils:null },
 ];
 
 const iS = { width:'100%', padding:'10px 14px', borderRadius:9, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', color:'#EDE8DB', fontSize:14, outline:'none', boxSizing:'border-box', fontFamily:'inherit' };
@@ -25,16 +29,40 @@ function Card({ children, style={} }) {
   return <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:24, boxShadow:'0 1px 6px rgba(0,0,0,0.05)', ...style }}>{children}</div>;
 }
 
-function ResultLine({ label, value, big=false, color=C.dark, sub=false }) {
+function fmt(n) { return new Intl.NumberFormat('fr-FR', { style:'currency', currency:'EUR' }).format(n || 0); }
+
+// FIX : CustomSelect fond sombre pour remplacer le <select> natif fond blanc
+function CustomSelectRegime({ value, onChange, options }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+  const selected = options[value];
   return (
-    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding: sub ? '6px 0' : '10px 0', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
-      <span style={{ fontSize: sub ? 12 : 13, color: sub ? C.light : '#5A6070' }}>{label}</span>
-      <span style={{ fontSize: big ? 20 : 14, fontWeight: big ? 800 : 600, color }}>{value}</span>
+    <div ref={ref} style={{ position:'relative', userSelect:'none' }}>
+      <div onClick={() => setOpen(o => !o)}
+        style={{ width:'100%', padding:'10px 14px', borderRadius:9, background:'rgba(255,255,255,0.04)', border:`1px solid ${open?'rgba(91,163,199,0.5)':'rgba(255,255,255,0.08)'}`, color:'#EDE8DB', fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', boxSizing:'border-box', fontFamily:'inherit' }}>
+        <span style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1 }}>{selected?.label || 'Choisir…'}</span>
+        <ChevronDown size={14} style={{ color:'rgba(237,232,219,0.4)', transform:open?'rotate(180deg)':'rotate(0deg)', transition:'transform 200ms', flexShrink:0, marginLeft:8 }}/>
+      </div>
+      {open && (
+        <div style={{ position:'absolute', top:'calc(100% + 4px)', left:0, right:0, background:'#1a1d24', border:'1px solid rgba(255,255,255,0.1)', borderRadius:10, zIndex:200, overflow:'hidden', boxShadow:'0 8px 24px rgba(0,0,0,0.4)' }}>
+          {options.map((opt, i) => (
+            <div key={i} onClick={() => { onChange(i); setOpen(false); }}
+              style={{ padding:'10px 14px', fontSize:13, color:value===i?'#5BA3C7':'#EDE8DB', background:value===i?'rgba(91,163,199,0.1)':'transparent', cursor:'pointer', transition:'background 100ms' }}
+              onMouseEnter={e => { if(value!==i) e.currentTarget.style.background='rgba(255,255,255,0.05)'; }}
+              onMouseLeave={e => { if(value!==i) e.currentTarget.style.background='transparent'; }}>
+              {opt.label}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
-
-function fmt(n) { return new Intl.NumberFormat('fr-FR', { style:'currency', currency:'EUR' }).format(n || 0); }
 
 export default function CalculateurTVA() {
   const [mode,     setMode]     = useState('ht_vers_ttc');
@@ -62,19 +90,19 @@ export default function CalculateurTVA() {
         <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:26, fontWeight:600, color:C.dark, margin:0, display:'flex', alignItems:'center', gap:10 }}>
           Calculateur TVA <Tooltip text={TIPS.tva} size={16}/>
         </h1>
-        <p style={{ fontSize:13, color:C.light, marginTop:4 }}>Calcul HT / TTC et vérification de régime</p>
+        <p style={{ fontSize:13, color:C.light, marginTop:4 }}>Calcul HT / TTC et vérification de régime · Taux mis à jour janvier 2026</p>
       </div>
 
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
 
-        {/* Colonne gauche — Saisie */}
+        {/* Colonne gauche */}
         <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
 
           <Card>
             <label style={lS}>Mode de calcul</label>
             <div style={{ display:'flex', gap:4, background:'rgba(255,255,255,0.06)', borderRadius:10, padding:4 }}>
               {[['ht_vers_ttc','HT → TTC'],['ttc_vers_ht','TTC → HT']].map(([val,lab])=>(
-                <button key={val} onClick={()=>setMode(val)} style={{ flex:1, padding:'9px', borderRadius:8, border:'none', background:mode===val?'rgba(91,163,199,0.15)':'transparent', color:mode===val?C.dark:C.light, fontSize:13, fontWeight:mode===val?700:500, cursor:'pointer', boxShadow:mode===val?'0 1px 3px rgba(0,0,0,0.08)':'none', transition:'all 150ms' }}>
+                <button key={val} onClick={()=>setMode(val)} style={{ flex:1, padding:'9px', borderRadius:8, border:'none', background:mode===val?'rgba(91,163,199,0.15)':'transparent', color:mode===val?C.dark:C.light, fontSize:13, fontWeight:mode===val?700:500, cursor:'pointer', transition:'all 150ms' }}>
                   {lab}
                 </button>
               ))}
@@ -82,19 +110,15 @@ export default function CalculateurTVA() {
           </Card>
 
           <Card>
-            <label style={lS}>
-              Montant {mode === 'ht_vers_ttc' ? <><span style={{display:'flex',alignItems:'center',gap:4}}>HT (€) <Tooltip text={TIPS.ht}/></span></> : <><span style={{display:'flex',alignItems:'center',gap:4}}>TTC (€) <Tooltip text={TIPS.ttc}/></span></>}
-            </label>
-            <input type="number" value={montant} onChange={e=>setMontant(e.target.value)} placeholder="0,00" min="0" step="0.01" style={{ ...iS, fontSize:22, fontWeight:700, textAlign:'right', color:C.blue }} />
+            <label style={lS}>Montant {mode==='ht_vers_ttc'?'HT (€)':'TTC (€)'}</label>
+            <input type="number" value={montant} onChange={e=>setMontant(e.target.value)} placeholder="0,00" min="0" step="0.01" style={{ ...iS, fontSize:22, fontWeight:700, textAlign:'right', color:C.blue }}/>
           </Card>
 
           <Card>
             <label style={lS}>Taux de TVA <Tooltip text={TIPS.taux_tva}/></label>
             {TAUX_TVA.map(t=>(
               <div key={t.value} onClick={()=>setTaux(t.value)} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 12px', borderRadius:9, marginBottom:4, cursor:'pointer', background:taux===t.value?`${C.blue}10`:'transparent', border:`1px solid ${taux===t.value?C.blue:'transparent'}`, transition:'all 150ms' }}>
-                <div style={{ width:18, height:18, borderRadius:'50%', border:`2px solid ${taux===t.value?C.blue:'#D0D4DC'}`, background:taux===t.value?C.blue:'transparent', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                  {taux===t.value&&<div style={{ width:7, height:7, borderRadius:'50%', background:'rgba(255,255,255,0.04)' }}/>}
-                </div>
+                <div style={{ width:18, height:18, borderRadius:'50%', border:`2px solid ${taux===t.value?C.blue:'rgba(255,255,255,0.2)'}`, background:taux===t.value?C.blue:'transparent', flexShrink:0 }}/>
                 <div>
                   <div style={{ fontSize:13, fontWeight:taux===t.value?700:500, color:taux===t.value?C.blue:C.dark }}>{t.label}</div>
                   <div style={{ fontSize:11, color:C.light }}>{t.desc}</div>
@@ -104,47 +128,31 @@ export default function CalculateurTVA() {
           </Card>
         </div>
 
-        {/* Colonne droite — Résultats */}
+        {/* Colonne droite */}
         <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
 
           <Card style={{ background:`linear-gradient(135deg, ${C.blue}08, ${C.purple}08)`, border:`1px solid ${C.blue}30` }}>
             <h2 style={{ fontSize:12, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 16px' }}>Résultat</h2>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 0', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
-              <span style={{ fontSize:13, color:'rgba(237,232,219,0.5)', display:'flex', alignItems:'center', gap:5 }}>Montant HT <Tooltip text={TIPS.ht} size={12}/></span>
+              <span style={{ fontSize:13, color:'rgba(237,232,219,0.5)' }}>Montant HT</span>
               <span style={{ fontSize:14, fontWeight:600, color:C.dark }}>{fmt(ht)}</span>
             </div>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 0', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
-              <span style={{ fontSize:13, color:'rgba(237,232,219,0.5)', display:'flex', alignItems:'center', gap:5 }}>TVA ({taux}%) <Tooltip text={TIPS.taux_tva} size={12}/></span>
+              <span style={{ fontSize:13, color:'rgba(237,232,219,0.5)' }}>TVA ({taux}%)</span>
               <span style={{ fontSize:14, fontWeight:600, color:C.orange }}>{fmt(tva)}</span>
             </div>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', paddingTop:14, marginTop:4 }}>
-              <span style={{ fontSize:15, fontWeight:700, color:C.dark, display:'flex', alignItems:'center', gap:6 }}>
-                Montant TTC <Tooltip text={TIPS.ttc} size={13}/>
-              </span>
+              <span style={{ fontSize:15, fontWeight:700, color:C.dark }}>Montant TTC</span>
               <span style={{ fontSize:28, fontWeight:800, color:C.blue }}>{fmt(ttc)}</span>
             </div>
           </Card>
 
-          {taux > 0 && m > 0 && (
-            <Card>
-              <h2 style={{ fontSize:12, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 14px', display:'flex', alignItems:'center', gap:6 }}>
-                TVA à déclarer <Tooltip text={TIPS.tva} size={12}/>
-              </h2>
-              <ResultLine label="TVA collectée (vente)"  value={fmt(tva)} color={C.red} sub />
-              <ResultLine label="TVA déductible (achat)" value="À saisir dans vos dépenses" sub />
-              <div style={{ marginTop:12, background:'#F0FDF4', border:'1px solid rgba(91,199,138,0.3)', borderRadius:9, padding:'10px 14px', fontSize:12, color:'#5BC78A' }}>
-                💡 TVA nette = TVA collectée − TVA déductible
-              </div>
-            </Card>
-          )}
-
           <Card>
+            {/* FIX : Vérification franchise TVA avec CustomSelect fond sombre */}
             <h2 style={{ fontSize:12, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 14px' }}>Vérification franchise TVA</h2>
             <div style={{ marginBottom:14 }}>
               <label style={lS}>Votre régime TVA</label>
-              <select value={regime} onChange={e=>setRegime(Number(e.target.value))} style={{ ...iS, cursor:'pointer' }}>
-                {REGIMES.map((r,i)=><option key={i} value={i}>{r.label}</option>)}
-              </select>
+              <CustomSelectRegime value={regime} onChange={setRegime} options={REGIMES}/>
             </div>
             {seuils && (
               <>
@@ -153,19 +161,19 @@ export default function CalculateurTVA() {
                   <input type="number" value={caAnnuel} onChange={e=>setCaAnnuel(e.target.value)} placeholder="0" style={iS}/>
                 </div>
                 <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', background: depasseServices?'rgba(199,91,78,0.07)':'rgba(91,188,138,0.07)', border:`1px solid ${depasseServices?'rgba(199,91,78,0.25)':'rgba(91,188,138,0.25)'}`, borderRadius:9, padding:'10px 14px' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', background:depasseServices?'rgba(199,91,78,0.07)':'rgba(91,188,138,0.07)', border:`1px solid ${depasseServices?'rgba(199,91,78,0.25)':'rgba(91,188,138,0.25)'}`, borderRadius:9, padding:'10px 14px' }}>
                     <div>
-                      <div style={{ fontSize:12, fontWeight:700, color: depasseServices?C.red:C.green }}>Seuil services</div>
+                      <div style={{ fontSize:12, fontWeight:700, color:depasseServices?C.red:C.green }}>Seuil services</div>
                       <div style={{ fontSize:11, color:C.light }}>{fmt(seuils.services)}/an</div>
                     </div>
-                    <span style={{ fontSize:13, fontWeight:700, color: depasseServices?C.red:C.green }}>{depasseServices?'⚠️ DÉPASSÉ':'✓ OK'}</span>
+                    <span style={{ fontSize:13, fontWeight:700, color:depasseServices?C.red:C.green }}>{depasseServices?'⚠️ DÉPASSÉ':'✓ OK'}</span>
                   </div>
-                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', background: depasseCommerce?'rgba(199,91,78,0.07)':'rgba(91,188,138,0.07)', border:`1px solid ${depasseCommerce?'rgba(199,91,78,0.25)':'rgba(91,188,138,0.25)'}`, borderRadius:9, padding:'10px 14px' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', background:depasseCommerce?'rgba(199,91,78,0.07)':'rgba(91,188,138,0.07)', border:`1px solid ${depasseCommerce?'rgba(199,91,78,0.25)':'rgba(91,188,138,0.25)'}`, borderRadius:9, padding:'10px 14px' }}>
                     <div>
-                      <div style={{ fontSize:12, fontWeight:700, color: depasseCommerce?C.red:C.green }}>Seuil commerce/hébergement</div>
+                      <div style={{ fontSize:12, fontWeight:700, color:depasseCommerce?C.red:C.green }}>Seuil commerce/hébergement</div>
                       <div style={{ fontSize:11, color:C.light }}>{fmt(seuils.commerce)}/an</div>
                     </div>
-                    <span style={{ fontSize:13, fontWeight:700, color: depasseCommerce?C.red:C.green }}>{depasseCommerce?'⚠️ DÉPASSÉ':'✓ OK'}</span>
+                    <span style={{ fontSize:13, fontWeight:700, color:depasseCommerce?C.red:C.green }}>{depasseCommerce?'⚠️ DÉPASSÉ':'✓ OK'}</span>
                   </div>
                   {(depasseServices||depasseCommerce)&&(
                     <div style={{ background:'rgba(199,91,78,0.06)', border:'1px solid rgba(199,91,78,0.2)', borderRadius:9, padding:'10px 14px', fontSize:12, color:C.red, fontWeight:600 }}>
@@ -183,15 +191,16 @@ export default function CalculateurTVA() {
           </Card>
 
           <Card>
-            <h2 style={{ fontSize:12, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 12px', display:'flex', alignItems:'center', gap:6 }}>
-              Rappel des taux français <Tooltip text={TIPS.taux_tva} size={12}/>
-            </h2>
+            <h2 style={{ fontSize:12, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 12px' }}>Rappel des taux français</h2>
             {TAUX_TVA.filter(t=>t.value>0).map(t=>(
               <div key={t.value} style={{ display:'flex', justifyContent:'space-between', padding:'7px 0', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
                 <span style={{ fontSize:12, color:'rgba(237,232,219,0.5)' }}>{t.desc}</span>
                 <span style={{ fontSize:12, fontWeight:700, color:C.blue }}>{t.value}%</span>
               </div>
             ))}
+            <p style={{ fontSize:10, color:'rgba(237,232,219,0.2)', marginTop:10, marginBottom:0 }}>
+              Taux mis à jour janvier 2026 — vérifier janvier 2027
+            </p>
           </Card>
         </div>
       </div>

@@ -108,7 +108,12 @@ export default function AnalyseDocumentFlottant() {
   const sauvegarder = async () => {
     if (!result || !catChoisie) return;
     const config = TYPE_CONFIG[catChoisie] || TYPE_CONFIG.autre;
-    if (!config.table) { setSaved(true); return; }
+    // FIX : dispatch event même pour "autre"
+    if (!config.table) {
+      setSaved(true);
+      window.dispatchEvent(new CustomEvent('vigie_document_saved'));
+      return;
+    }
     setSaving(true);
     try {
       const { data: { user } } = await supabasePro.auth.getUser();
@@ -143,6 +148,8 @@ export default function AnalyseDocumentFlottant() {
       }
       await supabasePro.from(config.table).insert([payload]);
       setSaved(true);
+      // FIX : rafraîchir le dashboard après enregistrement OCR
+      window.dispatchEvent(new CustomEvent('vigie_document_saved'));
     } catch (e) {
       setErrMsg('Erreur sauvegarde : ' + e.message); setStep('error');
     } finally {
@@ -158,7 +165,6 @@ export default function AnalyseDocumentFlottant() {
 
   return (
     <>
-      {/* BOUTON FLOTTANT */}
       <button
         onClick={() => { setOpen(true); reset(); }}
         title="Analyser un document"
@@ -177,12 +183,10 @@ export default function AnalyseDocumentFlottant() {
         <ScanLine size={22} strokeWidth={2} />
       </button>
 
-      {/* MODAL */}
       {open && (
         <div onClick={close} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(6,8,11,0.7)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div onClick={e => e.stopPropagation()} style={{ background: '#0F1923', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: 28, width: '100%', maxWidth: 460, boxShadow: '0 24px 64px rgba(0,0,0,0.5)', animation: 'fadeUp 200ms ease' }}>
 
-            {/* HEADER */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{ width: 38, height: 38, borderRadius: 10, background: `${ACCENT}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -198,7 +202,6 @@ export default function AnalyseDocumentFlottant() {
               </button>
             </div>
 
-            {/* IDLE */}
             {step === 'idle' && (
               <div
                 onDragOver={e => { e.preventDefault(); setDragOver(true); }}
@@ -216,7 +219,6 @@ export default function AnalyseDocumentFlottant() {
               </div>
             )}
 
-            {/* LOADING */}
             {step === 'loading' && (
               <div style={{ textAlign: 'center', padding: '40px 0' }}>
                 <div style={{ width: 56, height: 56, borderRadius: '50%', background: `${ACCENT}10`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
@@ -227,10 +229,8 @@ export default function AnalyseDocumentFlottant() {
               </div>
             )}
 
-            {/* DONE */}
             {step === 'done' && result && typeConfig && (
               <div>
-                {/* Badge classif */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderRadius: 12, background: `${typeConfig.color}12`, border: `1px solid ${typeConfig.color}30`, marginBottom: 16 }}>
                   <CheckCircle size={16} color={typeConfig.color} />
                   <div>
@@ -239,7 +239,6 @@ export default function AnalyseDocumentFlottant() {
                   </div>
                 </div>
 
-                {/* Sélecteur catégorie */}
                 <div style={{ marginBottom: 16 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(237,232,219,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Enregistrer dans</div>
                   <div style={{ display: 'flex', gap: 8 }}>
@@ -255,7 +254,6 @@ export default function AnalyseDocumentFlottant() {
                   </div>
                 </div>
 
-                {/* Données extraites */}
                 <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 12, padding: '14px 16px', marginBottom: 16, border: '1px solid rgba(255,255,255,0.08)' }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(237,232,219,0.5)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Données extraites</div>
                   {[
@@ -276,7 +274,6 @@ export default function AnalyseDocumentFlottant() {
                   ))}
                 </div>
 
-                {/* Boutons */}
                 {saved ? (
                   <div style={{ padding: '12px', borderRadius: 10, background: 'rgba(91,199,138,0.08)', border: '1px solid rgba(91,199,138,0.25)', textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#5BC78A' }}>
                     ✅ Enregistré dans {typeConfig.label}s
@@ -294,7 +291,6 @@ export default function AnalyseDocumentFlottant() {
               </div>
             )}
 
-            {/* ERROR */}
             {step === 'error' && (
               <div style={{ textAlign: 'center', padding: '24px 0' }}>
                 <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(199,91,78,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>

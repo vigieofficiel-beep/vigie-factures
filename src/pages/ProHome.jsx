@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabasePro } from '../lib/supabasePro';
 import { useNavigate } from 'react-router-dom';
 import {
-  TrendingUp, TrendingDown, Wallet, AlertTriangle, ChevronRight,
+  TrendingUp, TrendingDown, AlertTriangle, ChevronRight,
   FileCheck, Receipt, Bell, BellOff, X, ChevronDown, ChevronUp,
   Percent, FileText, ClipboardCheck, AlertCircle, CheckCheck,
 } from 'lucide-react';
@@ -87,7 +87,6 @@ function ClocheNotifications({ notifs, setNotifs }) {
           </div>
         )}
       </button>
-
       {open && (
         <div ref={panelRef} style={{ position:'fixed', top:coords.top, left:coords.left, zIndex:9999, width:320, maxHeight:460, background:'rgba(15,23,42,0.98)', backdropFilter:'blur(20px)', border:'1px solid rgba(91,163,199,0.2)', borderRadius:16, boxShadow:'0 20px 60px rgba(0,0,0,0.5)', display:'flex', flexDirection:'column', overflow:'hidden', animation:'notifSlide 0.18s ease' }}>
           <div style={{ padding:'14px 16px', borderBottom:'1px solid rgba(255,255,255,0.07)', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
@@ -170,7 +169,7 @@ function BandeauAlertes({ alertes, onDismiss }) {
   return (
     <div style={{ background:critiques>0?'rgba(199,91,78,0.08)':'rgba(212,168,83,0.08)', border:`1px solid ${critiques>0?'rgba(199,91,78,0.2)':'rgba(212,168,83,0.15)'}`, borderRadius:14, marginBottom:24, overflow:'hidden' }}>
       <div onClick={() => setCollapsed(c => !c)} style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', cursor:'pointer' }}>
-        <Bell size={15} color={critiques>0?'#C75B4E':'#D4A853'} />
+        <Bell size={15} color={critiques>0?'#C75B4E':'#D4A853'}/>
         <span style={{ fontSize:13, fontWeight:700, color:critiques>0?'#C75B4E':'#D4A853', flex:1 }}>
           {visibles.length} alerte{visibles.length>1?'s':''} en attente
           {critiques>0 && <span style={{ fontSize:11, fontWeight:600, marginLeft:8, background:'rgba(199,91,78,0.15)', color:'#C75B4E', padding:'2px 7px', borderRadius:20 }}>{critiques} urgent{critiques>1?'es':'e'}</span>}
@@ -236,18 +235,14 @@ export default function ProHome() {
   const navigate = useNavigate();
   const { activeWorkspace } = useWorkspace();
 
-  useEffect(() => { if (activeWorkspace) fetchAll(); }, [activeWorkspace]);
-
-  const fetchAll = async () => {
+  // FIX : fetchAll exposé via useCallback pour être appelé après OCR
+  const fetchAll = useCallback(async () => {
+    if (!activeWorkspace) return;
     setLoading(true);
 
-    // FIX : getSession au lieu de getUser — évite le 403 après OAuth Google
     const { data: { session } } = await supabasePro.auth.getSession();
     const user = session?.user;
-    if (!user) {
-      setLoading(false);
-      return;
-    }
+    if (!user) { setLoading(false); return; }
 
     let qExp = supabasePro.from('expenses').select('amount_ttc, type, etablissement, date, notes').eq('user_id', user.id).order('date', { ascending: false }).limit(50);
     if (activeWorkspace?.id) qExp = qExp.eq('workspace_id', activeWorkspace.id);
@@ -267,7 +262,16 @@ export default function ProHome() {
     setAlertes(analyserTout({ contrats: cont || [], devis: dev || [], formalites: form || [], regimeTVA: 'mensuel' }));
     setProfil(prof || {});
     setLoading(false);
-  };
+  }, [activeWorkspace]);
+
+  useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  // FIX : écouter l'événement OCR enregistré pour rafraîchir le dashboard
+  useEffect(() => {
+    const handler = () => fetchAll();
+    window.addEventListener('vigie_document_saved', handler);
+    return () => window.removeEventListener('vigie_document_saved', handler);
+  }, [fetchAll]);
 
   const totalDepenses  = expenses.reduce((s, e) => s + (e.amount_ttc || 0), 0);
   const totalRecettes  = devis.filter(d => d.statut === 'encaisse').reduce((s, d) => s + (d.montant_ttc || 0), 0);
@@ -275,8 +279,7 @@ export default function ProHome() {
   const contratsActifs = contrats.filter(c => c.statut === 'actif' || !c.statut).length;
   const depensesByType = expenses.reduce((acc, e) => { const t = e.type || 'Autre'; acc[t] = (acc[t] || 0) + (e.amount_ttc || 0); return acc; }, {});
   const critiques      = alertes.filter(a => a.niveau === URGENCE.CRITIQUE).length;
-
-  const nomBureau = activeWorkspace?.name || profil.company_name || (profil.first_name ? `Bureau de ${profil.first_name}` : 'Bureau');
+  const nomBureau      = activeWorkspace?.name || profil.company_name || (profil.first_name ? `Bureau de ${profil.first_name}` : 'Bureau');
 
   if (loading) return (
     <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'60vh', color:'rgba(237,232,219,0.4)', fontSize:14 }}>Chargement…</div>
@@ -287,22 +290,20 @@ export default function ProHome() {
 
       <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:28 }}>
         <div>
-          <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:28, fontWeight:600, color:'#EDE8DB', margin:0 }}>
-            {nomBureau}
-          </h1>
+          <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:28, fontWeight:600, color:'#EDE8DB', margin:0 }}>{nomBureau}</h1>
           <p style={{ fontSize:13, color:'rgba(237,232,219,0.4)', marginTop:4, marginBottom:0 }}>
             Vue d'ensemble de votre activité
             {critiques > 0 && <span style={{ marginLeft:10, color:'#C75B4E', fontWeight:700 }}>· {critiques} alerte{critiques>1?'s':''} urgente{critiques>1?'s':''}</span>}
           </p>
         </div>
-        <ClocheNotifications notifs={notifs} setNotifs={setNotifs} />
+        <ClocheNotifications notifs={notifs} setNotifs={setNotifs}/>
       </div>
 
       <div style={{ marginBottom:24, background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:16, overflow:'hidden' }}>
-        <GraphiqueCA compact={true} />
+        <GraphiqueCA compact={true}/>
       </div>
 
-      {alertes.length > 0 && <BandeauAlertes alertes={alertes} onDismiss={() => setAlertes([])} />}
+      {alertes.length > 0 && <BandeauAlertes alertes={alertes} onDismiss={() => setAlertes([])}/>}
 
       {anomalies.length > 0 && showAnomalies && (
         <div style={{ background:'rgba(199,91,78,0.06)', border:'1px solid rgba(199,91,78,0.25)', borderRadius:14, marginBottom:24, overflow:'hidden' }}>
@@ -378,7 +379,7 @@ export default function ProHome() {
           </button>
         ))}
       </div>
-      <OnboardingChecklist />
+      <OnboardingChecklist/>
     </div>
   );
 }
