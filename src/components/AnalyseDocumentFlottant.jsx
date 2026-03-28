@@ -116,7 +116,8 @@ export default function AnalyseDocumentFlottant() {
     }
     setSaving(true);
     try {
-      const { data: { user } } = await supabasePro.auth.getUser();
+      const { data: { session } } = await supabasePro.auth.getSession();
+      const user = session?.user;
       let payload = {};
       if (catChoisie === 'depense') {
         payload = {

@@ -1,16 +1,20 @@
 import { useState } from 'react';
-import { Building2, Plus, Check, ChevronDown, X, Loader, Trash2 } from 'lucide-react';
+import { Building2, Plus, Check, ChevronDown, X, Loader, Trash2, Pencil } from 'lucide-react';
 import { useWorkspace } from '../hooks/useWorkspace.jsx';
 import { usePlan } from '../hooks/usePlan.jsx';
+import { supabasePro } from '../lib/supabasePro';
 
 export default function WorkspaceSwitcher({ isOpen }) {
-  const { workspaces, activeWorkspace, switchWorkspace, createWorkspace, deleteWorkspace } = useWorkspace();
+  const { workspaces, activeWorkspace, switchWorkspace, createWorkspace, deleteWorkspace, reload } = useWorkspace();
   const { plan } = usePlan();
   const [showMenu,   setShowMenu]   = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [newName,    setNewName]    = useState('');
   const [creating,   setCreating]   = useState(false);
   const [deleting,   setDeleting]   = useState(null);
+  const [renaming,   setRenaming]   = useState(null); // id du bureau en cours de renommage
+  const [renamVal,   setRenamVal]   = useState('');
+  const [savingRen,  setSavingRen]  = useState(false);
   const [error,      setError]      = useState('');
 
   const isPremium = plan === 'premium';
@@ -54,6 +58,31 @@ export default function WorkspaceSwitcher({ isOpen }) {
     }
   };
 
+  // FIX : renommer un bureau
+  const startRename = (e, ws) => {
+    e.stopPropagation();
+    setRenaming(ws.id);
+    setRenamVal(ws.name);
+  };
+
+  const handleRename = async (ws) => {
+    if (!renamVal.trim() || renamVal.trim() === ws.name) { setRenaming(null); return; }
+    setSavingRen(true);
+    try {
+      await supabasePro.from('workspaces').update({ name: renamVal.trim() }).eq('id', ws.id);
+      await reload();
+      // Mettre à jour le workspace actif si c'est celui-là
+      if (activeWorkspace?.id === ws.id) {
+        switchWorkspace({ ...ws, name: renamVal.trim() });
+      }
+    } catch (e) {
+      alert('Erreur : ' + e.message);
+    } finally {
+      setSavingRen(false);
+      setRenaming(null);
+    }
+  };
+
   if (!activeWorkspace) return null;
 
   return (
@@ -81,31 +110,66 @@ export default function WorkspaceSwitcher({ isOpen }) {
             {workspaces.map(ws => {
               const isActive = activeWorkspace.id === ws.id;
               const isLast   = workspaces.length === 1;
+              const isRenaming = renaming === ws.id;
+
               return (
-                <div key={ws.id} style={{ display:'flex', alignItems:'center', gap:4, marginBottom:2 }}>
-                  <button
-                    onClick={() => handleSwitch(ws)}
-                    style={{ flex:1, display:'flex', alignItems:'center', gap:10, padding:'9px 10px', borderRadius:8, border:'none', background:isActive?'rgba(91,163,199,0.1)':'transparent', cursor:'pointer', transition:'background 150ms', fontFamily:'inherit' }}
-                    onMouseEnter={e => { if (!isActive) e.currentTarget.style.background='rgba(255,255,255,0.05)'; }}
-                    onMouseLeave={e => { if (!isActive) e.currentTarget.style.background='transparent'; }}
-                  >
-                    <div style={{ width:28, height:28, borderRadius:7, background:'rgba(91,163,199,0.1)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                      <Building2 size={13} color="#5BA3C7"/>
+                <div key={ws.id} style={{ marginBottom:2 }}>
+                  {isRenaming ? (
+                    // Mode renommage inline
+                    <div style={{ display:'flex', gap:6, padding:'4px 2px', alignItems:'center' }}>
+                      <input
+                        autoFocus
+                        value={renamVal}
+                        onChange={e => setRenamVal(e.target.value)}
+                        onKeyDown={e => { if (e.key==='Enter') handleRename(ws); if (e.key==='Escape') setRenaming(null); }}
+                        style={{ flex:1, padding:'7px 10px', borderRadius:8, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(91,163,199,0.3)', color:'#EDE8DB', fontSize:12, outline:'none', fontFamily:'inherit' }}
+                      />
+                      <button onClick={() => handleRename(ws)} disabled={savingRen}
+                        style={{ width:28, height:28, borderRadius:7, border:'none', background:'#5BA3C7', color:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                        {savingRen ? <Loader size={11} style={{ animation:'spin 1s linear infinite' }}/> : <Check size={11}/>}
+                      </button>
+                      <button onClick={() => setRenaming(null)}
+                        style={{ width:28, height:28, borderRadius:7, border:'1px solid rgba(255,255,255,0.1)', background:'transparent', color:'rgba(255,255,255,0.4)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                        <X size={11}/>
+                      </button>
                     </div>
-                    <span style={{ fontSize:13, color:'rgba(237,232,219,0.8)', flex:1, textAlign:'left', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{ws.name}</span>
-                    {isActive && <Check size={13} color="#5BA3C7"/>}
-                  </button>
-                  {!isLast && (
-                    <button
-                      onClick={e => handleDelete(e, ws)}
-                      disabled={deleting === ws.id}
-                      title={`Supprimer "${ws.name}"`}
-                      style={{ width:28, height:28, borderRadius:7, border:'none', background:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'rgba(237,232,219,0.2)', flexShrink:0, transition:'all 150ms' }}
-                      onMouseEnter={e => e.currentTarget.style.color='#C75B4E'}
-                      onMouseLeave={e => e.currentTarget.style.color='rgba(237,232,219,0.2)'}
-                    >
-                      {deleting === ws.id ? <Loader size={11} style={{ animation:'spin 1s linear infinite' }}/> : <Trash2 size={11}/>}
-                    </button>
+                  ) : (
+                    <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+                      <button
+                        onClick={() => handleSwitch(ws)}
+                        style={{ flex:1, display:'flex', alignItems:'center', gap:10, padding:'9px 10px', borderRadius:8, border:'none', background:isActive?'rgba(91,163,199,0.1)':'transparent', cursor:'pointer', transition:'background 150ms', fontFamily:'inherit' }}
+                        onMouseEnter={e => { if (!isActive) e.currentTarget.style.background='rgba(255,255,255,0.05)'; }}
+                        onMouseLeave={e => { if (!isActive) e.currentTarget.style.background='transparent'; }}
+                      >
+                        <div style={{ width:28, height:28, borderRadius:7, background:'rgba(91,163,199,0.1)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                          <Building2 size={13} color="#5BA3C7"/>
+                        </div>
+                        <span style={{ fontSize:13, color:'rgba(237,232,219,0.8)', flex:1, textAlign:'left', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{ws.name}</span>
+                        {isActive && <Check size={13} color="#5BA3C7"/>}
+                      </button>
+                      {/* Bouton renommer — toujours visible */}
+                      <button
+                        onClick={e => startRename(e, ws)}
+                        title={`Renommer "${ws.name}"`}
+                        style={{ width:28, height:28, borderRadius:7, border:'none', background:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'rgba(237,232,219,0.2)', flexShrink:0, transition:'all 150ms' }}
+                        onMouseEnter={e => e.currentTarget.style.color='#5BA3C7'}
+                        onMouseLeave={e => e.currentTarget.style.color='rgba(237,232,219,0.2)'}
+                      >
+                        <Pencil size={11}/>
+                      </button>
+                      {!isLast && (
+                        <button
+                          onClick={e => handleDelete(e, ws)}
+                          disabled={deleting === ws.id}
+                          title={`Supprimer "${ws.name}"`}
+                          style={{ width:28, height:28, borderRadius:7, border:'none', background:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'rgba(237,232,219,0.2)', flexShrink:0, transition:'all 150ms' }}
+                          onMouseEnter={e => e.currentTarget.style.color='#C75B4E'}
+                          onMouseLeave={e => e.currentTarget.style.color='rgba(237,232,219,0.2)'}
+                        >
+                          {deleting === ws.id ? <Loader size={11} style={{ animation:'spin 1s linear infinite' }}/> : <Trash2 size={11}/>}
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
               );
