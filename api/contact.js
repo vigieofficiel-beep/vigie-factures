@@ -19,7 +19,7 @@ export default async function handler(req, res) {
 
   try {
     await resend.emails.send({
-      from: 'Vigie Pro <noreply@vigie.officiel.com>',
+      from: 'Vigie Pro <noreply@vigie-officiel.com>',
       to: 'vigie.officiel@gmail.com',
       replyTo: email,
       subject: `[Contact Vigie Pro] ${SUJETS[sujet] || sujet}`,
