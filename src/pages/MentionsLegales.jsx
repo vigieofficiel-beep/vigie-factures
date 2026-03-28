@@ -18,7 +18,7 @@ const SECTIONS = [
       { label: 'Responsable de publication', value: 'Lucien Doppler' },
       { label: 'SIRET', value: '888 362 118 00026' },
       { label: 'Adresse', value: 'France' },
-      { label: 'Email', value: 'vigie-officiel@gmail.com' },
+      { label: 'Email', value: 'vigie.officiel@gmail.com' },
       { label: 'Site web', value: 'https://vigie-officiel.com' },
     ],
   },
@@ -36,7 +36,7 @@ const SECTIONS = [
   },
   {
     titre: '4. Protection des données personnelles',
-    texte: `Les données personnelles collectées sur ce site sont traitées conformément au Règlement Général sur la Protection des Données (RGPD — Règlement UE 2016/679). Elles sont utilisées uniquement dans le cadre de la fourniture du service Vigie Pro et ne sont jamais cédées à des tiers à des fins commerciales.\n\nConformément à la loi « Informatique et Libertés » du 6 janvier 1978 modifiée, vous disposez d'un droit d'accès, de rectification, d'opposition et de suppression de vos données. Pour exercer ces droits, contactez : vigie-officiel@gmail.com`,
+    texte: `Les données personnelles collectées sur ce site sont traitées conformément au Règlement Général sur la Protection des Données (RGPD — Règlement UE 2016/679). Elles sont utilisées uniquement dans le cadre de la fourniture du service Vigie Pro et ne sont jamais cédées à des tiers à des fins commerciales.\n\nConformément à la loi « Informatique et Libertés » du 6 janvier 1978 modifiée, vous disposez d'un droit d'accès, de rectification, d'opposition et de suppression de vos données. Pour exercer ces droits, contactez : vigie.officiel@gmail.com`,
   },
   {
     titre: '5. Cookies',

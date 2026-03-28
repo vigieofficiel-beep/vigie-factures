@@ -66,7 +66,7 @@ export default function Contact() {
       if (!res.ok) throw new Error('Erreur envoi');
       setEnvoye(true);
     } catch {
-      setError('Une erreur est survenue. Réessayez ou écrivez directement à vigie-officiel@gmail.com');
+      setError('Une erreur est survenue. Réessayez ou écrivez directement à vigie.officiel@gmail.com');
     }
     setLoading(false);
   };
@@ -107,7 +107,7 @@ export default function Contact() {
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1.6fr', gap:24 }}>
           <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
             {[
-              { icon:Mail,          titre:'Email',           valeur:'vigie-officiel@gmail.com', href:'mailto:vigie-officiel@gmail.com' },
+              { icon:Mail,          titre:'Email',           valeur:'vigie.officiel@gmail.com', href:'mailto:vigie.officiel@gmail.com' },
               { icon:MessageCircle, titre:'Assistant Vigil', valeur:"Disponible dans l'app",    href:'/pro' },
               { icon:Clock,         titre:'Délai de réponse',valeur:'Sous 48h ouvrées',          href:null },
             ].map(item => {

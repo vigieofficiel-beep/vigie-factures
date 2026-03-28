@@ -46,7 +46,7 @@ const SECTIONS = [
   },
   {
     titre: '9. Données personnelles',
-    texte: `Le traitement de vos données personnelles est décrit dans notre Politique de confidentialité, accessible à l'adresse vigie-officiel.com/confidentialite.\n\nConformément au RGPD, vous disposez de droits d'accès, rectification, suppression et portabilité de vos données. Pour les exercer : vigie-officiel@gmail.com`,
+    texte: `Le traitement de vos données personnelles est décrit dans notre Politique de confidentialité, accessible à l'adresse vigie-officiel.com/confidentialite.\n\nConformément au RGPD, vous disposez de droits d'accès, rectification, suppression et portabilité de vos données. Pour les exercer : vigie.officiel@gmail.com`,
   },
   {
     titre: '10. Modification des CGU',
@@ -112,7 +112,7 @@ export default function CGU() {
               <p style={{ fontSize:15, fontWeight:700, color:'#fff', margin:'0 0 6px' }}>Une question sur les CGU ?</p>
               <p style={{ fontSize:13, color:C.light, margin:0, maxWidth:420 }}>Contactez-nous pour toute question relative aux présentes conditions d'utilisation.</p>
             </div>
-            <a href="mailto:vigie-officiel@gmail.com?subject=Question CGU — Vigie Pro" style={{ padding:'10px 22px', borderRadius:8, background:`linear-gradient(135deg,${C.blue},#3d7fa8)`, color:'#fff', fontSize:13, fontWeight:700, textDecoration:'none', whiteSpace:'nowrap', flexShrink:0 }}>
+            <a href="mailto:vigie.officiel@gmail.com?subject=Question CGU — Vigie Pro" style={{ padding:'10px 22px', borderRadius:8, background:`linear-gradient(135deg,${C.blue},#3d7fa8)`, color:'#fff', fontSize:13, fontWeight:700, textDecoration:'none', whiteSpace:'nowrap', flexShrink:0 }}>
               Nous contacter →
             </a>
           </div>

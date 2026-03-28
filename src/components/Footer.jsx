@@ -60,12 +60,12 @@ export default function Footer() {
           <h4 style={{ fontSize:13, fontWeight:700, letterSpacing:1.4, color:'#D8D5CF', textTransform:'uppercase', marginBottom:16 }}>Contact</h4>
           <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
             <a
-              href="mailto:vigie-officiel@gmail.com"
+              href="mailto:vigie.officiel@gmail.com"
               style={{ fontSize:14, color:'#BDBABB', textDecoration:'none', transition:'color 150ms ease' }}
               onMouseEnter={e => e.currentTarget.style.color='#5BC78A'}
               onMouseLeave={e => e.currentTarget.style.color='#BDBABB'}
             >
-              vigie-officiel@gmail.com
+              vigie.officiel@gmail.com
             </a>
             <Link
               to="/contact"
