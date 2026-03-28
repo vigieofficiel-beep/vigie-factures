@@ -264,12 +264,12 @@ export default function ExportsFEC() {
           )}
 
           <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-            <button onClick={exporterFEC} disabled={loading||!stats||stats.total===0} style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, background:stats&&stats.total>0?"#5BA3C7":"rgba(255,255,255,0.1)", color:stats&&stats.total>0?"rgba(255,255,255,0.04)":"rgba(237,232,219,0.4)", border:"none", padding:"14px 20px", borderRadius:10, fontWeight:700, fontSize:15, cursor:stats&&stats.total>0?"pointer":"not-allowed", fontFamily:"inherit", transition:"background 150ms ease" }}>
+            <button onClick={exporterFEC} disabled={loading||!stats||stats.total===0} style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, background:stats&&stats.total>0?"#5BA3C7":"rgba(255,255,255,0.1)", color:stats&&stats.total>0?"#fff":"rgba(237,232,219,0.4)", border:"none", padding:"14px 20px", borderRadius:10, fontWeight:700, fontSize:15, cursor:stats&&stats.total>0?"pointer":"not-allowed", fontFamily:"inherit", transition:"background 150ms ease" }}>
               <Icon.Download/>
               {loading?"Génération en cours...":`Exporter le FEC ${annee}`}
             </button>
             {siren && <div style={{ fontSize:12, color:"rgba(237,232,219,0.4)", textAlign:"center" }}>Nom du fichier : <span style={{ fontFamily:"monospace", color:"#EDE8DB" }}>{siren}FEC{annee}1231.txt</span></div>}
-            <div style={{ background:"rgba(212,168,83,0.08)", border:"1px solid rgba(212,168,83,0.3)", borderRadius:10, padding:"12px 14px", display:"flex", gap:10 }}>
+            <div style={{ background:"rgba(212,168,83,0.08)", border:"1px solid rgba(212,168,83,0.15)", borderRadius:10, padding:"12px 14px", display:"flex", gap:10 }}>
               <span style={{ color:"#d97706", flexShrink:0 }}><Icon.Alert/></span>
               <p style={{ margin:0, fontSize:12, color:"#D4A853", lineHeight:1.6 }}>Ce fichier est généré à titre préparatoire. Il doit être vérifié et validé par votre expert-comptable avant toute remise à l'administration fiscale.</p>
             </div>
@@ -298,4 +298,4 @@ function Field({ label, children }) {
   );
 }
 
-const inputStyle = { padding:"8px 12px", border:"1px solid rgba(255,255,255,0.08)", borderRadius:8, fontSize:14, color:"#EDE8DB", background:"rgba(255,255,255,0.04)", outline:"none", fontFamily:"inherit", width:"100%", boxSizing:"border-box" };
+const inputStyle = { padding:"8px 12px", border:"1px solid rgba(255,255,255,0.08)", borderRadius:8, fontSize:14, color:"#EDE8DB", background:"#1a1d24", outline:"none", fontFamily:"inherit", width:"100%", boxSizing:"border-box" };

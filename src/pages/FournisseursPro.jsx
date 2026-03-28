@@ -321,7 +321,7 @@ export default function FournisseursPro() {
         {[
           { label:'Fournisseurs', value:fournisseurs.length, color:C.blue, icon:ShoppingCart },
           { label:'Alertes prix', value:alertes.length, color:alertes.length>0?C.red:C.green, icon:TrendingUp },
-          { label:'Total dépenses', value:new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(totalDepenses), color:C.purple, icon:BarChart2 },
+          { label:'Total dépenses (global)', value:new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(totalDepenses), color:C.purple, icon:BarChart2 },
         ].map(s => { const Icon = s.icon; return (
           <div key={s.label} style={{ background:'rgba(255,255,255,0.04)', border:`1px solid ${alertes.length>0&&s.label==='Alertes prix'?'rgba(199,91,78,0.3)':'rgba(255,255,255,0.08)'}`, borderRadius:12, padding:'16px 18px', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
@@ -403,7 +403,7 @@ export default function FournisseursPro() {
             </div>
             {selected.notes&&<div style={{ marginTop:12, background:'#FFF7ED', border:'1px solid #FED7AA', borderRadius:9, padding:'10px 14px', fontSize:13, color:'#92400E' }}>📝 {selected.notes}</div>}
             {alertes.filter(a=>a.fournisseur?.toLowerCase()===selected.nom?.toLowerCase()).map(a=>(
-              <div key={a.id} style={{ marginTop:12, background:'rgba(212,168,83,0.08)', border:'1px solid rgba(212,168,83,0.3)', borderRadius:9, padding:'10px 14px', fontSize:12, color:C.orange, fontWeight:600 }}>
+              <div key={a.id} style={{ marginTop:12, background:'rgba(212,168,83,0.08)', border:'1px solid rgba(212,168,83,0.15)', borderRadius:9, padding:'10px 14px', fontSize:12, color:C.orange, fontWeight:600 }}>
                 ⚠️ {a.titre} — {a.detail}
                 {a.surcoût!=null&&<div style={{ marginTop:4, fontSize:11, fontWeight:400 }}>Surcoût vs inflation INSEE : +{a.surcoût}%</div>}
               </div>
