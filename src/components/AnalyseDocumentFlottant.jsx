@@ -69,9 +69,10 @@ export default function AnalyseDocumentFlottant() {
   const [saving,   setSaving]   = useState(false);
   const [saved,    setSaved]    = useState(false);
   const [catChoisie, setCatChoisie] = useState(null);
+  const [statutRecette, setStatutRecette] = useState('encaisse');
   const fileRef = useRef();
 
-  const reset = () => { setStep('idle'); setResult(null); setErrMsg(''); setSaved(false); setSaving(false); setCatChoisie(null); };
+  const reset = () => { setStep('idle'); setResult(null); setErrMsg(''); setSaved(false); setSaving(false); setCatChoisie(null); setStatutRecette('encaisse'); };
   const close = () => { setOpen(false); setTimeout(reset, 300); };
 
   const analyser = async (file) => {
@@ -136,16 +137,16 @@ export default function AnalyseDocumentFlottant() {
         };
       } else if (catChoisie === 'recette') {
         payload = {
-  user_id: user.id,
-  workspace_id: activeWorkspace?.id || null,
-  date_emission: result.date || new Date().toISOString().split('T')[0],
-  montant_ht: result.montant_ht || 0,
-  montant_ttc: result.montant_ttc || 0,
-  tva_taux: 20,
-  statut: 'encaisse',
-  description: result.description || result.fournisseur || '',
-  numero: `DEV-${new Date().getFullYear()}-OCR`,
-};
+          user_id: user.id,
+          workspace_id: activeWorkspace?.id || null,
+          date_emission: result.date || new Date().toISOString().split('T')[0],
+          montant_ht: result.montant_ht || 0,
+          montant_ttc: result.montant_ttc || 0,
+          tva_taux: 20,
+          statut: statutRecette,
+          description: result.description || result.fournisseur || '',
+          numero: `REC-${new Date().getFullYear()}-OCR`,
+        };
       } else if (catChoisie === 'contrat') {
         payload = {
           user_id: user.id,
@@ -266,6 +267,26 @@ export default function AnalyseDocumentFlottant() {
                     })}
                   </div>
                 </div>
+
+                {/* Statut recette */}
+                {catChoisie === 'recette' && (
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(237,232,219,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Statut de la recette</div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {[
+                        { id: 'brouillon', label: 'Brouillon', color: 'rgba(237,232,219,0.4)' },
+                        { id: 'envoye',    label: 'Envoyé',    color: '#5BA3C7' },
+                        { id: 'signe',     label: 'Signé',     color: '#5BC78A' },
+                        { id: 'encaisse',  label: 'Encaissé',  color: '#A85BC7' },
+                      ].map(s => (
+                        <button key={s.id} onClick={() => setStatutRecette(s.id)}
+                          style={{ flex: 1, padding: '7px 4px', borderRadius: 9, border: `1px solid ${statutRecette === s.id ? s.color : 'rgba(255,255,255,0.08)'}`, background: statutRecette === s.id ? `${s.color}20` : 'rgba(255,255,255,0.03)', color: statutRecette === s.id ? s.color : 'rgba(237,232,219,0.4)', fontSize: 11, fontWeight: statutRecette === s.id ? 700 : 500, cursor: 'pointer', fontFamily: 'inherit' }}>
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 12, padding: '14px 16px', marginBottom: 16, border: '1px solid rgba(255,255,255,0.08)' }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(237,232,219,0.5)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Données extraites</div>
