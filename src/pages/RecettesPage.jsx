@@ -10,6 +10,7 @@ import ExportButton from '../components/ExportButton';
 import DateFilter from '../components/DateFilter';
 import Tooltip from '../components/Tooltip';
 import { TIPS } from '../utils/tooltips';
+import { useWorkspace } from '../hooks/useWorkspace.jsx';
 
 const ACCENT = '#5BA3C7';
 const formatEuro = (n) => n == null ? '—' : new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n);
@@ -32,7 +33,6 @@ const STATUTS = [
   { id: 'annule',     label: 'Annulé',      color: 'rgba(237,232,219,0.2)', bg: 'rgba(255,255,255,0.04)' },
 ];
 
-// Tooltips pour chaque statut devis
 const STATUT_TIPS = {
   brouillon: TIPS.statut_brouillon,
   envoye:    TIPS.statut_envoye,
@@ -110,7 +110,7 @@ function genererPDF(devis, client, profil, lignes) {
   y+=8; doc.setDrawColor(...light); doc.line(M, y, W-M, y); y+=5;
   doc.setFontSize(7.5); doc.setTextColor(...gray);
   doc.text("Devis sans engagement — valable jusqu'à la date de validité indiquée.", M, y); y+=4;
-  doc.text('En cas d\'acceptation, retourner ce document signé avec la mention "Bon pour accord".', M, y); y+=4;
+  doc.text("En cas d'acceptation, retourner ce document signé avec la mention \"Bon pour accord\".", M, y); y+=4;
   if (profil.siret) doc.text(`${profil.company_name||''} — SIRET ${profil.siret}`, M, y);
   doc.save(`devis-${devis.numero}.pdf`);
 }
@@ -131,8 +131,7 @@ function LignesPrestation({ lignes, setLignes }) {
         </button>
       </div>
       <div style={{display:'grid',gridTemplateColumns:'3fr 0.6fr 1fr 0.8fr 1fr 28px',gap:6,marginBottom:6,padding:'0 4px'}}>
-        {[
-          'Description','Qté',
+        {['Description','Qté',
           <span key="ht" style={{display:'flex',alignItems:'center',gap:3}}>P.U. HT <Tooltip text={TIPS.ht} size={11}/></span>,
           <span key="tva" style={{display:'flex',alignItems:'center',gap:3}}>TVA % <Tooltip text={TIPS.taux_tva} size={11}/></span>,
           <span key="ttc" style={{display:'flex',alignItems:'center',gap:3}}>Total TTC <Tooltip text={TIPS.ttc} size={11}/></span>,
@@ -170,7 +169,18 @@ function ClientForm({ onSave, onCancel }) {
   const set=(k)=>(e)=>setForm(f=>({...f,[k]:e.target.value}));
   const iS={width:'100%',padding:'9px 12px',borderRadius:8,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',color:'#EDE8DB',fontSize:13,outline:'none',boxSizing:'border-box'};
   const lS={fontSize:11,fontWeight:600,color:'rgba(237,232,219,0.5)',marginBottom:5,display:'flex',alignItems:'center',gap:4};
-  const handleSubmit=async(e)=>{e.preventDefault();setLoading(true);try{const{data:{user}}=await supabasePro.auth.getUser();const{error:err}=await supabasePro.from('clients').insert({...form,user_id:user.id});if(err)throw err;onSave();}catch(err){setError(err.message);}setLoading(false);};
+  const handleSubmit=async(e)=>{
+    e.preventDefault();setLoading(true);
+    try {
+      const{data:{session}}=await supabasePro.auth.getSession();
+      const user=session?.user;
+      if(!user)throw new Error('Session expirée');
+      const{error:err}=await supabasePro.from('clients').insert({...form,user_id:user.id});
+      if(err)throw err;
+      onSave();
+    }catch(err){setError(err.message);}
+    setLoading(false);
+  };
   return (
     <form onSubmit={handleSubmit} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:14,padding:24,marginBottom:24,boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
       <h3 style={{fontSize:15,fontWeight:700,color:'#EDE8DB',marginBottom:20}}>Nouveau client</h3>
@@ -190,7 +200,7 @@ function ClientForm({ onSave, onCancel }) {
   );
 }
 
-function DevisForm({ clients, onSave, onCancel, editData=null, prefill=null }) {
+function DevisForm({ clients, onSave, onCancel, editData=null, prefill=null, workspaceId=null }) {
   const today=new Date().toISOString().split('T')[0];
   const in30=new Date(Date.now()+30*86400000).toISOString().split('T')[0];
   const [form,setForm]=useState(editData||{
@@ -209,11 +219,37 @@ function DevisForm({ clients, onSave, onCancel, editData=null, prefill=null }) {
     if(editData?.description){try{return JSON.parse(editData.description);}catch{}}
     return[{description:'',quantite:1,prix_unitaire:'',tva_taux:20}];
   });
-  const [loading,setLoading]=useState(false);const[error,setError]=useState('');
+  const [loading,setLoading]=useState(false);
+  const [error,setError]=useState('');
   const set=(k)=>(e)=>setForm(f=>({...f,[k]:e.target.value}));
   const totalHT=lignes.reduce((s,l)=>s+(Number(l.quantite)||0)*(Number(l.prix_unitaire)||0),0);
   const totalTVA=lignes.reduce((s,l)=>s+(Number(l.quantite)||0)*(Number(l.prix_unitaire)||0)*(Number(l.tva_taux)||20)/100,0);
-  const handleSubmit=async(e)=>{e.preventDefault();setLoading(true);try{const{data:{user}}=await supabasePro.auth.getUser();const payload={...form,user_id:user.id,montant_ht:totalHT,tva_taux:lignes[0]?.tva_taux||20,montant_ttc:totalHT+totalTVA,description:JSON.stringify(lignes)};if(editData?.id){const{error:err}=await supabasePro.from('devis').update(payload).eq('id',editData.id);if(err)throw err;}else{const{error:err}=await supabasePro.from('devis').insert(payload);if(err)throw err;}onSave();}catch(err){setError(err.message);}setLoading(false);};
+  const handleSubmit=async(e)=>{
+    e.preventDefault();setLoading(true);
+    try {
+      const{data:{session}}=await supabasePro.auth.getSession();
+      const user=session?.user;
+      if(!user)throw new Error('Session expirée');
+      const payload={
+        ...form,
+        user_id:user.id,
+        workspace_id: workspaceId || null,
+        montant_ht:totalHT,
+        tva_taux:lignes[0]?.tva_taux||20,
+        montant_ttc:totalHT+totalTVA,
+        description:JSON.stringify(lignes)
+      };
+      if(editData?.id){
+        const{error:err}=await supabasePro.from('devis').update(payload).eq('id',editData.id);
+        if(err)throw err;
+      }else{
+        const{error:err}=await supabasePro.from('devis').insert(payload);
+        if(err)throw err;
+      }
+      onSave();
+    }catch(err){setError(err.message);}
+    setLoading(false);
+  };
   const iS={width:'100%',padding:'9px 12px',borderRadius:8,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',color:'#EDE8DB',fontSize:13,outline:'none',boxSizing:'border-box'};
   const lS={fontSize:11,fontWeight:600,color:'rgba(237,232,219,0.5)',marginBottom:5,display:'flex',alignItems:'center',gap:4};
   return (
@@ -248,6 +284,7 @@ function DevisForm({ clients, onSave, onCancel, editData=null, prefill=null }) {
 }
 
 export default function RecettesPage() {
+  const { activeWorkspace } = useWorkspace();
   const [tab,setTab]=useState('devis');
   const [devis,setDevis]=useState([]);
   const [clients,setClients]=useState([]);
@@ -274,16 +311,20 @@ export default function RecettesPage() {
         }
       }
     } catch {}
-  },[]);
+  },[activeWorkspace]);
 
   const fetchAll=async()=>{
     setLoading(true);
-    const{data:{user}}=await supabasePro.auth.getUser();
+    const{data:{session}}=await supabasePro.auth.getSession();
+    const user=session?.user;
     if(!user)return;
+
+    // FIX : qDevis correctement initialisé
     let qDevis = supabasePro.from('devis').select('*, clients(nom,email,telephone,adresse,siret)').eq('user_id',user.id).order('date_emission',{ascending:false});
     if(activeWorkspace?.id) qDevis = qDevis.eq('workspace_id', activeWorkspace.id);
+
     let qClients = supabasePro.from('clients').select('*').eq('user_id',user.id).order('nom');
-    if(activeWorkspace?.id) qClients = qClients.eq('workspace_id', activeWorkspace.id);
+
     const[{data:d},{data:c},{data:p}]=await Promise.all([
       qDevis, qClients,
       supabasePro.from('user_profiles').select('*').eq('id',user.id).single(),
@@ -363,6 +404,7 @@ export default function RecettesPage() {
           clients={clients}
           editData={editDevis}
           prefill={ocrPrefill}
+          workspaceId={activeWorkspace?.id}
           onSave={()=>{setShowDevisForm(false);setEditDevis(null);setOcrPrefill(null);fetchAll();}}
           onCancel={()=>{setShowDevisForm(false);setEditDevis(null);setOcrPrefill(null);}}
         />
@@ -387,8 +429,7 @@ export default function RecettesPage() {
           :<table style={{width:'100%',borderCollapse:'collapse'}}>
             <thead>
               <tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
-                {[
-                  'N° Devis','Client','Émission',
+                {['N° Devis','Client','Émission',
                   <span key="ech" style={{display:'flex',alignItems:'center',gap:4}}>Échéance <Tooltip text={TIPS.date_echeance} size={11}/></span>,
                   <span key="ttc" style={{display:'flex',alignItems:'center',gap:4}}>Montant TTC <Tooltip text={TIPS.ttc} size={11}/></span>,
                   'Statut','Relances','',
