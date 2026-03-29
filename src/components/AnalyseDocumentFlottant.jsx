@@ -138,20 +138,27 @@ export default function AnalyseDocumentFlottant() {
         payload = {
           user_id: user.id,
           workspace_id: activeWorkspace?.id || null,
-          date: result.date || new Date().toISOString().split('T')[0],
-          montant_ht: result.montant_ht || 0,
-          montant_ttc: result.montant_ttc || 0,
-          description: result.description || result.fournisseur || '',
-          statut: 'brouillon',
+          invoice_date: result.date || new Date().toISOString().split('T')[0],
+          amount_ht: result.montant_ht || 0,
+          amount_ttc: result.montant_ttc || 0,
+          tax: result.tva || 0,
+          provider: result.fournisseur || '',
+          invoice_number: result.numero_facture || '',
+          notes: result.description || '',
+          status: 'pending',
+          context: 'pro',
         };
       } else if (catChoisie === 'contrat') {
         payload = {
           user_id: user.id,
+          workspace_id: activeWorkspace?.id || null,
           nom: result.nom_contrat || result.fournisseur || 'Contrat importé',
+          fournisseur: result.fournisseur || '',
           date_debut: result.date || new Date().toISOString().split('T')[0],
           date_fin: result.date_fin || null,
           statut: 'actif',
           notes: result.description || '',
+          montant_periodique: result.montant_ttc || 0,
         };
       }
       await supabasePro.from(config.table).insert([payload]);
