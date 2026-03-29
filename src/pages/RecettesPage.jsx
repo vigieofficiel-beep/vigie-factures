@@ -119,7 +119,7 @@ function LignesPrestation({ lignes, setLignes }) {
   const addLigne = () => setLignes(l => [...l, { description:'', quantite:1, prix_unitaire:'', tva_taux:20 }]);
   const removeLigne = (i) => setLignes(l => l.filter((_,idx) => idx!==i));
   const updateLigne = (i,k,v) => setLignes(l => l.map((item,idx) => idx===i ? {...item,[k]:v} : item));
-  const inputS = { padding:'8px 10px', borderRadius:7, border:'1px solid rgba(255,255,255,0.08)', background:'rgba(255,255,255,0.04)', fontSize:12, outline:'none', width:'100%', boxSizing:'border-box' };
+  const inputS = { padding:'8px 10px', borderRadius:7, border:'1px solid rgba(255,255,255,0.08)', background:'#1a1d24', fontSize:12, outline:'none', color:'#EDE8DB', width:'100%', boxSizing:'border-box' };
   const totalHT  = lignes.reduce((s,l) => s+(Number(l.quantite)||0)*(Number(l.prix_unitaire)||0), 0);
   const totalTVA = lignes.reduce((s,l) => s+(Number(l.quantite)||0)*(Number(l.prix_unitaire)||0)*(Number(l.tva_taux)||20)/100, 0);
   return (
@@ -167,7 +167,7 @@ function ClientForm({ onSave, onCancel }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const set=(k)=>(e)=>setForm(f=>({...f,[k]:e.target.value}));
-  const iS={width:'100%',padding:'9px 12px',borderRadius:8,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',color:'#EDE8DB',fontSize:13,outline:'none',boxSizing:'border-box'};
+  const iS={width:'100%',padding:'9px 12px',borderRadius:8,background:'#1a1d24',border:'1px solid rgba(255,255,255,0.08)',color:'#EDE8DB',fontSize:13,outline:'none',boxSizing:'border-box'};
   const lS={fontSize:11,fontWeight:600,color:'rgba(237,232,219,0.5)',marginBottom:5,display:'flex',alignItems:'center',gap:4};
   const handleSubmit=async(e)=>{
     e.preventDefault();setLoading(true);
@@ -259,7 +259,7 @@ function DevisForm({ clients, onSave, onCancel, editData=null, prefill=null, wor
     }catch(err){setError(err.message);}
     setLoading(false);
   };
-  const iS={width:'100%',padding:'9px 12px',borderRadius:8,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',color:'#EDE8DB',fontSize:13,outline:'none',boxSizing:'border-box'};
+  const iS={width:'100%',padding:'9px 12px',borderRadius:8,background:'#1a1d24',border:'1px solid rgba(255,255,255,0.08)',color:'#EDE8DB',fontSize:13,outline:'none',boxSizing:'border-box'};
   const lS={fontSize:11,fontWeight:600,color:'rgba(237,232,219,0.5)',marginBottom:5,display:'flex',alignItems:'center',gap:4};
   return (
     <form onSubmit={handleSubmit} style={{background:'rgba(255,255,255,0.04)',border:`1px solid ${prefill?`${ACCENT}40`:'rgba(255,255,255,0.08)'}`,borderRadius:14,padding:24,marginBottom:24,boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>

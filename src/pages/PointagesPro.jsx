@@ -305,7 +305,7 @@ export default function PointagesPro() {
       </div>
 
       {employes.length === 0 && (
-        <div style={{ background: "rgba(212,168,83,0.08)", border: "1px solid rgba(212,168,83,0.3)", borderRadius: 10, padding: "12px 16px", marginBottom: 20, fontSize: 14, color: "#D4A853" }}>
+        <div style={{ background: "rgba(212,168,83,0.08)", border: "1px solid rgba(212,168,83,0.15)", borderRadius: 10, padding: "12px 16px", marginBottom: 20, fontSize: 14, color: "#D4A853" }}>
           ⚠️ Aucun membre dans l'équipe. Ajoutez d'abord des collaborateurs dans le module <strong>Équipe</strong>.
         </div>
       )}
@@ -349,7 +349,7 @@ export default function PointagesPro() {
             <button key={m} onClick={() => setVueMode(m)} style={{
               ...btnSecondary, padding: "8px 14px", fontSize: 13,
               background: vueMode === m ? "#5BA3C7" : "rgba(255,255,255,0.04)",
-              color: vueMode === m ? "rgba(255,255,255,0.04)" : "#EDE8DB",
+              color: vueMode === m ? "#fff" : "#EDE8DB",
               borderColor: vueMode === m ? "#5BA3C7" : "rgba(255,255,255,0.1)",
             }}>
               {m === "liste" ? "Liste" : "Récapitulatif"}
@@ -482,12 +482,12 @@ function Label({ children }) {
 
 const inputStyle = {
   padding: "8px 12px", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8,
-  fontSize: 14, color: "#EDE8DB", background: "rgba(255,255,255,0.04)", outline: "none",
+  fontSize: 14, color: "#EDE8DB", background: "#1a1d24", outline: "none",
   fontFamily: "inherit", width: "100%", boxSizing: "border-box",
 };
 const btnPrimary = {
   display: "flex", alignItems: "center", gap: 6,
-  background: "#5BA3C7", color: "rgba(255,255,255,0.04)", border: "none",
+  background: "#5BA3C7", color: "#fff", border: "none",
   padding: "9px 18px", borderRadius: 8, fontWeight: 600,
   fontSize: 14, cursor: "pointer", fontFamily: "inherit",
 };

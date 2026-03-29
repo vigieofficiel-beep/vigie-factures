@@ -63,7 +63,8 @@ export default function TableauFiscal() {
 
   const fetchData = async () => {
     setLoading(true);
-    const { data:{ user } } = await supabasePro.auth.getUser();
+    const { data:{ session } } = await supabasePro.auth.getSession();
+const user = session?.user;
     if (!user) return;
     const debut = `${annee}-01-01`;
     const fin   = `${annee}-12-31`;
@@ -130,15 +131,15 @@ export default function TableauFiscal() {
 
       {/* Paramètres */}
       <div style={{ display:'flex', gap:12, flexWrap:'wrap', marginBottom:24 }}>
-        <select value={annee} onChange={e => setAnnee(Number(e.target.value))} style={{ padding:'8px 14px', borderRadius:9, border:`1px solid ${C.border}`, background:'rgba(255,255,255,0.04)', color:C.dark, fontSize:13, outline:'none', fontFamily:'inherit' }}>
+        <select value={annee} onChange={e => setAnnee(Number(e.target.value))} style={{ padding:'8px 14px', borderRadius:9, border:`1px solid ${C.border}`, background:'#1a1d24', color:C.dark, fontSize:13, outline:'none', fontFamily:'inherit' }}>
           {ANNEES.map(a => <option key={a} value={a}>{a}</option>)}
         </select>
-        <select value={regime} onChange={e => setRegime(e.target.value)} style={{ padding:'8px 14px', borderRadius:9, border:`1px solid ${C.border}`, background:'rgba(255,255,255,0.04)', color:C.dark, fontSize:13, outline:'none', fontFamily:'inherit' }}>
+        <select value={regime} onChange={e => setRegime(e.target.value)} style={{ padding:'8px 14px', borderRadius:9, border:`1px solid ${C.border}`, background:'#1a1d24', color:C.dark, fontSize:13, outline:'none', fontFamily:'inherit' }}>
           <option value="ae">Auto-entrepreneur</option>
           <option value="ir">IR (BNC/BIC)</option>
           <option value="is">IS (Société)</option>
         </select>
-        <select value={activite} onChange={e => setActivite(e.target.value)} style={{ padding:'8px 14px', borderRadius:9, border:`1px solid ${C.border}`, background:'rgba(255,255,255,0.04)', color:C.dark, fontSize:13, outline:'none', fontFamily:'inherit' }}>
+        <select value={activite} onChange={e => setActivite(e.target.value)} style={{ padding:'8px 14px', borderRadius:9, border:`1px solid ${C.border}`, background:'#1a1d24', color:C.dark, fontSize:13, outline:'none', fontFamily:'inherit' }}>
           <option value="services">Prestations de services</option>
           <option value="ventes">Ventes de marchandises</option>
         </select>

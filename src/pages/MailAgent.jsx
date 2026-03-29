@@ -111,7 +111,7 @@ function OngletRediger({ config, onEmailEnvoye }) {
       });
       setEmail(result);
     } catch (e) {
-      setError("Erreur lors de la génération IA. Vérifiez votre connexion.");
+      setError("Erreur lors de la génération du message. Vérifiez votre connexion.");
     } finally {
       setGenerating(false);
     }
@@ -205,7 +205,7 @@ function OngletRediger({ config, onEmailEnvoye }) {
               ...btnPrimary,
               justifyContent: "center",
               background: generating ? "rgba(255,255,255,0.1)" : "linear-gradient(135deg, #6366f1, #8b5cf6)",
-              color: generating ? "rgba(237,232,219,0.4)" : "rgba(255,255,255,0.04)",
+              color: generating ? "rgba(237,232,219,0.4)" : "#fff",
             }}>
               <Icon.Sparkle />
               {generating ? "Génération en cours..." : "Générer"}
@@ -266,7 +266,7 @@ function OngletRediger({ config, onEmailEnvoye }) {
             <button onClick={envoyer} disabled={sending || !form.destinataire} style={{
               ...btnPrimary, justifyContent: "center", marginTop: 14,
               background: !form.destinataire ? "rgba(255,255,255,0.1)" : "#5BC78A",
-              color: !form.destinataire ? "rgba(237,232,219,0.4)" : "rgba(255,255,255,0.04)",
+              color: !form.destinataire ? "rgba(237,232,219,0.4)" : "#fff",
               cursor: !form.destinataire ? "not-allowed" : "pointer",
             }}>
               <Icon.Send />
@@ -372,7 +372,7 @@ function OngletRelances({ config, onEmailEnvoye }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ background: "rgba(212,168,83,0.08)", border: "1px solid rgba(212,168,83,0.3)", borderRadius: 10, padding: "10px 16px", fontSize: 13, color: "#D4A853", display: "flex", gap: 8 }}>
+      <div style={{ background: "rgba(212,168,83,0.08)", border: "1px solid rgba(212,168,83,0.15)", borderRadius: 10, padding: "10px 16px", fontSize: 13, color: "#D4A853", display: "flex", gap: 8 }}>
         <Icon.Alert />
         <span><b>{factures.length} facture{factures.length > 1 ? "s" : ""}</b> en retard de paiement détectée{factures.length > 1 ? "s" : ""}. Les courriels de relance peuvent être générés automatiquement.</span>
       </div>
@@ -673,7 +673,7 @@ export default function MailAgent() {
 
       {/* Alerte si pas configuré */}
       {!config?.email_expediteur && (
-        <div style={{ background: "rgba(212,168,83,0.08)", border: "1px solid rgba(212,168,83,0.3)", borderRadius: 10, padding: "12px 16px", marginBottom: 20, fontSize: 13, color: "#D4A853", display: "flex", gap: 10, alignItems: "center" }}>
+        <div style={{ background: "rgba(212,168,83,0.08)", border: "1px solid rgba(212,168,83,0.15)", borderRadius: 10, padding: "12px 16px", marginBottom: 20, fontSize: 13, color: "#D4A853", display: "flex", gap: 10, alignItems: "center" }}>
           <Icon.Alert />
           <span>Configurez votre courriel d'expédition dans les <b>Paramètres</b> pour pouvoir envoyer des courriels.</span>
           <button onClick={() => setTab("parametres")} style={{ ...btnSecondary, marginLeft: "auto", fontSize: 12, padding: "5px 12px" }}>
@@ -723,7 +723,7 @@ function Field({ label, children }) {
 
 const card = { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 20, boxShadow: "0 1px 4px rgba(0,0,0,0.05)" };
 const cardTitle = { margin: "0 0 14px", fontSize: 13, fontWeight: 700, color: "#EDE8DB", textTransform: "uppercase", letterSpacing: "0.05em" };
-const inputStyle = { padding: "8px 12px", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, fontSize: 14, color: "#EDE8DB", background: "rgba(255,255,255,0.04)", outline: "none", fontFamily: "inherit", width: "100%", boxSizing: "border-box" };
-const btnPrimary = { display: "flex", alignItems: "center", gap: 6, background: "#5BA3C7", color: "rgba(255,255,255,0.04)", border: "none", padding: "9px 18px", borderRadius: 8, fontWeight: 600, fontSize: 14, cursor: "pointer", fontFamily: "inherit" };
+const inputStyle = { padding: "8px 12px", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, fontSize: 14, color: "#EDE8DB", background: "#1a1d24", outline: "none", fontFamily: "inherit", width: "100%", boxSizing: "border-box" };
+const btnPrimary = { display: "flex", alignItems: "center", gap: 6, background: "#5BA3C7", color: "#fff", border: "none", padding: "9px 18px", borderRadius: 8, fontWeight: 600, fontSize: 14, cursor: "pointer", fontFamily: "inherit" };
 const btnSecondary = { display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.06)", color: "#EDE8DB", border: "1px solid rgba(255,255,255,0.1)", padding: "7px 14px", borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: "inherit" };
 const btnIcon = { background: "none", border: "none", cursor: "pointer", color: "rgba(237,232,219,0.4)", padding: 5, borderRadius: 6, display: "flex" };
