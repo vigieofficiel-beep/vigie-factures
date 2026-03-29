@@ -52,7 +52,7 @@ async function imageToBase64(file) {
 
 const TYPE_CONFIG = {
   depense: { label: 'Dépense',  icon: TrendingUp, color: '#C75B4E', table: 'expenses',  message: 'Classifié comme dépense' },
-  recette: { label: 'Recette',  icon: TrendingUp, color: '#5BC78A', table: 'invoices',   message: 'Classifié comme recette' },
+  recette: { label: 'Recette',  icon: TrendingUp, color: '#5BC78A', table: 'devis',   message: 'Classifié comme recette' },
   contrat: { label: 'Contrat',  icon: FileCheck,  color: '#5BA3C7', table: 'contrats',   message: 'Classifié comme contrat' },
   autre:   { label: 'Autre',    icon: HelpCircle, color: '#A85BC7', table: null,          message: 'Type non reconnu' },
 };
@@ -136,18 +136,16 @@ export default function AnalyseDocumentFlottant() {
         };
       } else if (catChoisie === 'recette') {
         payload = {
-          user_id: user.id,
-          workspace_id: activeWorkspace?.id || null,
-          invoice_date: result.date || new Date().toISOString().split('T')[0],
-          amount_ht: result.montant_ht || 0,
-          amount_ttc: result.montant_ttc || 0,
-          tax: result.tva || 0,
-          provider: result.fournisseur || '',
-          invoice_number: result.numero_facture || '',
-          notes: result.description || '',
-          status: 'pending',
-          context: 'pro',
-        };
+  user_id: user.id,
+  workspace_id: activeWorkspace?.id || null,
+  date_emission: result.date || new Date().toISOString().split('T')[0],
+  montant_ht: result.montant_ht || 0,
+  montant_ttc: result.montant_ttc || 0,
+  tva_taux: 20,
+  statut: 'brouillon',
+  description: result.description || result.fournisseur || '',
+  numero: `DEV-${new Date().getFullYear()}-OCR`,
+};
       } else if (catChoisie === 'contrat') {
         payload = {
           user_id: user.id,
