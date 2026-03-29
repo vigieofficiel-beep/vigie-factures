@@ -175,7 +175,16 @@ function ClientForm({ onSave, onCancel }) {
       const{data:{session}}=await supabasePro.auth.getSession();
       const user=session?.user;
       if(!user)throw new Error('Session expirée');
-      const{error:err}=await supabasePro.from('clients').insert({...form,user_id:user.id});
+      // Mapper les champs du form vers les vraies colonnes Supabase
+      const clientPayload = {
+        nom: form.nom,
+        courriel: form.email,
+        'téléphone': form.telephone,
+        adresse: form.adresse,
+        siret: form.siret,
+        user_id: user.id,
+      };
+      const{error:err}=await supabasePro.from('clients').insert(clientPayload);
       if(err)throw err;
       onSave();
     }catch(err){setError(err.message);}
