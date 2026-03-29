@@ -142,7 +142,7 @@ export default function AnalyseDocumentFlottant() {
   montant_ht: result.montant_ht || 0,
   montant_ttc: result.montant_ttc || 0,
   tva_taux: 20,
-  statut: 'brouillon',
+  statut: 'encaisse',
   description: result.description || result.fournisseur || '',
   numero: `DEV-${new Date().getFullYear()}-OCR`,
 };
