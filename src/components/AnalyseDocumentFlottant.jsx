@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { useWorkspace } from '../hooks/useWorkspace.jsx';
 import { supabasePro } from '../lib/supabasePro';
 import { ScanLine, X, Upload, Loader, CheckCircle, AlertTriangle, TrendingUp, FileCheck, HelpCircle, Save } from 'lucide-react';
 
@@ -59,6 +60,7 @@ const TYPE_CONFIG = {
 const CATEGORIES = ['depense', 'recette', 'contrat', 'autre'];
 
 export default function AnalyseDocumentFlottant() {
+  const { activeWorkspace } = useWorkspace();
   const [open,     setOpen]     = useState(false);
   const [step,     setStep]     = useState('idle');
   const [result,   setResult]   = useState(null);
@@ -117,11 +119,15 @@ export default function AnalyseDocumentFlottant() {
     setSaving(true);
     try {
       const { data: { session } } = await supabasePro.auth.getSession();
-      const user = session?.user;
+      if (!session) { const { data: r } = await supabasePro.auth.refreshSession(); }
+      const { data: { session: sess2 } } = await supabasePro.auth.getSession();
+      const user = sess2?.user;
+      if (!user) throw new Error('Session expirée — reconnectez-vous');
       let payload = {};
       if (catChoisie === 'depense') {
         payload = {
           user_id: user.id,
+          workspace_id: activeWorkspace?.id || null,
           date: result.date || new Date().toISOString().split('T')[0],
           amount_ttc: result.montant_ttc || 0,
           etablissement: result.fournisseur || '',
@@ -131,6 +137,7 @@ export default function AnalyseDocumentFlottant() {
       } else if (catChoisie === 'recette') {
         payload = {
           user_id: user.id,
+          workspace_id: activeWorkspace?.id || null,
           date: result.date || new Date().toISOString().split('T')[0],
           montant_ht: result.montant_ht || 0,
           montant_ttc: result.montant_ttc || 0,
