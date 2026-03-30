@@ -51,7 +51,9 @@ function EmployeForm({ onSave, onCancel, editData = null }) {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data: { user } } = await supabasePro.auth.getUser();
+      const { data: { session } } = await supabasePro.auth.getSession();
+      const user = session?.user;
+      if (!user) throw new Error('Session expirée');
       const payload = { ...form, user_id: user.id };
       if (editData?.id) {
         const { error: err } = await supabasePro.from('equipe').update(payload).eq('id', editData.id);
@@ -62,7 +64,7 @@ function EmployeForm({ onSave, onCancel, editData = null }) {
       }
       onSave();
     } catch (err) {
-      setError(err.message);
+      setError('Erreur lors de l\'enregistrement. Vérifiez les informations saisies.');
     } finally {
       setLoading(false);
     }
@@ -70,7 +72,7 @@ function EmployeForm({ onSave, onCancel, editData = null }) {
 
   const inputStyle = {
     width: '100%', padding: '9px 12px', borderRadius: 8,
-    background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+    background: '#1a1d24', border: '1px solid rgba(255,255,255,0.08)',
     color: '#EDE8DB', fontSize: 13, outline: 'none', boxSizing: 'border-box',
   };
   const labelStyle = { fontSize: 11, fontWeight: 600, color: 'rgba(237,232,219,0.5)', marginBottom: 5, display: 'block' };
@@ -142,7 +144,8 @@ function PointageForm({ employes, onSave, onCancel }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const { data: { user } } = await supabasePro.auth.getUser();
+    const { data: { session } } = await supabasePro.auth.getSession();
+    const user = session?.user;
     await supabasePro.from('pointages').insert({
       ...form,
       user_id: user.id,
@@ -154,7 +157,7 @@ function PointageForm({ employes, onSave, onCancel }) {
 
   const inputStyle = {
     width: '100%', padding: '9px 12px', borderRadius: 8,
-    background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+    background: '#1a1d24', border: '1px solid rgba(255,255,255,0.08)',
     color: '#EDE8DB', fontSize: 13, outline: 'none', boxSizing: 'border-box',
   };
   const labelStyle = { fontSize: 11, fontWeight: 600, color: 'rgba(237,232,219,0.5)', marginBottom: 5, display: 'block' };
@@ -233,7 +236,8 @@ export default function EquipePage() {
 
   const fetchAll = async () => {
     setLoading(true);
-    const { data: { user } } = await supabasePro.auth.getUser();
+       const { data: { session } } = await supabasePro.auth.getSession();
+    const user = session?.user;
     if (!user) return;
     const [{ data: emp }, { data: pts }] = await Promise.all([
       supabasePro.from('equipe').select('*').eq('user_id', user.id).order('nom'),
@@ -351,15 +355,15 @@ export default function EquipePage() {
       )}
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 18, background: '#F0F2F5', borderRadius: 10, padding: 4, width: 'fit-content' }}>
+      <div style={{ display: 'flex', gap: 4, marginBottom: 18, background: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: 4, width: 'fit-content' }}>
         {[{ id: 'equipe', label: 'Équipe', icon: Users }, { id: 'pointages', label: 'Pointages', icon: Clock }].map(t => {
           const Icon = t.icon;
           return (
             <button key={t.id} onClick={() => setTab(t.id)} style={{
               display: 'flex', alignItems: 'center', gap: 6,
               padding: '7px 16px', borderRadius: 8, border: 'none',
-              background: tab === t.id ? '#fff' : 'transparent',
-              color: tab === t.id ? '#1A1C20' : '#9AA0AE',
+              background: tab === t.id ? 'rgba(91,163,199,0.15)' : 'transparent',
+              color: tab === t.id ? '#5BA3C7' : 'rgba(237,232,219,0.4)',
               fontSize: 13, fontWeight: tab === t.id ? 700 : 500, cursor: 'pointer',
               boxShadow: tab === t.id ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
             }}>

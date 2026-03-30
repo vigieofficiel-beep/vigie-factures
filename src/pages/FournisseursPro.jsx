@@ -113,11 +113,13 @@ function FournisseurForm({ onSave, onCancel, editData=null }) {
   const handleSubmit = async ev => {
     ev.preventDefault(); setLoading(true);
     try {
-      const { data: { user } } = await supabasePro.auth.getUser();
+      const { data: { session } } = await supabasePro.auth.getSession();
+      const user = session?.user;
+      if (!user) throw new Error('Session expirée');
       if (editData?.id) { const { error: err } = await supabasePro.from('fournisseurs').update({ ...form }).eq('id', editData.id); if (err) throw err; }
       else { const { error: err } = await supabasePro.from('fournisseurs').insert({ ...form, user_id: user.id }); if (err) throw err; }
       onSave();
-    } catch (e) { setError(e.message); }
+    } catch (e) { setError("Erreur lors de l'enregistrement. Vérifiez les informations saisies."); }
     setLoading(false);
   };
 
@@ -220,7 +222,8 @@ export default function FournisseursPro() {
 
   const fetchAll = async () => {
     setLoading(true);
-    const { data: { user } } = await supabasePro.auth.getUser();
+    const { data: { session } } = await supabasePro.auth.getSession();
+    const user = session?.user;
     if (!user) return;
     const [{ data: f }, { data: e }] = await Promise.all([
       supabasePro.from('fournisseurs').select('*').eq('user_id', user.id).order('nom'),
