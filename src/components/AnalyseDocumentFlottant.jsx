@@ -71,12 +71,14 @@ export default function AnalyseDocumentFlottant() {
   const [catChoisie, setCatChoisie] = useState(null);
   const [statutRecette, setStatutRecette] = useState('encaisse');
   const fileRef = useRef();
+  const currentFile = useRef(null);
 
-  const reset = () => { setStep('idle'); setResult(null); setErrMsg(''); setSaved(false); setSaving(false); setCatChoisie(null); setStatutRecette('encaisse'); };
+  const reset = () => { setStep('idle'); setResult(null); setErrMsg(''); setSaved(false); setSaving(false); setCatChoisie(null); setStatutRecette('encaisse'); currentFile.current = null; };
   const close = () => { setOpen(false); setTimeout(reset, 300); };
 
   const analyser = async (file) => {
     if (!file) return;
+    currentFile.current = file;
     setStep('loading'); setResult(null);
     try {
       let base64, mimeType;
@@ -124,6 +126,23 @@ export default function AnalyseDocumentFlottant() {
       const { data: { session: sess2 } } = await supabasePro.auth.getSession();
       const user = sess2?.user;
       if (!user) throw new Error('Session expirée — reconnectez-vous');
+      // Upload fichier original
+      let file_url = null, storage_path = null;
+      if (currentFile.current) {
+        try {
+          const file = currentFile.current;
+          const ext = file.name.split('.').pop();
+          const folder = catChoisie === 'depense' ? 'frais' : catChoisie === 'recette' ? 'recettes' : 'contrats';
+          const path = `${folder}/${user.id}/${Date.now()}.${ext}`;
+          const { error: upErr } = await supabasePro.storage.from('invoices').upload(path, file);
+          if (!upErr) {
+            const { data: urlData } = supabasePro.storage.from('invoices').getPublicUrl(path);
+            file_url = urlData.publicUrl;
+            storage_path = path;
+          }
+        } catch (e) { console.warn('Upload non bloquant:', e); }
+      }
+
       let payload = {};
       if (catChoisie === 'depense') {
         payload = {
@@ -134,6 +153,8 @@ export default function AnalyseDocumentFlottant() {
           etablissement: result.fournisseur || '',
           type: 'autre',
           notes: result.description || '',
+          file_url,
+          storage_path,
         };
       } else if (catChoisie === 'recette') {
         payload = {
@@ -146,6 +167,8 @@ export default function AnalyseDocumentFlottant() {
           statut: statutRecette,
           description: result.description || result.fournisseur || '',
           numero: `REC-${new Date().getFullYear()}-OCR`,
+          file_url,
+          storage_path,
         };
       } else if (catChoisie === 'contrat') {
         payload = {
@@ -158,6 +181,8 @@ export default function AnalyseDocumentFlottant() {
           statut: 'actif',
           notes: result.description || '',
           montant_periodique: result.montant_ttc || 0,
+          file_url,
+          storage_path,
         };
       }
       await supabasePro.from(config.table).insert([payload]);
