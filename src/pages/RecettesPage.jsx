@@ -336,7 +336,7 @@ export default function RecettesPage() {
     if(!user)return;
 
     // FIX : qDevis correctement initialisé
-    let qDevis = supabasePro.from('devis').select('*, clients(nom,email,telephone,adresse,siret)').eq('user_id',user.id).order('date_emission',{ascending:false});
+    let qDevis = supabasePro.from('devis').select('*, clients!left(nom,courriel,téléphone,adresse,siret)').eq('user_id',user.id).order('date_emission',{ascending:false});
     if(activeWorkspace?.id) qDevis = qDevis.eq('workspace_id', activeWorkspace.id);
 
     let qClients = supabasePro.from('clients').select('*').eq('user_id',user.id).order('nom');
