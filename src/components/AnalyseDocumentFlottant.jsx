@@ -123,7 +123,8 @@ export default function AnalyseDocumentFlottant() {
     try {
       const { data: { session } } = await supabasePro.auth.getSession();
       if (!session) { const { data: r } = await supabasePro.auth.refreshSession(); }
-      const { data: { user } } = await supabasePro.auth.getUser();
+      const { data: { session: sess2 } } = await supabasePro.auth.getSession();
+      const user = sess2?.user;
       if (!user) throw new Error('Session expirée — reconnectez-vous');
       // Upload fichier original
       let file_url = null, storage_path = null;
@@ -134,10 +135,13 @@ export default function AnalyseDocumentFlottant() {
           const folder = catChoisie === 'depense' ? 'frais' : catChoisie === 'recette' ? 'recettes' : 'contrats';
           const path = `${folder}/${user.id}/${Date.now()}.${ext}`;
           const { error: upErr } = await supabasePro.storage.from('invoices').upload(path, file);
+          console.log('UPLOAD ERR:', JSON.stringify(upErr));
+          console.log('UPLOAD PATH:', path);
           if (!upErr) {
             const { data: urlData } = supabasePro.storage.from('invoices').getPublicUrl(path);
             file_url = urlData.publicUrl;
             storage_path = path;
+            console.log('FILE URL:', file_url);
           }
         } catch (e) { console.warn('Upload non bloquant:', e); }
       }
@@ -365,10 +369,10 @@ export default function AnalyseDocumentFlottant() {
         </div>
       )}
 
-      <style>{`
+      <style>{\`
         @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
         @keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
-      `}</style>
+      \`}</style>
     </>
   );
 }
