@@ -123,8 +123,7 @@ export default function AnalyseDocumentFlottant() {
     try {
       const { data: { session } } = await supabasePro.auth.getSession();
       if (!session) { const { data: r } = await supabasePro.auth.refreshSession(); }
-      const { data: { session: sess2 } } = await supabasePro.auth.getSession();
-      const user = sess2?.user;
+      const { data: { user } } = await supabasePro.auth.getUser();
       if (!user) throw new Error('Session expirée — reconnectez-vous');
       // Upload fichier original
       let file_url = null, storage_path = null;
@@ -133,7 +132,7 @@ export default function AnalyseDocumentFlottant() {
           const file = currentFile.current;
           const ext = file.name.split('.').pop();
           const folder = catChoisie === 'depense' ? 'frais' : catChoisie === 'recette' ? 'recettes' : 'contrats';
-          const path = `${user.id}/${folder}/${Date.now()}.${ext}`;
+          const path = `${folder}/${user.id}/${Date.now()}.${ext}`;
           const { error: upErr } = await supabasePro.storage.from('invoices').upload(path, file);
           if (!upErr) {
             const { data: urlData } = supabasePro.storage.from('invoices').getPublicUrl(path);
