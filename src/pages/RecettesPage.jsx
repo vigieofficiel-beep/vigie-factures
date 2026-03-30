@@ -5,7 +5,7 @@ import {
   Plus, Trash2, Edit2, CheckCircle, AlertTriangle, Download,
   Users, FileText, TrendingUp, RefreshCw, FileDown, Settings, ExternalLink
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import ExportButton from '../components/ExportButton';
 import DateFilter from '../components/DateFilter';
 import Tooltip from '../components/Tooltip';
@@ -306,6 +306,13 @@ export default function RecettesPage() {
   const [dateRange, setDateRange] = useState({ debut:'', fin:'' });
   const [ocrPrefill, setOcrPrefill] = useState(null);
   const navigate=useNavigate();
+  const [searchParams] = useSearchParams();
+
+  useEffect(()=>{
+    // Lire filtre statut depuis URL (ex: ?statut=encaisse)
+    const statutURL = searchParams.get('statut');
+    if (statutURL) setFilterStatut(statutURL);
+  }, []);
 
   useEffect(()=>{
     fetchAll();

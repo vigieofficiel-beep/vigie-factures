@@ -323,7 +323,7 @@ export default function ProHome() {
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:14, marginBottom:28 }}>
         {[
           { label:'Dépenses (mois)',     value:formatEuro(totalDepenses), color:'#C75B4E', icon:TrendingDown, action:() => navigate('/pro/depenses') },
-          { label:'Recettes encaissées', value:formatEuro(totalRecettes), color:'#5BC78A', icon:TrendingUp,   action:() => navigate('/pro/recettes') },
+          { label:'Recettes encaissées', value:formatEuro(totalRecettes), color:'#5BC78A', icon:TrendingUp,   action:() => navigate('/pro/recettes?statut=encaisse') },
           { label:'Devis en attente',    value:devisEnAttente,            color:'#5BC78A', icon:Receipt,      action:() => navigate('/pro/recettes') },
           { label:'Contrats actifs',     value:contratsActifs,            color:'#5BA3C7', icon:FileCheck,    action:() => navigate('/pro/contrats') },
         ].map(s => {
