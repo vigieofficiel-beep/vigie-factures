@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabasePro } from '../lib/supabasePro';
-import { Plus, Trash2, Edit2, FileCheck, AlertTriangle, CheckCircle, Clock, Bell } from 'lucide-react';
+import { Plus, Trash2, Edit2, FileCheck, AlertTriangle, CheckCircle, Clock, Bell, ExternalLink } from 'lucide-react';
 import ExportButton from '../components/ExportButton';
 import DateFilter from '../components/DateFilter';
 import Tooltip from '../components/Tooltip';
@@ -67,7 +67,9 @@ function ContratForm({ onSave, onCancel, editData=null, prefill=null, workspaceI
   const handleSubmit = async (e) => {
     e.preventDefault(); setLoading(true);
     try {
-      const { data: { user } } = await supabasePro.auth.getUser();
+      const { data: { session } } = await supabasePro.auth.getSession();
+      const user = session?.user;
+      if (!user) throw new Error('Session expirée');
       let file_url = editData?.file_url || null;
       let storage_path = editData?.storage_path || null;
       if (file) {
@@ -159,7 +161,8 @@ export default function ContratsPage() {
 
   const fetchContrats = async () => {
     setLoading(true);
-    const { data: { user } } = await supabasePro.auth.getUser();
+    const { data: { session } } = await supabasePro.auth.getSession();
+    const user = session?.user;
     if (!user) return;
     const { data } = await supabasePro.from('contrats').select('*')
       .eq('user_id', user.id)
@@ -286,7 +289,7 @@ export default function ContratsPage() {
                   <td style={{ padding:'11px 14px' }}><StatutBadge contrat={c}/></td>
                   <td style={{ padding:'11px 14px' }}>
                     <div style={{ display:'flex', gap:4, alignItems:'center' }}>
-                      {c.file_url&&<a href={c.file_url} target="_blank" rel="noopener noreferrer" style={{ fontSize:11, color:'#5BA3C7', textDecoration:'none', fontWeight:600, padding:4 }}>PDF ↗</a>}
+                      {c.file_url&&<button onClick={() => window.open(c.file_url, '_blank')} style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:11, color:'#5BA3C7', background:'none', border:'none', cursor:'pointer', fontWeight:600, padding:4 }}><ExternalLink size={11}/> PDF</button>}
                       <button onClick={()=>{setEditContrat(c);setShowForm(false);}} style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(237,232,219,0.2)' }} onMouseEnter={ev=>ev.currentTarget.style.color=ACCENT} onMouseLeave={ev=>ev.currentTarget.style.color='rgba(237,232,219,0.2)'}><Edit2 size={13}/></button>
                       <button onClick={()=>deleteContrat(c.id, c.storage_path)} style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(237,232,219,0.2)' }} onMouseEnter={ev=>ev.currentTarget.style.color='#C75B4E'} onMouseLeave={ev=>ev.currentTarget.style.color='rgba(237,232,219,0.2)'}><Trash2 size={13}/></button>
                     </div>

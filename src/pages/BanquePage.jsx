@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { supabasePro } from '../lib/supabasePro';
-import { Upload, CheckCircle, AlertTriangle, TrendingUp, TrendingDown, RefreshCw, X, BarChart2, Calendar, ArrowUp, ArrowDown } from 'lucide-react';
+import { Upload, CheckCircle, AlertTriangle, TrendingUp, TrendingDown, RefreshCw, X, BarChart2, Calendar, ArrowUp, ArrowDown, Edit2, ExternalLink } from 'lucide-react';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as ReTooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import ExportButton from '../components/ExportButton';
 import DateFilter from '../components/DateFilter';
@@ -227,6 +227,65 @@ function OngletPrevision({ transactions }) {
   );
 }
 
+
+function EditTransactionModal({ tx, onSave, onClose }) {
+  const [form, setForm] = useState({
+    date:    tx.date    || '',
+    libelle: tx.libelle || '',
+    montant: tx.montant || '',
+    notes:   tx.notes   || '',
+  });
+  const [loading, setLoading] = useState(false);
+  const [error,   setError]   = useState('');
+  const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault(); setLoading(true);
+    try {
+      const { data: { session } } = await supabasePro.auth.getSession();
+      if (!session?.user) throw new Error('Session expirée');
+      const montant = parseFloat(String(form.montant).replace(',', '.'));
+      const { error: err } = await supabasePro.from('bank_transactions').update({
+        date:    form.date,
+        libelle: form.libelle,
+        montant,
+        type:    montant >= 0 ? 'credit' : 'debit',
+        notes:   form.notes,
+      }).eq('id', tx.id);
+      if (err) throw err;
+      onSave();
+    } catch (err) { setError(err.message); }
+    finally { setLoading(false); }
+  };
+
+  const iS = { width:'100%', padding:'9px 12px', borderRadius:8, background:'#1a1d24', border:'1px solid rgba(255,255,255,0.1)', color:'#EDE8DB', fontSize:13, outline:'none', boxSizing:'border-box' };
+  const lS = { fontSize:11, fontWeight:600, color:'rgba(237,232,219,0.5)', marginBottom:5 };
+
+  return (
+    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
+      <div style={{ background:'#0F1923', border:'1px solid rgba(255,255,255,0.1)', borderRadius:16, width:'100%', maxWidth:460, boxShadow:'0 24px 64px rgba(0,0,0,0.5)' }}>
+        <div style={{ padding:'22px 24px 0', display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+          <h2 style={{ margin:0, fontSize:18, fontWeight:700, color:'#EDE8DB' }}>Modifier la transaction</h2>
+          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(237,232,219,0.4)', padding:4 }}><X size={18}/></button>
+        </div>
+        <form onSubmit={handleSubmit} style={{ padding:'0 24px 24px' }}>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, marginBottom:14 }}>
+            <div><label style={lS}>Date *</label><input type="date" value={form.date} onChange={set('date')} required style={{ ...iS, colorScheme:'dark' }}/></div>
+            <div><label style={lS}>Montant (€) *</label><input type="number" step="0.01" value={form.montant} onChange={set('montant')} required style={iS} placeholder="-150.00 ou 1200.00"/></div>
+          </div>
+          <div style={{ marginBottom:14 }}><label style={lS}>Libellé *</label><input value={form.libelle} onChange={set('libelle')} required style={iS}/></div>
+          <div style={{ marginBottom:16 }}><label style={lS}>Notes</label><input value={form.notes} onChange={set('notes')} style={iS} placeholder="Informations complémentaires..."/></div>
+          {error && <div style={{ color:'#C75B4E', fontSize:12, marginBottom:12 }}>{error}</div>}
+          <div style={{ display:'flex', gap:10 }}>
+            <button type="submit" disabled={loading} style={{ flex:1, padding:'11px', borderRadius:9, border:'none', background:loading?`${ACCENT}50`:ACCENT, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer' }}>{loading?'Enregistrement...':'✓ Enregistrer'}</button>
+            <button type="button" onClick={onClose} style={{ padding:'11px 18px', borderRadius:9, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'rgba(237,232,219,0.5)', fontSize:13, cursor:'pointer' }}>Annuler</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function BanquePage() {
   const [transactions,   setTransactions]   = useState([]);
   const [invoices,       setInvoices]       = useState([]);
@@ -237,6 +296,7 @@ export default function BanquePage() {
   const [preview,        setPreview]        = useState(null);
   const [dateRange,      setDateRange]      = useState({ debut:'', fin:'' });
   const [activeTab,      setActiveTab]      = useState('transactions');
+  const [editTx,         setEditTx]         = useState(null);
   const fileRef = useRef();
   const { activeWorkspace } = useWorkspace();
 
@@ -244,7 +304,8 @@ export default function BanquePage() {
 
   const fetchAll = async () => {
   setLoading(true);
-  const { data: { user } } = await supabasePro.auth.getUser();
+  const { data: { session: sess } } = await supabasePro.auth.getSession();
+  const user = sess?.user;
   if (!user) return;
   let qTx = supabasePro.from('bank_transactions').select('*').eq('user_id', user.id).order('date', { ascending: false });
   if (activeWorkspace?.id) qTx = qTx.eq('workspace_id', activeWorkspace.id);
@@ -270,7 +331,8 @@ export default function BanquePage() {
   const confirmImport = async () => {
     if (!preview) return;
     setImporting(true);
-    const { data: { user } } = await supabasePro.auth.getUser();
+    const { data: { session } } = await supabasePro.auth.getSession();
+    const user = session?.user;
     if (!user) return;
     const withRapprochement = preview.map(tx => {
       const matched = invoices.find(inv => {
@@ -320,7 +382,9 @@ export default function BanquePage() {
           <p style={{ fontSize:13, color:'rgba(237,232,219,0.4)', marginTop:4 }}>Importez vos relevés et visualisez vos prévisions</p>
         </div>
         <div style={{ display:'flex', gap:10, flexWrap:'wrap', alignItems:'center' }}>
-          {activeTab === 'transactions' && (
+          {editTx && <EditTransactionModal tx={editTx} onSave={() => { setEditTx(null); fetchAll(); }} onClose={() => setEditTx(null)}/>}
+
+      {activeTab === 'transactions' && (
             <>
               <DateFilter onChange={setDateRange} color={ACCENT}/>
               <ExportButton data={filteredExport} filename={`banque-${new Date().getFullYear()}`} color={ACCENT}
@@ -345,7 +409,7 @@ export default function BanquePage() {
           { label:'Rapprochés',   value:rapproches,                color:ACCENT,    icon:CheckCircle  },
           { label:'À rapprocher', value:nonRapproches,             color:'#D4A853', icon:AlertTriangle, alert:nonRapproches>0 },
         ].map((s,i) => { const Icon = s.icon; return (
-          <div key={i} style={{ background:'rgba(255,255,255,0.04)', border:`1px solid ${s.alert?'rgba(212,168,83,0.3)':'rgba(255,255,255,0.08)'}`, borderRadius:12, padding:'16px 18px' }}>
+          <div key={i} style={{ background:'rgba(255,255,255,0.04)', border:`1px solid ${s.alert?'rgba(212,168,83,0.15)':'rgba(255,255,255,0.08)'}`, borderRadius:12, padding:'16px 18px' }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
               <p style={{ fontSize:11, color:'rgba(237,232,219,0.4)', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.06em', margin:0 }}>{s.label}</p>
               <Icon size={14} color={s.color}/>
@@ -365,6 +429,8 @@ export default function BanquePage() {
           </button>
         ))}
       </div>
+
+      {editTx && <EditTransactionModal tx={editTx} onSave={() => { setEditTx(null); fetchAll(); }} onClose={() => setEditTx(null)}/>}
 
       {activeTab === 'transactions' && (
         <>
@@ -443,6 +509,7 @@ export default function BanquePage() {
                       <td style={{ padding:'11px 14px' }}>
                         <div style={{ display:'flex', gap:4 }}>
                           <button onClick={()=>toggleRapprochement(t)} style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:t.rapproche?VERT:'#D4A853' }}><RefreshCw size={13}/></button>
+                          <button onClick={()=>setEditTx(t)} style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(237,232,219,0.3)' }} onMouseEnter={ev=>ev.currentTarget.style.color=ACCENT} onMouseLeave={ev=>ev.currentTarget.style.color='rgba(237,232,219,0.3)'}><Edit2 size={13}/></button>
                           <button onClick={()=>deleteTransaction(t.id)} style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(237,232,219,0.2)' }} onMouseEnter={ev=>ev.currentTarget.style.color=ROUGE} onMouseLeave={ev=>ev.currentTarget.style.color='rgba(237,232,219,0.2)'}><X size={13}/></button>
                         </div>
                       </td>

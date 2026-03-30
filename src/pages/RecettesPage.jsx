@@ -3,7 +3,7 @@ import { supabasePro } from '../lib/supabasePro';
 import { jsPDF } from 'jspdf';
 import {
   Plus, Trash2, Edit2, CheckCircle, AlertTriangle, Download,
-  Users, FileText, TrendingUp, RefreshCw, FileDown, Settings
+  Users, FileText, TrendingUp, RefreshCw, FileDown, Settings, ExternalLink
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ExportButton from '../components/ExportButton';
@@ -119,7 +119,7 @@ function LignesPrestation({ lignes, setLignes }) {
   const addLigne = () => setLignes(l => [...l, { description:'', quantite:1, prix_unitaire:'', tva_taux:20 }]);
   const removeLigne = (i) => setLignes(l => l.filter((_,idx) => idx!==i));
   const updateLigne = (i,k,v) => setLignes(l => l.map((item,idx) => idx===i ? {...item,[k]:v} : item));
-  const inputS = { padding:'8px 10px', borderRadius:7, border:'1px solid rgba(255,255,255,0.08)', background:'#1a1d24', fontSize:12, outline:'none', color:'#EDE8DB', width:'100%', boxSizing:'border-box' };
+  const inputS = { padding:'8px 10px', borderRadius:7, border:'1px solid rgba(255,255,255,0.08)', background:'rgba(255,255,255,0.04)', fontSize:12, outline:'none', width:'100%', boxSizing:'border-box' };
   const totalHT  = lignes.reduce((s,l) => s+(Number(l.quantite)||0)*(Number(l.prix_unitaire)||0), 0);
   const totalTVA = lignes.reduce((s,l) => s+(Number(l.quantite)||0)*(Number(l.prix_unitaire)||0)*(Number(l.tva_taux)||20)/100, 0);
   return (
@@ -167,7 +167,7 @@ function ClientForm({ onSave, onCancel }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const set=(k)=>(e)=>setForm(f=>({...f,[k]:e.target.value}));
-  const iS={width:'100%',padding:'9px 12px',borderRadius:8,background:'#1a1d24',border:'1px solid rgba(255,255,255,0.08)',color:'#EDE8DB',fontSize:13,outline:'none',boxSizing:'border-box'};
+  const iS={width:'100%',padding:'9px 12px',borderRadius:8,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',color:'#EDE8DB',fontSize:13,outline:'none',boxSizing:'border-box'};
   const lS={fontSize:11,fontWeight:600,color:'rgba(237,232,219,0.5)',marginBottom:5,display:'flex',alignItems:'center',gap:4};
   const handleSubmit=async(e)=>{
     e.preventDefault();setLoading(true);
@@ -259,7 +259,7 @@ function DevisForm({ clients, onSave, onCancel, editData=null, prefill=null, wor
     }catch(err){setError(err.message);}
     setLoading(false);
   };
-  const iS={width:'100%',padding:'9px 12px',borderRadius:8,background:'#1a1d24',border:'1px solid rgba(255,255,255,0.08)',color:'#EDE8DB',fontSize:13,outline:'none',boxSizing:'border-box'};
+  const iS={width:'100%',padding:'9px 12px',borderRadius:8,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',color:'#EDE8DB',fontSize:13,outline:'none',boxSizing:'border-box'};
   const lS={fontSize:11,fontWeight:600,color:'rgba(237,232,219,0.5)',marginBottom:5,display:'flex',alignItems:'center',gap:4};
   return (
     <form onSubmit={handleSubmit} style={{background:'rgba(255,255,255,0.04)',border:`1px solid ${prefill?`${ACCENT}40`:'rgba(255,255,255,0.08)'}`,borderRadius:14,padding:24,marginBottom:24,boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
@@ -329,7 +329,7 @@ export default function RecettesPage() {
     if(!user)return;
 
     // FIX : qDevis correctement initialisé
-    let qDevis = supabasePro.from('devis').select('*, clients(nom,courriel,téléphone,adresse,siret)').eq('user_id',user.id).order('date_emission',{ascending:false});
+    let qDevis = supabasePro.from('devis').select('*, clients(nom,email,telephone,adresse,siret)').eq('user_id',user.id).order('date_emission',{ascending:false});
     if(activeWorkspace?.id) qDevis = qDevis.eq('workspace_id', activeWorkspace.id);
 
     let qClients = supabasePro.from('clients').select('*').eq('user_id',user.id).order('nom');
@@ -458,7 +458,7 @@ export default function RecettesPage() {
                   <td style={{padding:'11px 14px',fontSize:12,color:'rgba(237,232,219,0.4)'}}>{d.relance_count||0} relance{(d.relance_count||0)>1?'s':''}</td>
                   <td style={{padding:'11px 14px'}}>
                     <div style={{display:'flex',gap:4}}>
-                      <button onClick={()=>telechargerPDF(d)} title="PDF" style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'rgba(237,232,219,0.4)'}} onMouseEnter={ev=>ev.currentTarget.style.color=ACCENT} onMouseLeave={ev=>ev.currentTarget.style.color='rgba(237,232,219,0.4)'}><FileDown size={13}/></button>
+                      <button onClick={()=>telechargerPDF(d)} title="Générer PDF" style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'rgba(237,232,219,0.4)'}} onMouseEnter={ev=>ev.currentTarget.style.color=ACCENT} onMouseLeave={ev=>ev.currentTarget.style.color='rgba(237,232,219,0.4)'}><FileDown size={13}/></button>
                       {(d.statut==='signe'||d.statut==='envoye')&&<button onClick={()=>envoyerRelance(d)} title="Relance" style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'#5BC78A'}}><RefreshCw size={13}/></button>}
                       <button onClick={()=>{setEditDevis(d);setShowDevisForm(false);}} title="Modifier" style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'rgba(237,232,219,0.4)'}} onMouseEnter={ev=>ev.currentTarget.style.color=ACCENT} onMouseLeave={ev=>ev.currentTarget.style.color='rgba(237,232,219,0.4)'}><Edit2 size={13}/></button>
                       <button onClick={()=>deleteDevis(d.id)} title="Supprimer" style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'rgba(237,232,219,0.2)'}} onMouseEnter={ev=>ev.currentTarget.style.color='#C75B4E'} onMouseLeave={ev=>ev.currentTarget.style.color='#D0D4DC'}><Trash2 size={13}/></button>

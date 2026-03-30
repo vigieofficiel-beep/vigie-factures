@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabasePro } from '../lib/supabasePro';
-import { Plus, Trash2, FileText, Car, Coffee, Hotel, Package, CheckCircle, Loader, Scan } from 'lucide-react';
+import { Plus, Trash2, Edit2, FileText, Car, Coffee, Hotel, Package, CheckCircle, Loader, Scan, ExternalLink, X } from 'lucide-react';
 import ExportButton from '../components/ExportButton';
 import DateFilter from '../components/DateFilter';
 import Tooltip from '../components/Tooltip';
@@ -196,10 +196,95 @@ function AddExpenseForm({ onSave, onCancel, prefill=null, workspaceId=null }) {
   );
 }
 
+
+function EditExpenseModal({ expense, onSave, onClose, workspaceId }) {
+  const [form, setForm] = useState({
+    date:          expense.date || '',
+    amount_ttc:    expense.amount_ttc || '',
+    type:          expense.type || 'autre',
+    etablissement: expense.etablissement || '',
+    km:            expense.km || '',
+    notes:         expense.notes || '',
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState('');
+  const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault(); setLoading(true);
+    try {
+      const { data: { session } } = await supabasePro.auth.getSession();
+      if (!session?.user) throw new Error('Session expirée');
+      const km = form.type === 'transport' && form.km ? parseFloat(form.km) : null;
+      const indemnite_km = km ? parseFloat((km * TAUX_KM).toFixed(2)) : null;
+      const { error: err } = await supabasePro.from('expenses').update({
+        date: form.date,
+        amount_ttc: form.amount_ttc ? parseFloat(form.amount_ttc) : null,
+        type: form.type,
+        etablissement: form.etablissement,
+        km, indemnite_km,
+        notes: form.notes,
+      }).eq('id', expense.id);
+      if (err) throw err;
+      onSave();
+    } catch (err) { setError(err.message); }
+    finally { setLoading(false); }
+  };
+
+  const iS = { width:'100%', padding:'9px 12px', borderRadius:8, background:'#1a1d24', border:'1px solid rgba(255,255,255,0.1)', color:'#EDE8DB', fontSize:13, outline:'none', boxSizing:'border-box' };
+  const lS = { fontSize:11, fontWeight:600, color:'rgba(237,232,219,0.5)', marginBottom:5, display:'flex', alignItems:'center', gap:4 };
+
+  return (
+    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
+      <div style={{ background:'#0F1923', border:'1px solid rgba(255,255,255,0.1)', borderRadius:16, width:'100%', maxWidth:520, maxHeight:'90vh', overflowY:'auto', boxShadow:'0 24px 64px rgba(0,0,0,0.5)' }}>
+        <div style={{ padding:'22px 24px 0', display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+          <h2 style={{ margin:0, fontSize:18, fontWeight:700, color:'#EDE8DB' }}>Modifier la dépense</h2>
+          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(237,232,219,0.4)', padding:4 }}><X size={18}/></button>
+        </div>
+        <form onSubmit={handleSubmit} style={{ padding:'0 24px 24px' }}>
+          {expense.file_url && (
+            <div style={{ marginBottom:16, padding:'10px 14px', borderRadius:9, background:'rgba(91,163,199,0.08)', border:'1px solid rgba(91,163,199,0.2)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <span style={{ fontSize:12, color:'#5BA3C7', fontWeight:600 }}>📄 Justificatif joint</span>
+              <button type="button" onClick={() => window.open(expense.file_url, '_blank')} style={{ display:'flex', alignItems:'center', gap:5, fontSize:12, color:'#5BA3C7', background:'none', border:'none', cursor:'pointer', fontWeight:700 }}>
+                <ExternalLink size={13}/> Ouvrir le PDF
+              </button>
+            </div>
+          )}
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, marginBottom:14 }}>
+            <div><label style={lS}>Date *</label><input type="date" value={form.date} onChange={set('date')} required style={{ ...iS, colorScheme:'dark' }}/></div>
+            <div><label style={lS}>Montant TTC (€) *</label><input type="number" step="0.01" min="0" value={form.amount_ttc} onChange={set('amount_ttc')} required style={iS}/></div>
+          </div>
+          <div style={{ marginBottom:14 }}>
+            <label style={lS}>Catégorie *</label>
+            <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+              {TYPES.map(t => { const Icon = t.icon; const sel = form.type===t.id; return (
+                <button key={t.id} type="button" onClick={() => setForm(f => ({ ...f, type:t.id }))} style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 13px', borderRadius:20, border:`1px solid ${sel?t.color:'rgba(255,255,255,0.1)'}`, background:sel?`${t.color}20`:'rgba(255,255,255,0.04)', color:sel?t.color:'rgba(237,232,219,0.5)', fontSize:12, fontWeight:sel?700:500, cursor:'pointer' }}>
+                  <Icon size={12}/> {t.label}
+                </button>);
+              })}
+            </div>
+          </div>
+          <div style={{ marginBottom:14 }}><label style={lS}>Fournisseur</label><input value={form.etablissement} onChange={set('etablissement')} style={iS} placeholder="ex : EDF, Amazon..."/></div>
+          {form.type === 'transport' && (
+            <div style={{ marginBottom:14 }}><label style={lS}>Kilométrage</label><input type="number" min="0" value={form.km} onChange={set('km')} style={iS} placeholder="ex : 150"/></div>
+          )}
+          <div style={{ marginBottom:16 }}><label style={lS}>Remarques</label><input value={form.notes} onChange={set('notes')} style={iS} placeholder="Informations complémentaires..."/></div>
+          {error && <div style={{ color:'#C75B4E', fontSize:12, marginBottom:12 }}>{error}</div>}
+          <div style={{ display:'flex', gap:10 }}>
+            <button type="submit" disabled={loading} style={{ flex:1, padding:'11px', borderRadius:9, border:'none', background:loading?`${ACCENT}50`:ACCENT, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer' }}>{loading?'Enregistrement...':'✓ Enregistrer'}</button>
+            <button type="button" onClick={onClose} style={{ padding:'11px 18px', borderRadius:9, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'rgba(237,232,219,0.5)', fontSize:13, cursor:'pointer' }}>Annuler</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function DepensesPage() {
   const [expenses,   setExpenses]   = useState([]);
   const [loading,    setLoading]    = useState(true);
   const [showForm,   setShowForm]   = useState(false);
+  const [editExpense, setEditExpense] = useState(null);
   const [filterType, setFilterType] = useState('tous');
   const [dateRange,  setDateRange]  = useState({ debut:'', fin:'' });
   const [ocrPrefill, setOcrPrefill] = useState(null);
@@ -274,6 +359,8 @@ export default function DepensesPage() {
         </div>
       </div>
 
+      {editExpense && <EditExpenseModal expense={editExpense} workspaceId={activeWorkspace?.id} onSave={() => { setEditExpense(null); fetchExpenses(); }} onClose={() => setEditExpense(null)}/>}
+
       {showForm && (
         <AddExpenseForm
           prefill={ocrPrefill}
@@ -338,11 +425,20 @@ export default function DepensesPage() {
                   <td style={{ padding:'11px 14px', fontSize:13, color:'#EDE8DB', fontWeight:500 }}>{e.etablissement||'—'}</td>
                   <td style={{ padding:'11px 14px', fontSize:13, fontWeight:700, color:ACCENT }}>{formatEuro(e.amount_ttc)}</td>
                   <td style={{ padding:'11px 14px', fontSize:12, color:'#5BA3C7' }}>{e.indemnite_km?`${formatEuro(e.indemnite_km)} (${e.km} km)`:'—'}</td>
-                  <td style={{ padding:'11px 14px' }}>{e.file_url?<a href={e.file_url} target="_blank" rel="noopener noreferrer" style={{ fontSize:11, color:'#5BA3C7', textDecoration:'none', fontWeight:600 }}>Voir ↗</a>:<span style={{ fontSize:11, color:'rgba(237,232,219,0.2)' }}>—</span>}</td>
                   <td style={{ padding:'11px 14px' }}>
-                    <button onClick={() => deleteExpense(e.id, e.storage_path)} style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(237,232,219,0.2)' }}
-                      onMouseEnter={ev=>ev.currentTarget.style.color='#C75B4E'}
-                      onMouseLeave={ev=>ev.currentTarget.style.color='rgba(237,232,219,0.2)'}><Trash2 size={14}/></button>
+                    {e.file_url
+                      ? <button onClick={() => window.open(e.file_url, '_blank')} style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:11, color:'#5BA3C7', background:'none', border:'none', cursor:'pointer', fontWeight:600, padding:0 }}><ExternalLink size={11}/> PDF</button>
+                      : <span style={{ fontSize:11, color:'rgba(237,232,219,0.2)' }}>—</span>}
+                  </td>
+                  <td style={{ padding:'11px 14px' }}>
+                    <div style={{ display:'flex', gap:4 }}>
+                      <button onClick={() => setEditExpense(e)} style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(237,232,219,0.3)' }}
+                        onMouseEnter={ev=>ev.currentTarget.style.color=ACCENT}
+                        onMouseLeave={ev=>ev.currentTarget.style.color='rgba(237,232,219,0.3)'}><Edit2 size={13}/></button>
+                      <button onClick={() => deleteExpense(e.id, e.storage_path)} style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(237,232,219,0.2)' }}
+                        onMouseEnter={ev=>ev.currentTarget.style.color='#C75B4E'}
+                        onMouseLeave={ev=>ev.currentTarget.style.color='rgba(237,232,219,0.2)'}><Trash2 size={14}/></button>
+                    </div>
                   </td>
                 </tr>
               ))}
