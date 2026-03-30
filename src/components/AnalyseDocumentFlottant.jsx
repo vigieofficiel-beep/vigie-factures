@@ -133,7 +133,7 @@ export default function AnalyseDocumentFlottant() {
           const file = currentFile.current;
           const ext = file.name.split('.').pop();
           const folder = catChoisie === 'depense' ? 'frais' : catChoisie === 'recette' ? 'recettes' : 'contrats';
-          const path = `${folder}/${user.id}/${Date.now()}.${ext}`;
+          const path = `${user.id}/${folder}/${Date.now()}.${ext}`;
           const { error: upErr } = await supabasePro.storage.from('invoices').upload(path, file);
           if (!upErr) {
             const { data: urlData } = supabasePro.storage.from('invoices').getPublicUrl(path);
