@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MessageCircle, X, Send, Bot, ChevronDown } from 'lucide-react';
+import { supabasePro } from '../lib/supabasePro';
 
 const C = {
   blue:   '#5BA3C7',
@@ -17,10 +18,10 @@ const C = {
 const DISCLAIMER = "ℹ️ Ces informations sont indicatives et ne remplacent pas l'avis d'un expert-comptable.";
 
 const SUGGESTIONS = [
-  "Comment ajouter une dépense ?",
-  "Quels sont les taux de TVA en France ?",
-  "Comment créer un devis ?",
-  "Où trouver mes contrats ?",
+  "Quel est mon chiffre d'affaires ce mois ?",
+  "Quelles sont mes dernières dépenses ?",
+  "Combien j'ai encaissé cette année ?",
+  "Quels contrats arrivent à échéance ?",
 ];
 
 export default function Vigil() {
@@ -28,16 +29,23 @@ export default function Vigil() {
   const [messages, setMessages] = useState([
     {
       role   : 'assistant',
-      content: "Bonjour ! Je suis **Vigil**, votre assistant Vigie Pro 👋\n\nJe peux vous aider à naviguer dans l'application et répondre à vos questions de pré-comptabilité.\n\n*🤖 Cet assistant est propulsé par intelligence artificielle. Ses réponses sont indicatives et soumises à votre jugement.*\n\nComment puis-je vous aider ?",
+      content: "Bonjour ! Je suis **Vigil**, votre assistant Vigie Pro 👋\n\nJe peux vous aider à naviguer dans l'application, répondre à vos questions de pré-comptabilité, et **analyser vos données en temps réel**.\n\n*🤖 Cet assistant est propulsé par intelligence artificielle. Ses réponses sont indicatives et soumises à votre jugement.*\n\nComment puis-je vous aider ?",
       ts     : Date.now(),
     }
   ]);
   const [input,   setInput]   = useState('');
   const [loading, setLoading] = useState(false);
   const [unread,  setUnread]  = useState(0);
+  const [userId,  setUserId]  = useState(null);
   const bottomRef             = useRef();
   const inputRef              = useRef();
   const navigate              = useNavigate();
+
+  useEffect(() => {
+    supabasePro.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.id) setUserId(session.user.id);
+    });
+  }, []);
 
   useEffect(() => {
     if (open) { setUnread(0); setTimeout(() => inputRef.current?.focus(), 100); }
@@ -60,7 +68,7 @@ export default function Vigil() {
       const response = await fetch('/api/vigil-chat', {
         method : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify({ messages: history }),
+        body   : JSON.stringify({ messages: history, userId }),
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data  = await response.json();
