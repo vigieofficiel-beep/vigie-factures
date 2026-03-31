@@ -66,11 +66,13 @@ export default function Signup() {
       return;
     }
     // Notification fondateur
-    fetch('/api/notify-signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: form.email, firstName: form.firstName, lastName: form.lastName, city: form.city }),
-    }).catch(() => {});
+    try {
+      await fetch('/api/notify-signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.email, firstName: form.firstName, lastName: form.lastName, city: form.city }),
+      });
+    } catch (_) {}
     setLoading(false);
     setSuccess(true);
   };
