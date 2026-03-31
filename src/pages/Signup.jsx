@@ -60,8 +60,21 @@ export default function Signup() {
       email: form.email, password: form.password,
       options: { emailRedirectTo:`${window.location.origin}/perso`, data:{ full_name:`${form.firstName} ${form.lastName}`, first_name:form.firstName, last_name:form.lastName, birth_date:form.birthDate, city:form.city } },
     });
+    if (error) {
+      setLoading(false);
+      setError(toFr(error.message));
+      return;
+    }
+    // Notification fondateur — non bloquant
+    try {
+      await fetch('/api/notify-signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.email, firstName: form.firstName, lastName: form.lastName, city: form.city }),
+      });
+    } catch (_) { /* non bloquant */ }
     setLoading(false);
-    if (error) setError(toFr(error.message)); else setSuccess(true);
+    setSuccess(true);
   };
 
   const generer = () => {
@@ -123,7 +136,7 @@ export default function Signup() {
           <div>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
               <label style={{ ...labelStyle, marginBottom:0 }}>Mot de passe</label>
-              <button type="button" onClick={generer} style={{ background:'rgba(212,168,83,0.15)', border:'1px solid rgba(212,168,83,0.3)', borderRadius:6, padding:'3px 10px', color:'#5BC78A', fontSize:11, fontWeight:700, cursor:'pointer' }}>
+              <button type="button" onClick={generer} style={{ background:'rgba(212,168,83,0.15)', border:'1px solid rgba(212,168,83,0.15)', borderRadius:6, padding:'3px 10px', color:'#5BC78A', fontSize:11, fontWeight:700, cursor:'pointer' }}>
                 🔐 Générer
               </button>
             </div>
@@ -171,7 +184,7 @@ export default function Signup() {
 
           {error && <div style={{ color:'#C75B4E', fontSize:11, background:'rgba(199,91,78,0.1)', padding:'8px 12px', borderRadius:6 }}>{error}</div>}
 
-          <button type="submit" disabled={loading} style={{ width:'100%', padding:'12px', borderRadius:10, border:'none', background:loading?'rgba(212,168,83,0.3)':'linear-gradient(135deg, #5BC78A, #C78A5B)', color:'#0E0D0B', fontSize:14, fontWeight:700, cursor:loading?'not-allowed':'pointer', marginTop:4 }}>
+          <button type="submit" disabled={loading} style={{ width:'100%', padding:'12px', borderRadius:10, border:'none', background:loading?'rgba(212,168,83,0.15)':'linear-gradient(135deg, #5BC78A, #C78A5B)', color:'#0E0D0B', fontSize:14, fontWeight:700, cursor:loading?'not-allowed':'pointer', marginTop:4 }}>
             {loading ? 'Création...' : 'Créer mon compte Perso'}
           </button>
         </form>
