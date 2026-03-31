@@ -113,7 +113,6 @@ export default function AnalyseDocumentFlottant() {
   const sauvegarder = async () => {
     if (!result || !catChoisie) return;
     const config = TYPE_CONFIG[catChoisie] || TYPE_CONFIG.autre;
-    // FIX : dispatch event même pour "autre"
     if (!config.table) {
       setSaved(true);
       window.dispatchEvent(new CustomEvent('vigie_document_saved'));
@@ -126,7 +125,6 @@ export default function AnalyseDocumentFlottant() {
       const { data: { session: sess2 } } = await supabasePro.auth.getSession();
       const user = sess2?.user;
       if (!user) throw new Error('Session expirée — reconnectez-vous');
-      // Upload fichier original
       let file_url = null, storage_path = null;
       if (currentFile.current) {
         try {
@@ -135,15 +133,12 @@ export default function AnalyseDocumentFlottant() {
           const folder = catChoisie === 'depense' ? 'frais' : catChoisie === 'recette' ? 'recettes' : 'contrats';
           const path = `${folder}/${user.id}/${Date.now()}.${ext}`;
           const { error: upErr } = await supabasePro.storage.from('invoices').upload(path, file);
-          console.log('UPLOAD ERR:', JSON.stringify(upErr));
-          console.log('UPLOAD PATH:', path);
           if (!upErr) {
             const { data: urlData } = supabasePro.storage.from('invoices').getPublicUrl(path);
             file_url = urlData.publicUrl;
             storage_path = path;
-            console.log('FILE URL:', file_url);
           }
-        } catch (e) { console.warn('Upload non bloquant:', e); }
+        } catch (e) { /* Upload non bloquant */ }
       }
 
       let payload = {};
@@ -190,7 +185,6 @@ export default function AnalyseDocumentFlottant() {
       }
       await supabasePro.from(config.table).insert([payload]);
       setSaved(true);
-      // FIX : rafraîchir le dashboard après enregistrement OCR
       window.dispatchEvent(new CustomEvent('vigie_document_saved'));
     } catch (e) {
       setErrMsg('Erreur sauvegarde : ' + e.message); setStep('error');
@@ -296,7 +290,6 @@ export default function AnalyseDocumentFlottant() {
                   </div>
                 </div>
 
-                {/* Statut recette */}
                 {catChoisie === 'recette' && (
                   <div style={{ marginBottom: 16 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(237,232,219,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Statut de la recette</div>
