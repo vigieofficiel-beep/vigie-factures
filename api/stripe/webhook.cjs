@@ -1,7 +1,9 @@
 const Stripe = require('stripe');
 const { createClient } = require('@supabase/supabase-js');
+const { Resend } = require('resend');
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const stripe   = new Stripe(process.env.STRIPE_SECRET_KEY);
+const resend   = new Resend(process.env.RESEND_API_KEY);
 const supabase = createClient(
   process.env.VITE_SUPABASE_PRO_URL,
   process.env.SUPABASE_PRO_SERVICE_KEY
@@ -13,13 +15,16 @@ const PLAN_MAP = {
   [process.env.STRIPE_PRICE_PREMIUM]: 'premium',
 };
 
+const FONDATEUR = 'vigie.officiel@gmail.com';
+const FROM      = 'Vigie Pro <vigie.officiel@vigie-officiel.com>';
+
 module.exports.config = { api: { bodyParser: false } };
 
 async function getRawBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
-    req.on('data', chunk => chunks.push(chunk));
-    req.on('end',  () => resolve(Buffer.concat(chunks)));
+    req.on('data',  chunk => chunks.push(chunk));
+    req.on('end',   () => resolve(Buffer.concat(chunks)));
     req.on('error', reject);
   });
 }
@@ -34,13 +39,23 @@ async function updateUserPlan(userId, plan, customerId, subscriptionId) {
     })
     .eq('id', userId);
   if (error) console.error('Supabase update error:', error);
-  else console.log(`✅ Plan mis à jour → user ${userId} : ${plan}`);
 }
 
-module.exports = async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+async function notifier(sujet, html) {
+  try {
+    await resend.emails.send({ from: FROM, to: FONDATEUR, subject: sujet, html });
+  } catch (e) {
+    console.error('[notify] Resend error:', e.message);
   }
+}
+
+const now = () => new Date().toLocaleDateString('fr-FR', {
+  weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  hour: '2-digit', minute: '2-digit',
+});
+
+module.exports = async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const sig     = req.headers['stripe-signature'];
   const rawBody = await getRawBody(req);
@@ -53,8 +68,6 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: `Webhook error: ${err.message}` });
   }
 
-  console.log('Stripe event reçu:', event.type);
-
   try {
     switch (event.type) {
 
@@ -62,9 +75,22 @@ module.exports = async function handler(req, res) {
         const session = event.data.object;
         const userId  = session.metadata?.userId;
         const plan    = session.metadata?.plan;
+        const email   = session.customer_details?.email || '—';
+        const montant = session.amount_total ? `${(session.amount_total / 100).toFixed(2)} €` : '—';
         if (userId && plan) {
           await updateUserPlan(userId, plan, session.customer, session.subscription);
         }
+        await notifier(`💳 Nouveau paiement Vigie Pro — ${plan || '?'} — ${email}`, `
+          <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:24px;background:#0E0D0B;color:#EDE8DB;border-radius:12px;">
+            <h2 style="color:#5BC78A;margin-bottom:8px;">Nouveau paiement 💳</h2>
+            <p style="color:rgba(237,232,219,0.6);font-size:13px;margin-bottom:20px;">${now()}</p>
+            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+              <tr><td style="padding:8px 0;color:rgba(237,232,219,0.5);border-bottom:1px solid rgba(255,255,255,0.06);">Email</td><td style="padding:8px 0;font-weight:700;border-bottom:1px solid rgba(255,255,255,0.06);">${email}</td></tr>
+              <tr><td style="padding:8px 0;color:rgba(237,232,219,0.5);border-bottom:1px solid rgba(255,255,255,0.06);">Plan</td><td style="padding:8px 0;font-weight:700;border-bottom:1px solid rgba(255,255,255,0.06);">${plan || '—'}</td></tr>
+              <tr><td style="padding:8px 0;color:rgba(237,232,219,0.5);">Montant</td><td style="padding:8px 0;font-weight:700;">${montant}</td></tr>
+            </table>
+          </div>
+        `);
         break;
       }
 
@@ -81,6 +107,17 @@ module.exports = async function handler(req, res) {
             await updateUserPlan(userId, 'gratuit', sub.customer, null);
           }
         }
+        await notifier(`🔄 Abonnement mis à jour — ${plan || sub.status}`, `
+          <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:24px;background:#0E0D0B;color:#EDE8DB;border-radius:12px;">
+            <h2 style="color:#5BA3C7;margin-bottom:8px;">Abonnement modifié 🔄</h2>
+            <p style="color:rgba(237,232,219,0.6);font-size:13px;margin-bottom:20px;">${now()}</p>
+            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+              <tr><td style="padding:8px 0;color:rgba(237,232,219,0.5);border-bottom:1px solid rgba(255,255,255,0.06);">Customer Stripe</td><td style="padding:8px 0;font-weight:700;border-bottom:1px solid rgba(255,255,255,0.06);">${sub.customer}</td></tr>
+              <tr><td style="padding:8px 0;color:rgba(237,232,219,0.5);border-bottom:1px solid rgba(255,255,255,0.06);">Nouveau plan</td><td style="padding:8px 0;font-weight:700;border-bottom:1px solid rgba(255,255,255,0.06);">${plan || '—'}</td></tr>
+              <tr><td style="padding:8px 0;color:rgba(237,232,219,0.5);">Statut</td><td style="padding:8px 0;font-weight:700;">${sub.status}</td></tr>
+            </table>
+          </div>
+        `);
         break;
       }
 
@@ -90,6 +127,16 @@ module.exports = async function handler(req, res) {
         if (userId) {
           await updateUserPlan(userId, 'gratuit', sub.customer, null);
         }
+        await notifier(`❌ Résiliation abonnement Vigie Pro`, `
+          <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:24px;background:#0E0D0B;color:#EDE8DB;border-radius:12px;">
+            <h2 style="color:#C75B4E;margin-bottom:8px;">Résiliation ❌</h2>
+            <p style="color:rgba(237,232,219,0.6);font-size:13px;margin-bottom:20px;">${now()}</p>
+            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+              <tr><td style="padding:8px 0;color:rgba(237,232,219,0.5);border-bottom:1px solid rgba(255,255,255,0.06);">Customer Stripe</td><td style="padding:8px 0;font-weight:700;border-bottom:1px solid rgba(255,255,255,0.06);">${sub.customer}</td></tr>
+              <tr><td style="padding:8px 0;color:rgba(237,232,219,0.5);">User ID</td><td style="padding:8px 0;font-weight:700;">${userId || '—'}</td></tr>
+            </table>
+          </div>
+        `);
         break;
       }
 
