@@ -7,8 +7,8 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
   const { email, firstName, lastName, city } = req.body;
+console.log('[notify-signup] appelé avec:', email, firstName);
   if (!email) return res.status(400).json({ error: 'Email manquant' });
-
   try {
     await resend.emails.send({
       from: 'Vigie Pro <vigie.officiel@vigie-officiel.com>',
