@@ -81,7 +81,15 @@ export default function ProSignup() {
       },
     });
     setLoading(false);
-    if (error) setError(toFr(error.message)); else setSuccess(true);
+    if (error) { setError(toFr(error.message)); return; }
+    try {
+      await fetch('/api/notify-signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.email, firstName: form.firstName, lastName: form.lastName, city: form.city }),
+      });
+    } catch (_) {}
+    setSuccess(true);
   };
 
   const generer = () => { const mdp = genererMdp(16); setForm(f => ({ ...f, password:mdp, confirmPassword:mdp })); setShowMdp(true); setShowConfirm(true); setCopied(false); };
