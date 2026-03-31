@@ -65,14 +65,12 @@ export default function Signup() {
       setError(toFr(error.message));
       return;
     }
-    // Notification fondateur — non bloquant
-    try {
-      await fetch('/api/notify-signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: form.email, firstName: form.firstName, lastName: form.lastName, city: form.city }),
-      });
-    } catch (_) { /* non bloquant */ }
+    // Notification fondateur
+    fetch('/api/notify-signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: form.email, firstName: form.firstName, lastName: form.lastName, city: form.city }),
+    }).catch(() => {});
     setLoading(false);
     setSuccess(true);
   };
