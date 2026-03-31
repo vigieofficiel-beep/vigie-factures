@@ -196,7 +196,6 @@ function AddExpenseForm({ onSave, onCancel, prefill=null, workspaceId=null }) {
   );
 }
 
-
 function EditExpenseModal({ expense, onSave, onClose, workspaceId }) {
   const [form, setForm] = useState({
     date:          expense.date || '',
@@ -281,14 +280,21 @@ function EditExpenseModal({ expense, onSave, onClose, workspaceId }) {
 }
 
 export default function DepensesPage() {
-  const [expenses,   setExpenses]   = useState([]);
-  const [loading,    setLoading]    = useState(true);
-  const [showForm,   setShowForm]   = useState(false);
+  const [expenses,    setExpenses]   = useState([]);
+  const [loading,     setLoading]    = useState(true);
+  const [showForm,    setShowForm]   = useState(false);
   const [editExpense, setEditExpense] = useState(null);
-  const [filterType, setFilterType] = useState('tous');
-  const [dateRange,  setDateRange]  = useState({ debut:'', fin:'' });
-  const [ocrPrefill, setOcrPrefill] = useState(null);
+  const [filterType,  setFilterType] = useState('tous');
+  const [dateRange,   setDateRange]  = useState({ debut:'', fin:'' });
+  const [ocrPrefill,  setOcrPrefill] = useState(null);
+  const [isMobile,    setIsMobile]   = useState(window.innerWidth < 768);
   const { activeWorkspace } = useWorkspace();
+
+  useEffect(() => {
+    const fn = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', fn);
+    return () => window.removeEventListener('resize', fn);
+  }, []);
 
   useEffect(() => {
     if (activeWorkspace) fetchExpenses();
@@ -333,17 +339,17 @@ export default function DepensesPage() {
   const totalKm       = filtered.filter(e => e.indemnite_km).reduce((s, e) => s + (e.indemnite_km || 0), 0);
 
   return (
-    <div style={{ fontFamily:"'Nunito Sans', sans-serif", padding:'32px 28px', maxWidth:900, margin:'0 auto' }}>
+    <div style={{ fontFamily:"'Nunito Sans', sans-serif", padding: isMobile ? '16px 12px' : '32px 28px', maxWidth:900, margin:'0 auto' }}>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24, flexWrap:'wrap', gap:12 }}>
         <div>
-          <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:26, fontWeight:600, color:'#EDE8DB', margin:0, display:'flex', alignItems:'center', gap:8 }}>
-            Dépenses & Notes de frais <Tooltip text={TIPS.depenses} size={16} />
+          <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize: isMobile ? 22 : 26, fontWeight:600, color:'#EDE8DB', margin:0, display:'flex', alignItems:'center', gap:8 }}>
+            Dépenses <Tooltip text={TIPS.depenses} size={16} />
           </h1>
           <p style={{ fontSize:13, color:'rgba(237,232,219,0.4)', marginTop:4 }}>Suivez vos dépenses professionnelles</p>
         </div>
-        <div style={{ display:'flex', gap:10, flexWrap:'wrap', alignItems:'center' }}>
-          <DateFilter onChange={setDateRange} color={ACCENT}/>
-          <ExportButton data={filtered} filename={`depenses-${new Date().getFullYear()}`} color={ACCENT}
+        <div style={{ display:'flex', gap:8, flexWrap:'wrap', alignItems:'center' }}>
+          {!isMobile && <DateFilter onChange={setDateRange} color={ACCENT}/>}
+          {!isMobile && <ExportButton data={filtered} filename={`depenses-${new Date().getFullYear()}`} color={ACCENT}
             columns={[
               { key:'date',          label:'Date' },
               { key:'type',          label:'Catégorie' },
@@ -352,9 +358,9 @@ export default function DepensesPage() {
               { key:'km',            label:'Km' },
               { key:'indemnite_km',  label:'Indemnité Km (€)' },
               { key:'notes',         label:'Remarques' },
-            ]}/>
+            ]}/>}
           <button onClick={() => { setOcrPrefill(null); setShowForm(true); }} style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 16px', borderRadius:9, border:'none', background:ACCENT, color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer' }}>
-            <Plus size={13}/> Nouvelle dépense
+            <Plus size={13}/> {isMobile ? 'Ajouter' : 'Nouvelle dépense'}
           </button>
         </div>
       </div>
@@ -370,82 +376,127 @@ export default function DepensesPage() {
         />
       )}
 
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))', gap:14, marginBottom:24 }}>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(140px, 1fr))', gap:10, marginBottom:20 }}>
         {[
           { label:'Total dépenses',  value:formatEuro(totalFiltered), color:ACCENT,    tip: TIPS.depenses },
           { label:'Indemnités km',   value:formatEuro(totalKm),       color:'#5BA3C7', tip: TIPS.indemnite_km },
-          { label:'Nombre dépenses', value:filtered.length,           color:'#5BC78A', tip: null },
+          { label:'Nb dépenses',     value:filtered.length,           color:'#5BC78A', tip: null },
         ].map(s => (
-          <div key={s.label} style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:12, padding:'16px 18px' }}>
-            <div style={{ display:'flex', alignItems:'center', gap:4, marginBottom:8 }}>
-              <p style={{ fontSize:11, color:'rgba(237,232,219,0.4)', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.06em', margin:0 }}>{s.label}</p>
+          <div key={s.label} style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:12, padding:'14px 16px' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:4, marginBottom:6 }}>
+              <p style={{ fontSize:10, color:'rgba(237,232,219,0.4)', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.06em', margin:0 }}>{s.label}</p>
               {s.tip && <Tooltip text={s.tip} size={11} />}
             </div>
-            <p style={{ fontSize:22, fontWeight:700, color:s.color, margin:0 }}>{s.value}</p>
+            <p style={{ fontSize:isMobile?18:22, fontWeight:700, color:s.color, margin:0 }}>{s.value}</p>
           </div>
         ))}
       </div>
 
-      <div style={{ display:'flex', gap:8, marginBottom:18, flexWrap:'wrap' }}>
+      <div style={{ display:'flex', gap:6, marginBottom:16, flexWrap:'wrap', overflowX: isMobile ? 'auto' : 'visible' }}>
         {[{ id:'tous', label:'Toutes' }, ...TYPES].map(t => (
-          <button key={t.id} onClick={() => setFilterType(t.id)} style={{ padding:'6px 14px', borderRadius:20, border:`1px solid ${filterType===t.id?(t.color||ACCENT):'rgba(255,255,255,0.1)'}`, background:filterType===t.id?`${t.color||ACCENT}20`:'transparent', color:filterType===t.id?(t.color||ACCENT):'rgba(237,232,219,0.4)', fontSize:12, fontWeight:filterType===t.id?700:500, cursor:'pointer' }}>
+          <button key={t.id} onClick={() => setFilterType(t.id)} style={{ padding:'6px 12px', borderRadius:20, border:`1px solid ${filterType===t.id?(t.color||ACCENT):'rgba(255,255,255,0.1)'}`, background:filterType===t.id?`${t.color||ACCENT}20`:'transparent', color:filterType===t.id?(t.color||ACCENT):'rgba(237,232,219,0.4)', fontSize:11, fontWeight:filterType===t.id?700:500, cursor:'pointer', whiteSpace:'nowrap' }}>
             {t.label}
           </button>
         ))}
       </div>
 
-      <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, overflow:'hidden' }}>
-        {loading ? <div style={{ padding:40, textAlign:'center', color:'rgba(237,232,219,0.4)', fontSize:13 }}>Chargement...</div>
-        : filtered.length === 0 ? (
-          <div style={{ padding:48, textAlign:'center' }}>
-            <CheckCircle size={32} color="rgba(255,255,255,0.1)" style={{ marginBottom:12 }}/>
-            <p style={{ color:'rgba(237,232,219,0.3)', fontSize:13, margin:0 }}>{expenses.length===0?'Aucune dépense — cliquez sur "Nouvelle dépense"':'Aucune dépense pour ce filtre'}</p>
-          </div>
-        ) : (
-          <table style={{ width:'100%', borderCollapse:'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
-                {[
-                  'Date', 'Catégorie', 'Fournisseur',
-                  <span key="ttc" style={{ display:'flex', alignItems:'center', gap:4 }}>Montant TTC <Tooltip text={TIPS.montant_ttc} size={11} /></span>,
-                  <span key="km" style={{ display:'flex', alignItems:'center', gap:4 }}>Indemnité km <Tooltip text={TIPS.indemnite_km} size={11} /></span>,
-                  'Justificatif', '',
-                ].map((h, i) => (
-                  <th key={i} style={{ padding:'11px 14px', textAlign:'left', fontSize:10, fontWeight:700, color:'rgba(237,232,219,0.3)', textTransform:'uppercase', letterSpacing:'0.06em' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((e,i) => (
-                <tr key={e.id||i} style={{ borderBottom:'1px solid rgba(255,255,255,0.04)' }}
-                  onMouseEnter={ev=>ev.currentTarget.style.background='rgba(255,255,255,0.03)'}
-                  onMouseLeave={ev=>ev.currentTarget.style.background='transparent'}>
-                  <td style={{ padding:'11px 14px', fontSize:12, color:'rgba(237,232,219,0.4)' }}>{formatDate(e.date)}</td>
-                  <td style={{ padding:'11px 14px' }}><TypeBadge type={e.type}/></td>
-                  <td style={{ padding:'11px 14px', fontSize:13, color:'#EDE8DB', fontWeight:500 }}>{e.etablissement||'—'}</td>
-                  <td style={{ padding:'11px 14px', fontSize:13, fontWeight:700, color:ACCENT }}>{formatEuro(e.amount_ttc)}</td>
-                  <td style={{ padding:'11px 14px', fontSize:12, color:'#5BA3C7' }}>{e.indemnite_km?`${formatEuro(e.indemnite_km)} (${e.km} km)`:'—'}</td>
-                  <td style={{ padding:'11px 14px' }}>
-                    {e.file_url
-                      ? <button onClick={() => window.open(e.file_url, '_blank')} style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:11, color:'#5BA3C7', background:'none', border:'none', cursor:'pointer', fontWeight:600, padding:0 }}><ExternalLink size={11}/> PDF</button>
-                      : <span style={{ fontSize:11, color:'rgba(237,232,219,0.2)' }}>—</span>}
-                  </td>
-                  <td style={{ padding:'11px 14px' }}>
-                    <div style={{ display:'flex', gap:4 }}>
-                      <button onClick={() => setEditExpense(e)} style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(237,232,219,0.3)' }}
-                        onMouseEnter={ev=>ev.currentTarget.style.color=ACCENT}
-                        onMouseLeave={ev=>ev.currentTarget.style.color='rgba(237,232,219,0.3)'}><Edit2 size={13}/></button>
-                      <button onClick={() => deleteExpense(e.id, e.storage_path)} style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(237,232,219,0.2)' }}
-                        onMouseEnter={ev=>ev.currentTarget.style.color='#C75B4E'}
-                        onMouseLeave={ev=>ev.currentTarget.style.color='rgba(237,232,219,0.2)'}><Trash2 size={14}/></button>
-                    </div>
-                  </td>
+      {/* TABLEAU DESKTOP */}
+      {!isMobile && (
+        <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, overflow:'hidden' }}>
+          {loading ? <div style={{ padding:40, textAlign:'center', color:'rgba(237,232,219,0.4)', fontSize:13 }}>Chargement...</div>
+          : filtered.length === 0 ? (
+            <div style={{ padding:48, textAlign:'center' }}>
+              <CheckCircle size={32} color="rgba(255,255,255,0.1)" style={{ marginBottom:12 }}/>
+              <p style={{ color:'rgba(237,232,219,0.3)', fontSize:13, margin:0 }}>{expenses.length===0?'Aucune dépense — cliquez sur "Nouvelle dépense"':'Aucune dépense pour ce filtre'}</p>
+            </div>
+          ) : (
+            <table style={{ width:'100%', borderCollapse:'collapse' }}>
+              <thead>
+                <tr style={{ borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
+                  {[
+                    'Date', 'Catégorie', 'Fournisseur',
+                    <span key="ttc" style={{ display:'flex', alignItems:'center', gap:4 }}>Montant TTC <Tooltip text={TIPS.montant_ttc} size={11} /></span>,
+                    <span key="km" style={{ display:'flex', alignItems:'center', gap:4 }}>Indemnité km <Tooltip text={TIPS.indemnite_km} size={11} /></span>,
+                    'Justificatif', '',
+                  ].map((h, i) => (
+                    <th key={i} style={{ padding:'11px 14px', textAlign:'left', fontSize:10, fontWeight:700, color:'rgba(237,232,219,0.3)', textTransform:'uppercase', letterSpacing:'0.06em' }}>{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+              </thead>
+              <tbody>
+                {filtered.map((e,i) => (
+                  <tr key={e.id||i} style={{ borderBottom:'1px solid rgba(255,255,255,0.04)' }}
+                    onMouseEnter={ev=>ev.currentTarget.style.background='rgba(255,255,255,0.03)'}
+                    onMouseLeave={ev=>ev.currentTarget.style.background='transparent'}>
+                    <td style={{ padding:'11px 14px', fontSize:12, color:'rgba(237,232,219,0.4)' }}>{formatDate(e.date)}</td>
+                    <td style={{ padding:'11px 14px' }}><TypeBadge type={e.type}/></td>
+                    <td style={{ padding:'11px 14px', fontSize:13, color:'#EDE8DB', fontWeight:500 }}>{e.etablissement||'—'}</td>
+                    <td style={{ padding:'11px 14px', fontSize:13, fontWeight:700, color:ACCENT }}>{formatEuro(e.amount_ttc)}</td>
+                    <td style={{ padding:'11px 14px', fontSize:12, color:'#5BA3C7' }}>{e.indemnite_km?`${formatEuro(e.indemnite_km)} (${e.km} km)`:'—'}</td>
+                    <td style={{ padding:'11px 14px' }}>
+                      {e.file_url
+                        ? <button onClick={() => window.open(e.file_url, '_blank')} style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:11, color:'#5BA3C7', background:'none', border:'none', cursor:'pointer', fontWeight:600, padding:0 }}><ExternalLink size={11}/> PDF</button>
+                        : <span style={{ fontSize:11, color:'rgba(237,232,219,0.2)' }}>—</span>}
+                    </td>
+                    <td style={{ padding:'11px 14px' }}>
+                      <div style={{ display:'flex', gap:4 }}>
+                        <button onClick={() => setEditExpense(e)} style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(237,232,219,0.3)' }}
+                          onMouseEnter={ev=>ev.currentTarget.style.color=ACCENT}
+                          onMouseLeave={ev=>ev.currentTarget.style.color='rgba(237,232,219,0.3)'}><Edit2 size={13}/></button>
+                        <button onClick={() => deleteExpense(e.id, e.storage_path)} style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(237,232,219,0.2)' }}
+                          onMouseEnter={ev=>ev.currentTarget.style.color='#C75B4E'}
+                          onMouseLeave={ev=>ev.currentTarget.style.color='rgba(237,232,219,0.2)'}><Trash2 size={14}/></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+
+      {/* CARTES MOBILE */}
+      {isMobile && (
+        <div>
+          {loading ? <div style={{ padding:40, textAlign:'center', color:'rgba(237,232,219,0.4)', fontSize:13 }}>Chargement...</div>
+          : filtered.length === 0 ? (
+            <div style={{ padding:48, textAlign:'center' }}>
+              <p style={{ color:'rgba(237,232,219,0.3)', fontSize:13, margin:0 }}>{expenses.length===0?'Aucune dépense — appuyez sur "Ajouter"':'Aucune dépense pour ce filtre'}</p>
+            </div>
+          ) : filtered.map((e, i) => (
+            <div key={e.id||i} style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:'14px 16px', marginBottom:10 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:8 }}>
+                <div>
+                  <div style={{ fontSize:14, fontWeight:700, color:'#EDE8DB', marginBottom:4 }}>{e.etablissement || '—'}</div>
+                  <div style={{ fontSize:11, color:'rgba(237,232,219,0.4)' }}>{formatDate(e.date)}</div>
+                </div>
+                <div style={{ fontSize:16, fontWeight:800, color:ACCENT }}>{formatEuro(e.amount_ttc)}</div>
+              </div>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <TypeBadge type={e.type}/>
+                <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+                  {e.file_url && (
+                    <button onClick={() => window.open(e.file_url, '_blank')} style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:11, color:'#5BA3C7', background:'rgba(91,163,199,0.1)', border:'none', borderRadius:6, padding:'4px 8px', cursor:'pointer', fontWeight:600 }}>
+                      <ExternalLink size={11}/> PDF
+                    </button>
+                  )}
+                  <button onClick={() => setEditExpense(e)} style={{ background:'rgba(255,255,255,0.06)', border:'none', borderRadius:6, padding:'6px 8px', cursor:'pointer', color:'rgba(237,232,219,0.5)', display:'flex' }}>
+                    <Edit2 size={13}/>
+                  </button>
+                  <button onClick={() => deleteExpense(e.id, e.storage_path)} style={{ background:'rgba(199,91,78,0.08)', border:'none', borderRadius:6, padding:'6px 8px', cursor:'pointer', color:'#C75B4E', display:'flex' }}>
+                    <Trash2 size={13}/>
+                  </button>
+                </div>
+              </div>
+              {e.indemnite_km && (
+                <div style={{ marginTop:8, fontSize:11, color:'#5BA3C7' }}>🚗 {e.km} km — {formatEuro(e.indemnite_km)}</div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
       <style>{`@keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }`}</style>
     </div>
   );
