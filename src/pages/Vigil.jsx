@@ -33,13 +33,20 @@ export default function Vigil() {
       ts     : Date.now(),
     }
   ]);
-  const [input,   setInput]   = useState('');
-  const [loading, setLoading] = useState(false);
-  const [unread,  setUnread]  = useState(0);
-  const [userId,  setUserId]  = useState(null);
-  const bottomRef             = useRef();
-  const inputRef              = useRef();
-  const navigate              = useNavigate();
+  const [input,    setInput]    = useState('');
+  const [loading,  setLoading]  = useState(false);
+  const [unread,   setUnread]   = useState(0);
+  const [userId,   setUserId]   = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const bottomRef               = useRef();
+  const inputRef                = useRef();
+  const navigate                = useNavigate();
+
+  useEffect(() => {
+    const fn = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', fn);
+    return () => window.removeEventListener('resize', fn);
+  }, []);
 
   useEffect(() => {
     supabasePro.auth.getSession().then(({ data: { session } }) => {
@@ -104,14 +111,18 @@ export default function Vigil() {
       .replace(/\n/g, '<br/>')
       .replace(/^- (.+)/gm, '<span style="display:block;padding-left:12px">• $1</span>');
 
+  const bottomOffset = isMobile ? 80 : 24;
+
   return (
     <>
-      <div style={{ position:'fixed', bottom:24, right:24, zIndex:1000 }}>
+      <div style={{ position:'fixed', bottom: bottomOffset, right:24, zIndex:1000 }}>
 
         {open && (
           <div style={{
             position:'absolute', bottom:68, right:0,
-            width:360, height:520,
+            width: isMobile ? 'calc(100vw - 32px)' : 360,
+            maxWidth: 400,
+            height: isMobile ? 460 : 520,
             background:'#0F1829',
             borderRadius:20,
             boxShadow:'0 20px 60px rgba(0,0,0,0.6), 0 4px 16px rgba(0,0,0,0.4)',
@@ -205,7 +216,7 @@ export default function Vigil() {
                   flex:1, resize:'none',
                   border:'1px solid rgba(255,255,255,0.1)',
                   borderRadius:12, padding:'9px 12px',
-                  fontSize:12.5, fontFamily:'inherit',
+                  fontSize:13, fontFamily:'inherit',
                   color:'#EDE8DB', outline:'none',
                   background:'#1a2640', lineHeight:1.4,
                   maxHeight:80, overflowY:'auto',

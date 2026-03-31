@@ -5,20 +5,27 @@ import { X, CheckCircle, Circle, ChevronRight, Rocket } from 'lucide-react';
 const ETAPES = [
   { id:'profil',    titre:'Compléter mon profil',          description:'Ajoutez votre SIRET, adresse et IBAN pour les devis et factures.', route:'/pro/profil',    emoji:'👤', important:true  },
   { id:'depense',   titre:'Ajouter ma première dépense',   description:'Enregistrez une dépense pour découvrir le module.',               route:'/pro/depenses',  emoji:'🧾', important:true  },
-  { id:'devis',     titre:'Créer mon premier devis',       description:'Générez un devis PDF professionnel en quelques clics.',            route:'/pro/recettes',  emoji:'📋', important:true  },
+  { id:'devis',     titre:'Créer mon premier document',    description:'Générez un document commercial PDF professionnel en quelques clics.', route:'/pro/recettes', emoji:'📋', important:true  },
   { id:'banque',    titre:'Importer un relevé bancaire',   description:'Connectez votre banque via import CSV pour le rapprochement.',     route:'/pro/banque',    emoji:'🏦', important:false },
   { id:'contrat',   titre:'Ajouter un contrat',            description:'Suivez vos échéances et recevez des alertes automatiques.',        route:'/pro/contrats',  emoji:'📄', important:false },
   { id:'formalite', titre:'Vérifier mes obligations',      description:'Consultez vos formalités obligatoires et leurs échéances.',        route:'/pro/formalites',emoji:'⚖️', important:false },
-  { id:'vigil',     titre:'Poser une question à Vigil',    description:"Testez votre assistant IA en bas à droite de l'écran.",           route:null,             emoji:'🤖', important:false },
+  { id:'vigil',     titre:'Poser une question à Vigil',    description:"Testez votre assistant en bas à droite de l'écran.",              route:null,             emoji:'🤖', important:false },
 ];
 
 const CLE_STORAGE = 'vigie_onboarding_v1';
 
 export default function OnboardingChecklist() {
   const navigate = useNavigate();
-  const [visible,  setVisible]  = useState(false);
-  const [checked,  setChecked]  = useState({});
-  const [minimise, setMinimise] = useState(false);
+  const [visible,   setVisible]   = useState(false);
+  const [checked,   setChecked]   = useState({});
+  const [minimise,  setMinimise]  = useState(false);
+  const [isMobile,  setIsMobile]  = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const fn = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', fn);
+    return () => window.removeEventListener('resize', fn);
+  }, []);
 
   useEffect(() => {
     try {
@@ -52,11 +59,12 @@ export default function OnboardingChecklist() {
   const pct     = Math.round((done / total) * 100);
   const termine = done === total;
 
-  // FIX : badge minimisé déplacé en bas à GAUCHE pour ne pas gêner le contenu central
+  const bottomOffset = isMobile ? 80 : 24;
+
   if (minimise) {
     return (
       <div onClick={() => setMinimise(false)}
-        style={{ position:'fixed', bottom:24, left:24, zIndex:900, background:'linear-gradient(135deg, #1E293B, #0F172A)', border:'1px solid rgba(91,163,199,0.3)', borderRadius:14, padding:'10px 14px', display:'flex', alignItems:'center', gap:10, cursor:'pointer', boxShadow:'0 8px 24px rgba(0,0,0,0.3)', animation:'fadeUp 0.2s ease' }}>
+        style={{ position:'fixed', bottom: bottomOffset, left:24, zIndex:900, background:'linear-gradient(135deg, #1E293B, #0F172A)', border:'1px solid rgba(91,163,199,0.3)', borderRadius:14, padding:'10px 14px', display:'flex', alignItems:'center', gap:10, cursor:'pointer', boxShadow:'0 8px 24px rgba(0,0,0,0.3)', animation:'fadeUp 0.2s ease' }}>
         <Rocket size={16} color="#5BA3C7"/>
         <div>
           <div style={{ fontSize:12, fontWeight:700, color:'#F8FAFC' }}>Guide de démarrage</div>
@@ -70,8 +78,7 @@ export default function OnboardingChecklist() {
   }
 
   return (
-    // FIX : position bottom-left au lieu de centré — ne gêne plus les modales
-    <div style={{ position:'fixed', bottom:24, left:24, zIndex:900, width:340, maxHeight:'75vh', background:'rgba(15,23,42,0.97)', backdropFilter:'blur(20px)', border:'1px solid rgba(91,163,199,0.2)', borderRadius:20, overflow:'hidden', boxShadow:'0 20px 60px rgba(0,0,0,0.4)', display:'flex', flexDirection:'column', animation:'fadeUp 0.25s ease', fontFamily:"'Nunito Sans', sans-serif" }}>
+    <div style={{ position:'fixed', bottom: bottomOffset, left:24, zIndex:900, width: isMobile ? 'calc(100vw - 48px)' : 340, maxHeight: isMobile ? '60vh' : '75vh', background:'rgba(15,23,42,0.97)', backdropFilter:'blur(20px)', border:'1px solid rgba(91,163,199,0.2)', borderRadius:20, overflow:'hidden', boxShadow:'0 20px 60px rgba(0,0,0,0.4)', display:'flex', flexDirection:'column', animation:'fadeUp 0.25s ease', fontFamily:"'Nunito Sans', sans-serif" }}>
 
       {/* Header */}
       <div style={{ padding:'16px 18px', background:'linear-gradient(135deg, rgba(91,163,199,0.15), rgba(91,163,199,0.05))', borderBottom:'1px solid rgba(255,255,255,0.07)' }}>
