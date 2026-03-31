@@ -452,7 +452,7 @@ export default function RecettesPage() {
             <tbody>
               {filtered.map((d,i)=>{
                 const days=daysUntil(d.date_echeance);const isLate=(d.statut==='signe'||d.statut==='envoye')&&days!==null&&days<0;
-                return(<tr key={d.id||i} style={{borderBottom:'1px solid rgba(255,255,255,0.04)',background:isLate?'rgba(199,91,78,0.02)':'transparent'}} onMouseEnter={ev=>ev.currentTarget.style.background=isLate?'rgba(199,91,78,0.04)':'#FAFBFC'} onMouseLeave={ev=>ev.currentTarget.style.background=isLate?'rgba(199,91,78,0.02)':'transparent'}>
+                return(<tr key={d.id||i} style={{borderBottom:'1px solid rgba(255,255,255,0.04)',background:isLate?'rgba(199,91,78,0.02)':'transparent'}} onMouseEnter={ev=>ev.currentTarget.style.background=isLate?'rgba(199,91,78,0.04)':'rgba(255,255,255,0.04)'} onMouseLeave={ev=>ev.currentTarget.style.background=isLate?'rgba(199,91,78,0.02)':'transparent'}>
                   <td style={{padding:'11px 14px',fontSize:12,fontWeight:700,color:'#EDE8DB'}}>{d.numero}</td>
                   <td style={{padding:'11px 14px',fontSize:13,color:'#EDE8DB'}}>{d.clients?.nom||'—'}</td>
                   <td style={{padding:'11px 14px',fontSize:12,color:'rgba(237,232,219,0.5)'}}>{formatDate(d.date_emission)}</td>
