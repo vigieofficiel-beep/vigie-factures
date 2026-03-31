@@ -60,6 +60,7 @@ export default function Signup() {
       email: form.email, password: form.password,
       options: { emailRedirectTo:`${window.location.origin}/perso`, data:{ full_name:`${form.firstName} ${form.lastName}`, first_name:form.firstName, last_name:form.lastName, birth_date:form.birthDate, city:form.city } },
     });
+    console.log('[signup] supabase error:', error);
     if (error) {
       setLoading(false);
       setError(toFr(error.message));
