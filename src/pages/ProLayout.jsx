@@ -328,7 +328,7 @@ export default function ProLayout() {
 
       {/* MAIN */}
       <div style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column' }}>
-        <main style={{ flex:1, paddingBottom: isMobile ? 72 : 0 }}>
+        <main style={{ flex:1, paddingBottom: isMobile ? 72 : 0, paddingTop: isMobile ? 16 : 0 }}>
           <Outlet />
         </main>
         {!isMobile && <Footer />}
