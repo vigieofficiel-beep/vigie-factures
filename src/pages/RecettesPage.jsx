@@ -175,7 +175,6 @@ function ClientForm({ onSave, onCancel }) {
       const{data:{session}}=await supabasePro.auth.getSession();
       const user=session?.user;
       if(!user)throw new Error('Session expirée');
-      // Mapper les champs du form vers les vraies colonnes Supabase
       const clientPayload = {
         nom: form.nom,
         courriel: form.email,
@@ -270,22 +269,22 @@ function DevisForm({ clients, onSave, onCancel, editData=null, prefill=null, wor
         </div>
       )}
       <h3 style={{fontSize:15,fontWeight:700,color:'#EDE8DB',marginBottom:20,display:'flex',alignItems:'center',gap:8}}>
-        {editData?'Modifier le devis':'Nouveau devis'} <Tooltip text={TIPS.devis} size={14}/>
+        {editData?'Modifier le document':'Nouveau document commercial'} <Tooltip text={TIPS.devis} size={14}/>
       </h3>
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14,marginBottom:14}}>
         <div><label style={lS}>Client *</label><select value={form.client_id} onChange={set('client_id')} required style={{...iS,cursor:'pointer'}}><option value="">Sélectionner un client</option>{clients.map(c=><option key={c.id} value={c.id}>{c.nom}</option>)}</select></div>
-        <div><label style={lS}>Numéro de devis *</label><input value={form.numero} onChange={set('numero')} required style={iS}/></div>
+        <div><label style={lS}>Numéro de document *</label><input value={form.numero} onChange={set('numero')} required style={iS}/></div>
         <div><label style={lS}>Date d'émission *</label><input type="date" value={form.date_emission} onChange={set('date_emission')} required style={{...iS,colorScheme:'light'}}/></div>
         <div><label style={lS}>Date de validité <Tooltip text={TIPS.date_validite}/></label><input type="date" value={form.date_validite} onChange={set('date_validite')} style={{...iS,colorScheme:'light'}}/></div>
         <div><label style={lS}>Échéance paiement <Tooltip text={TIPS.date_echeance}/></label><input type="date" value={form.date_echeance} onChange={set('date_echeance')} style={{...iS,colorScheme:'light'}}/></div>
         <div><label style={lS}>Statut</label><select value={form.statut} onChange={set('statut')} style={{...iS,cursor:'pointer'}}>{STATUTS.map(s=><option key={s.id} value={s.id}>{s.label}</option>)}</select></div>
       </div>
       <LignesPrestation lignes={lignes} setLignes={setLignes}/>
-      <div style={{marginBottom:14}}><label style={lS}>Notes internes</label><input value={form.notes} onChange={set('notes')} style={iS} placeholder="Commentaires internes (non visibles sur le devis)"/></div>
+      <div style={{marginBottom:14}}><label style={lS}>Notes internes</label><input value={form.notes} onChange={set('notes')} style={iS} placeholder="Commentaires internes (non visibles sur le document)"/></div>
       <div style={{background:'#FFF7ED',border:'1px solid #FED7AA',borderRadius:8,padding:'8px 12px',marginBottom:16,fontSize:11,color:'#92400E'}}>⚠️ Les montants sont indicatifs. Validez avec votre expert-comptable avant envoi.</div>
       {error&&<div style={{color:'#C75B4E',fontSize:12,marginBottom:12}}>{error}</div>}
       <div style={{display:'flex',gap:10}}>
-        <button type="submit" disabled={loading} style={{flex:1,padding:'11px',borderRadius:9,border:'none',background:loading?`${ACCENT}50`:ACCENT,color:'#fff',fontSize:13,fontWeight:700,cursor:'pointer'}}>{loading?'Enregistrement...':'✓ Enregistrer le devis'}</button>
+        <button type="submit" disabled={loading} style={{flex:1,padding:'11px',borderRadius:9,border:'none',background:loading?`${ACCENT}50`:ACCENT,color:'#fff',fontSize:13,fontWeight:700,cursor:'pointer'}}>{loading?'Enregistrement...':'✓ Enregistrer le document'}</button>
         <button type="button" onClick={onCancel} style={{padding:'11px 18px',borderRadius:9,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.04)',color:'rgba(237,232,219,0.5)',fontSize:13,cursor:'pointer'}}>Annuler</button>
       </div>
     </form>
@@ -309,7 +308,6 @@ export default function RecettesPage() {
   const [searchParams] = useSearchParams();
 
   useEffect(()=>{
-    // Lire filtre statut depuis URL (ex: ?statut=encaisse)
     const statutURL = searchParams.get('statut');
     if (statutURL) setFilterStatut(statutURL);
   }, []);
@@ -335,7 +333,6 @@ export default function RecettesPage() {
     const user=session?.user;
     if(!user)return;
 
-    // FIX : qDevis correctement initialisé
     let qDevis = supabasePro.from('devis').select('*, clients!left(nom,courriel,téléphone,adresse,siret)').eq('user_id',user.id).order('date_emission',{ascending:false});
     if(activeWorkspace?.id) qDevis = qDevis.eq('workspace_id', activeWorkspace.id);
 
@@ -348,11 +345,11 @@ export default function RecettesPage() {
     setDevis(d||[]);setClients(c||[]);setProfil(p||{});setLoading(false);
   };
 
-  const deleteDevis=async(id)=>{if(!confirm('Supprimer ce devis ?'))return;await supabasePro.from('devis').delete().eq('id',id);fetchAll();};
+  const deleteDevis=async(id)=>{if(!confirm('Supprimer ce document ?'))return;await supabasePro.from('devis').delete().eq('id',id);fetchAll();};
   const deleteClient=async(id)=>{if(!confirm('Supprimer ce client ?'))return;await supabasePro.from('clients').delete().eq('id',id);fetchAll();};
   const changerStatut=async(id,statut)=>{await supabasePro.from('devis').update({statut}).eq('id',id);fetchAll();};
-  const envoyerRelance=async(d)=>{const count=(d.relance_count||0)+1;await supabasePro.from('devis').update({relance_count:count,derniere_relance:new Date().toISOString().split('T')[0]}).eq('id',d.id);await supabasePro.from('reminders').insert({user_id:d.user_id,context:'pro',type:'relance',message:`Relance ${count} — ${d.clients?.nom} — devis ${d.numero} (${formatEuro(d.montant_ttc)})`,sent_at:new Date().toISOString()});alert(`Relance ${count} enregistrée pour ${d.clients?.nom}`);fetchAll();};
-  const telechargerPDF=(d)=>{if(!profil.company_name&&!profil.first_name){alert('Renseignez votre profil pro avant de générer un devis');return;}let lignes=[{description:d.description||'',quantite:1,prix_unitaire:d.montant_ht||0,tva_taux:d.tva_taux||20}];try{lignes=JSON.parse(d.description);}catch{}genererPDF(d,d.clients||{},profil,lignes);};
+  const envoyerRelance=async(d)=>{const count=(d.relance_count||0)+1;await supabasePro.from('devis').update({relance_count:count,derniere_relance:new Date().toISOString().split('T')[0]}).eq('id',d.id);await supabasePro.from('reminders').insert({user_id:d.user_id,context:'pro',type:'relance',message:`Relance ${count} — ${d.clients?.nom} — document ${d.numero} (${formatEuro(d.montant_ttc)})`,sent_at:new Date().toISOString()});alert(`Relance ${count} enregistrée pour ${d.clients?.nom}`);fetchAll();};
+  const telechargerPDF=(d)=>{if(!profil.company_name&&!profil.first_name){alert('Renseignez votre profil pro avant de générer un document');return;}let lignes=[{description:d.description||'',quantite:1,prix_unitaire:d.montant_ht||0,tva_taux:d.tva_taux||20}];try{lignes=JSON.parse(d.description);}catch{}genererPDF(d,d.clients||{},profil,lignes);};
 
   let filtered = filterStatut==='tous' ? devis : devis.filter(d => d.statut===filterStatut);
   if (dateRange.debut) filtered = filtered.filter(d => d.date_emission >= dateRange.debut);
@@ -377,29 +374,29 @@ export default function RecettesPage() {
           <h1 style={{fontFamily:"'Cormorant Garamond', serif",fontSize:26,fontWeight:600,color:'#EDE8DB',margin:0,display:'flex',alignItems:'center',gap:8}}>
             Recettes <Tooltip text={TIPS.recettes} size={16}/>
           </h1>
-          <p style={{fontSize:13,color:'rgba(237,232,219,0.4)',marginTop:4}}>Devis, clients et suivi des encaissements</p>
+          <p style={{fontSize:13,color:'rgba(237,232,219,0.4)',marginTop:4}}>Documents commerciaux, clients et suivi des encaissements</p>
         </div>
         <div style={{display:'flex',gap:10}}>
           <button onClick={()=>navigate('/pro/profil')} style={{display:'flex',alignItems:'center',gap:6,padding:'9px 16px',borderRadius:9,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.04)',color:'rgba(237,232,219,0.5)',fontSize:12,fontWeight:600,cursor:'pointer'}}><Settings size={13}/> Mon profil</button>
           <DateFilter onChange={setDateRange} color={ACCENT}/>
           <ExportButton data={devisExport} filename={`recettes-${new Date().getFullYear()}`} color={ACCENT}
             columns={[
-              { key:'numero', label:'N° Devis' }, { key:'client', label:'Client' },
+              { key:'numero', label:'N° Document' }, { key:'client', label:'Client' },
               { key:'date_emission', label:'Date émission' }, { key:'date_echeance', label:'Échéance' },
               { key:'montant_ht', label:'HT (€)' }, { key:'tva_taux', label:'TVA %' },
               { key:'montant_ttc', label:'TTC (€)' }, { key:'statut', label:'Statut' }, { key:'relances', label:'Nb relances' },
             ]}/>
           <button onClick={()=>{setShowClientForm(true);setShowDevisForm(false);}} style={{display:'flex',alignItems:'center',gap:6,padding:'9px 16px',borderRadius:9,border:`1px solid ${ACCENT}`,background:'rgba(255,255,255,0.04)',color:ACCENT,fontSize:12,fontWeight:700,cursor:'pointer'}}><Users size={13}/> Nouveau client</button>
-          <button onClick={()=>{setShowDevisForm(true);setShowClientForm(false);setEditDevis(null);setOcrPrefill(null);}} style={{display:'flex',alignItems:'center',gap:6,padding:'9px 16px',borderRadius:9,border:'none',background:ACCENT,color:'#fff',fontSize:12,fontWeight:700,cursor:'pointer'}}><Plus size={13}/> Nouveau devis</button>
+          <button onClick={()=>{setShowDevisForm(true);setShowClientForm(false);setEditDevis(null);setOcrPrefill(null);}} style={{display:'flex',alignItems:'center',gap:6,padding:'9px 16px',borderRadius:9,border:'none',background:ACCENT,color:'#fff',fontSize:12,fontWeight:700,cursor:'pointer'}}><Plus size={13}/> Nouveau document</button>
         </div>
       </div>
 
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))',gap:14,marginBottom:24}}>
         {[
-          {label:'Devis signés',  value:formatEuro(totalSigne),   color:'#5BC78A', icon:CheckCircle, tip:TIPS.statut_signe},
-          {label:'Encaissé',      value:formatEuro(totalEncaisse), color:'#A85BC7', icon:TrendingUp,  tip:TIPS.statut_encaisse},
-          {label:'En retard',     value:enRetard.length,           color:'#C75B4E', icon:AlertTriangle, alert:enRetard.length>0, tip:TIPS.statut_en_retard},
-          {label:'Clients',       value:clients.length,            color:ACCENT,    icon:Users},
+          {label:'Documents signés',  value:formatEuro(totalSigne),   color:'#5BC78A', icon:CheckCircle, tip:TIPS.statut_signe},
+          {label:'Encaissé',          value:formatEuro(totalEncaisse), color:'#A85BC7', icon:TrendingUp,  tip:TIPS.statut_encaisse},
+          {label:'En retard',         value:enRetard.length,           color:'#C75B4E', icon:AlertTriangle, alert:enRetard.length>0, tip:TIPS.statut_en_retard},
+          {label:'Clients',           value:clients.length,            color:ACCENT,    icon:Users},
         ].map(s=>{const Icon=s.icon;return(
           <div key={s.label} style={{background:'rgba(255,255,255,0.04)',border:`1px solid ${s.alert?'rgba(199,91,78,0.3)':'rgba(255,255,255,0.08)'}`,borderRadius:12,padding:'16px 18px',boxShadow:'0 1px 4px rgba(0,0,0,0.05)'}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
@@ -427,7 +424,7 @@ export default function RecettesPage() {
       )}
 
       <div style={{display:'flex',gap:4,marginBottom:18,background:'rgba(255,255,255,0.06)',borderRadius:10,padding:4,width:'fit-content'}}>
-        {[{id:'devis',label:'Devis',icon:FileText},{id:'clients',label:'Clients',icon:Users}].map(t=>{const Icon=t.icon;return(<button key={t.id} onClick={()=>setTab(t.id)} style={{display:'flex',alignItems:'center',gap:6,padding:'7px 16px',borderRadius:8,border:'none',background:tab===t.id?'rgba(91,163,199,0.15)':'transparent',color:tab===t.id?'#5BA3C7':'rgba(237,232,219,0.4)',fontSize:13,fontWeight:tab===t.id?700:500,cursor:'pointer',boxShadow:tab===t.id?'0 1px 3px rgba(0,0,0,0.08)':'none',transition:'all 150ms ease'}}><Icon size={13}/> {t.label}</button>);})}
+        {[{id:'devis',label:'Documents',icon:FileText},{id:'clients',label:'Clients',icon:Users}].map(t=>{const Icon=t.icon;return(<button key={t.id} onClick={()=>setTab(t.id)} style={{display:'flex',alignItems:'center',gap:6,padding:'7px 16px',borderRadius:8,border:'none',background:tab===t.id?'rgba(91,163,199,0.15)':'transparent',color:tab===t.id?'#5BA3C7':'rgba(237,232,219,0.4)',fontSize:13,fontWeight:tab===t.id?700:500,cursor:'pointer',boxShadow:tab===t.id?'0 1px 3px rgba(0,0,0,0.08)':'none',transition:'all 150ms ease'}}><Icon size={13}/> {t.label}</button>);})}
       </div>
 
       {tab==='devis'&&(<>
@@ -441,11 +438,11 @@ export default function RecettesPage() {
         </div>
         <div style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:14,overflow:'hidden',boxShadow:'0 1px 4px rgba(0,0,0,0.06)'}}>
           {loading?<div style={{padding:40,textAlign:'center',color:'rgba(237,232,219,0.4)',fontSize:13}}>Chargement...</div>
-          :filtered.length===0?<div style={{padding:48,textAlign:'center'}}><FileText size={32} color="#E8EAF0" style={{marginBottom:12}}/><p style={{color:'rgba(237,232,219,0.4)',fontSize:13,margin:0}}>{devis.length===0?'Aucun devis — cliquez sur "Nouveau devis"':'Aucun devis pour ce filtre'}</p></div>
+          :filtered.length===0?<div style={{padding:48,textAlign:'center'}}><FileText size={32} color="#E8EAF0" style={{marginBottom:12}}/><p style={{color:'rgba(237,232,219,0.4)',fontSize:13,margin:0}}>{devis.length===0?'Aucun document — cliquez sur "Nouveau document"':'Aucun document pour ce filtre'}</p></div>
           :<table style={{width:'100%',borderCollapse:'collapse'}}>
             <thead>
               <tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
-                {['N° Devis','Client','Émission',
+                {['N° Document','Client','Émission',
                   <span key="ech" style={{display:'flex',alignItems:'center',gap:4}}>Échéance <Tooltip text={TIPS.date_echeance} size={11}/></span>,
                   <span key="ttc" style={{display:'flex',alignItems:'center',gap:4}}>Montant TTC <Tooltip text={TIPS.ttc} size={11}/></span>,
                   'Statut','Relances','',
