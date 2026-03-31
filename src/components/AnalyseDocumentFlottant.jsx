@@ -205,7 +205,7 @@ export default function AnalyseDocumentFlottant() {
         onClick={() => { setOpen(true); reset(); }}
         title="Analyser un document"
         style={{
-          position: 'fixed', bottom: 88, right: 24, zIndex: 49,
+          position: 'fixed', bottom: typeof window !== 'undefined' && window.innerWidth < 768 ? 144 : 88, right: 24, zIndex: 49,
           width: 52, height: 52, borderRadius: '50%', border: 'none',
           background: `linear-gradient(135deg, ${ACCENT}, #3D7FA3)`,
           color: '#fff', cursor: 'pointer',
