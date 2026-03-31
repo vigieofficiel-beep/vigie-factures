@@ -9,7 +9,6 @@ const C = {
   mid:    '#1E293B',
   light:  '#94A3B8',
   border: 'rgba(255,255,255,0.1)',
-  // FIX : fond sombre opaque au lieu de transparent
   bg:     '#1a2235',
   bgMsg:  '#0F172A',
   red:    '#C75B4E',
@@ -29,7 +28,7 @@ export default function Vigil() {
   const [messages, setMessages] = useState([
     {
       role   : 'assistant',
-      content: "Bonjour ! Je suis **Vigil**, votre assistant Vigie Pro 👋\n\nJe peux vous aider à naviguer dans l'application et répondre à vos questions de pré-comptabilité.\n\nComment puis-je vous aider ?",
+      content: "Bonjour ! Je suis **Vigil**, votre assistant Vigie Pro 👋\n\nJe peux vous aider à naviguer dans l'application et répondre à vos questions de pré-comptabilité.\n\n*🤖 Cet assistant est propulsé par intelligence artificielle. Ses réponses sont indicatives et soumises à votre jugement.*\n\nComment puis-je vous aider ?",
       ts     : Date.now(),
     }
   ]);
@@ -105,7 +104,6 @@ export default function Vigil() {
           <div style={{
             position:'absolute', bottom:68, right:0,
             width:360, height:520,
-            // FIX : fond sombre opaque — plus de transparence
             background:'#0F1829',
             borderRadius:20,
             boxShadow:'0 20px 60px rgba(0,0,0,0.6), 0 4px 16px rgba(0,0,0,0.4)',
@@ -124,7 +122,7 @@ export default function Vigil() {
                   <div style={{ fontSize:14, fontWeight:700, color:'#F1F5F9' }}>Vigil</div>
                   <div style={{ display:'flex', alignItems:'center', gap:5 }}>
                     <div style={{ width:6, height:6, borderRadius:'50%', background:C.green }}/>
-                    <span style={{ fontSize:10, color:'rgba(237,232,219,0.5)' }}>Assistant Vigie Pro</span>
+                    <span style={{ fontSize:10, color:'rgba(237,232,219,0.5)' }}>Assistant IA · Vigie Pro</span>
                   </div>
                 </div>
               </div>
@@ -145,7 +143,6 @@ export default function Vigil() {
                       : '#1a2640',
                     border:msg.role==='user'?'none':'1px solid rgba(91,163,199,0.15)',
                     fontSize:12.5,
-                    // FIX : texte toujours lisible
                     color:msg.role==='user'?'#fff':'#E2E8F0',
                     lineHeight:1.55,
                   }}
@@ -201,7 +198,6 @@ export default function Vigil() {
                   border:'1px solid rgba(255,255,255,0.1)',
                   borderRadius:12, padding:'9px 12px',
                   fontSize:12.5, fontFamily:'inherit',
-                  // FIX : input fond sombre + texte clair
                   color:'#EDE8DB', outline:'none',
                   background:'#1a2640', lineHeight:1.4,
                   maxHeight:80, overflowY:'auto',
