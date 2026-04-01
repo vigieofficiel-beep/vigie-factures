@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Briefcase, ArrowRight, Lock, ChevronDown, Check, Zap, Shield, BarChart2, Bell } from 'lucide-react';
+import { User, Briefcase, ArrowRight, Lock, ChevronDown, Check, Zap, Shield, BarChart2, Bell, BookOpen } from 'lucide-react';
 import Footer from '../components/Footer';
 import ExitIntent from '../components/ExitIntent';
 
@@ -49,6 +49,7 @@ export default function HomeHub() {
           <span style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:22, fontWeight:700, color:'#EDE8DB', display:'none' }}>Vigie</span>
         </div>
         <div style={{ display:'flex', gap:10 }}>
+          <Link to="/blog" style={{ padding:'8px 18px', borderRadius:8, border:'1px solid rgba(255,255,255,0.15)', color:'rgba(237,232,219,0.7)', fontSize:13, fontWeight:600, textDecoration:'none', backdropFilter:'blur(8px)', background:'rgba(255,255,255,0.04)' }}>Blog</Link>
           <Link to="/pro/login"  style={{ padding:'8px 18px', borderRadius:8, border:'1px solid rgba(255,255,255,0.15)', color:'rgba(237,232,219,0.7)', fontSize:13, fontWeight:600, textDecoration:'none', backdropFilter:'blur(8px)', background:'rgba(255,255,255,0.04)' }}>Connexion</Link>
           <Link to="/pro/signup" style={{ padding:'8px 18px', borderRadius:8, background:'linear-gradient(135deg, #5BA3C7, #3d7fa8)', color:'#fff', fontSize:13, fontWeight:700, textDecoration:'none' }}>S'inscrire</Link>
         </div>
@@ -76,10 +77,13 @@ export default function HomeHub() {
             ))}
           </div>
 
-          <div style={{ maxWidth:320, width:'100%', margin:'0 auto', animation:'fadeUp 0.7s 0.3s ease both' }}>
-            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+          {/* CARTES PRODUITS */}
+          <div style={{ maxWidth:680, width:'100%', margin:'0 auto', animation:'fadeUp 0.7s 0.3s ease both' }}>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(280px, 1fr))', gap:12, marginBottom:10 }}>
+
+              {/* Vigie Pro */}
               <Link to="/pro" style={{ textDecoration:'none' }} onMouseEnter={() => setHoveredCard('pro')} onMouseLeave={() => setHoveredCard(null)}>
-                <div style={{ position:'relative', overflow:'hidden', background:hoveredCard==='pro'?'rgba(91,163,199,0.15)':'rgba(255,255,255,0.06)', border:`1px solid ${hoveredCard==='pro'?'rgba(91,163,199,0.5)':'rgba(255,255,255,0.12)'}`, borderRadius:20, padding:'32px 28px', backdropFilter:'blur(16px)', transform:hoveredCard==='pro'?'translateY(-4px)':'translateY(0)', boxShadow:hoveredCard==='pro'?'0 20px 60px rgba(91,163,199,0.2)':'0 8px 32px rgba(0,0,0,0.3)', transition:'all 0.3s ease' }}>
+                <div style={{ position:'relative', overflow:'hidden', background:hoveredCard==='pro'?'rgba(91,163,199,0.15)':'rgba(255,255,255,0.06)', border:`1px solid ${hoveredCard==='pro'?'rgba(91,163,199,0.5)':'rgba(255,255,255,0.12)'}`, borderRadius:20, padding:'32px 28px', backdropFilter:'blur(16px)', transform:hoveredCard==='pro'?'translateY(-4px)':'translateY(0)', boxShadow:hoveredCard==='pro'?'0 20px 60px rgba(91,163,199,0.2)':'0 8px 32px rgba(0,0,0,0.3)', transition:'all 0.3s ease', height:'100%' }}>
                   {hoveredCard==='pro' && <div style={{ position:'absolute', top:-30, right:-30, width:120, height:120, background:'radial-gradient(circle, rgba(91,163,199,0.25), transparent 70%)', pointerEvents:'none' }}/>}
                   <div style={{ width:52, height:52, borderRadius:14, background:'rgba(91,163,199,0.15)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:16 }}>
                     <Briefcase size={22} color="#5BA3C7" strokeWidth={2}/>
@@ -89,15 +93,29 @@ export default function HomeHub() {
                   <div style={{ display:'flex', alignItems:'center', gap:6, color:'#5BA3C7', fontSize:13, fontWeight:700 }}>Accéder <ArrowRight size={14}/></div>
                 </div>
               </Link>
-              <Link to="/tarifs" style={{ textDecoration:'none' }}>
-                <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:6, padding:'11px 16px', borderRadius:12, background:'rgba(91,163,199,0.06)', border:'1px solid rgba(91,163,199,0.2)', backdropFilter:'blur(8px)', transition:'all 0.2s ease' }}
-                  onMouseEnter={e => { e.currentTarget.style.background='rgba(91,163,199,0.14)'; e.currentTarget.style.borderColor='rgba(91,163,199,0.4)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background='rgba(91,163,199,0.06)'; e.currentTarget.style.borderColor='rgba(91,163,199,0.2)'; }}>
-                  <span style={{ fontSize:13, fontWeight:600, color:'#5BA3C7' }}>Fonctionnalités & tarifs</span>
-                  <ArrowRight size={13} color="#5BA3C7"/>
+
+              {/* Vigie Blog */}
+              <Link to="/blog" style={{ textDecoration:'none' }} onMouseEnter={() => setHoveredCard('blog')} onMouseLeave={() => setHoveredCard(null)}>
+                <div style={{ position:'relative', overflow:'hidden', background:hoveredCard==='blog'?'rgba(91,199,138,0.15)':'rgba(255,255,255,0.06)', border:`1px solid ${hoveredCard==='blog'?'rgba(91,199,138,0.5)':'rgba(255,255,255,0.12)'}`, borderRadius:20, padding:'32px 28px', backdropFilter:'blur(16px)', transform:hoveredCard==='blog'?'translateY(-4px)':'translateY(0)', boxShadow:hoveredCard==='blog'?'0 20px 60px rgba(91,199,138,0.2)':'0 8px 32px rgba(0,0,0,0.3)', transition:'all 0.3s ease', height:'100%' }}>
+                  {hoveredCard==='blog' && <div style={{ position:'absolute', top:-30, right:-30, width:120, height:120, background:'radial-gradient(circle, rgba(91,199,138,0.25), transparent 70%)', pointerEvents:'none' }}/>}
+                  <div style={{ width:52, height:52, borderRadius:14, background:'rgba(91,199,138,0.15)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:16 }}>
+                    <BookOpen size={22} color="#5BC78A" strokeWidth={2}/>
+                  </div>
+                  <h2 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:24, fontWeight:700, color:'#EDE8DB', marginBottom:8, textAlign:'left' }}>Vigie Blog</h2>
+                  <p style={{ fontSize:13, color:'rgba(237,232,219,0.5)', lineHeight:1.6, textAlign:'left', marginBottom:18 }}>Guides pratiques, actu fiscale et conseils pour auto-entrepreneurs</p>
+                  <div style={{ display:'flex', alignItems:'center', gap:6, color:'#5BC78A', fontSize:13, fontWeight:700 }}>Lire <ArrowRight size={14}/></div>
                 </div>
               </Link>
             </div>
+
+            <Link to="/tarifs" style={{ textDecoration:'none' }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:6, padding:'11px 16px', borderRadius:12, background:'rgba(91,163,199,0.06)', border:'1px solid rgba(91,163,199,0.2)', backdropFilter:'blur(8px)', transition:'all 0.2s ease' }}
+                onMouseEnter={e => { e.currentTarget.style.background='rgba(91,163,199,0.14)'; e.currentTarget.style.borderColor='rgba(91,163,199,0.4)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background='rgba(91,163,199,0.06)'; e.currentTarget.style.borderColor='rgba(91,163,199,0.2)'; }}>
+                <span style={{ fontSize:13, fontWeight:600, color:'#5BA3C7' }}>Fonctionnalités & tarifs</span>
+                <ArrowRight size={13} color="#5BA3C7"/>
+              </div>
+            </Link>
           </div>
         </div>
 
@@ -148,7 +166,7 @@ export default function HomeHub() {
         </div>
       </section>
 
-      {/* ── PREMIERS UTILISATEURS (remplace les faux avis) ── */}
+      {/* ── PREMIERS UTILISATEURS ── */}
       <section style={{ position:'relative', zIndex:1, padding:'100px 6%', textAlign:'center', background:'#06080B' }}>
         <p style={{ fontSize:11, fontWeight:700, color:'#5BA3C7', letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:14 }}>Lancement en cours</p>
         <h2 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'clamp(28px, 4vw, 44px)', fontWeight:700, color:'#EDE8DB', marginBottom:20, lineHeight:1.2 }}>
@@ -200,7 +218,6 @@ export default function HomeHub() {
             </div>
           </div>
 
-          {/* Mockup dashboard */}
           <div style={{ background:'rgba(15,23,42,0.8)', border:'1px solid rgba(91,163,199,0.15)', borderRadius:20, padding:24, backdropFilter:'blur(10px)' }}>
             <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:20 }}>
               <div style={{ width:10, height:10, borderRadius:'50%', background:'rgba(199,91,78,0.6)' }}/>
