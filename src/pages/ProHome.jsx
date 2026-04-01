@@ -77,9 +77,7 @@ function ClocheNotifications({ notifs, setNotifs }) {
   return (
     <div style={{ position: 'relative' }}>
       <button ref={btnRef} onClick={handleToggle}
-        style={{ position:'relative', width:38, height:38, borderRadius:10, background:open?'rgba(91,163,199,0.15)':'rgba(255,255,255,0.06)', border:`1px solid ${open?'rgba(91,163,199,0.4)':'rgba(255,255,255,0.1)'}`, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', transition:'all 150ms ease' }}
-        onMouseEnter={e => { if (!open) e.currentTarget.style.borderColor='rgba(91,163,199,0.3)'; }}
-        onMouseLeave={e => { if (!open) e.currentTarget.style.borderColor='rgba(255,255,255,0.1)'; }}>
+        style={{ position:'relative', width:38, height:38, borderRadius:10, background:open?'rgba(91,163,199,0.15)':'rgba(255,255,255,0.06)', border:`1px solid ${open?'rgba(91,163,199,0.4)':'rgba(255,255,255,0.1)'}`, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', transition:'all 150ms ease' }}>
         <Bell size={16} color={open ? '#5BA3C7' : 'rgba(237,232,219,0.6)'} strokeWidth={2}/>
         {unread > 0 && (
           <div style={{ position:'absolute', top:-4, right:-4, width:17, height:17, borderRadius:'50%', background:'#C75B4E', border:'2px solid #0F172A', fontSize:8, fontWeight:800, color:'#fff', display:'flex', alignItems:'center', justifyContent:'center' }}>
@@ -115,9 +113,7 @@ function ClocheNotifications({ notifs, setNotifs }) {
               const cfg = TYPE_CONFIG[n.type] || TYPE_CONFIG.info;
               return (
                 <div key={n.id} onClick={() => marquerLu(n.id)}
-                  style={{ display:'flex', gap:10, padding:10, borderRadius:10, marginBottom:4, cursor:'pointer', background:n.lu?'transparent':'rgba(91,163,199,0.05)', border:`1px solid ${n.lu?'transparent':'rgba(91,163,199,0.1)'}`, transition:'all 150ms ease' }}
-                  onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,0.05)'}
-                  onMouseLeave={e => e.currentTarget.style.background=n.lu?'transparent':'rgba(91,163,199,0.05)'}>
+                  style={{ display:'flex', gap:10, padding:10, borderRadius:10, marginBottom:4, cursor:'pointer', background:n.lu?'transparent':'rgba(91,163,199,0.05)', border:`1px solid ${n.lu?'transparent':'rgba(91,163,199,0.1)'}`, transition:'all 150ms ease' }}>
                   <div style={{ width:34, height:34, borderRadius:9, flexShrink:0, background:cfg.bg, display:'flex', alignItems:'center', justifyContent:'center' }}>
                     <Bell size={14} color={cfg.color}/>
                   </div>
@@ -130,9 +126,7 @@ function ClocheNotifications({ notifs, setNotifs }) {
                     <div style={{ fontSize:10, color:'rgba(255,255,255,0.25)' }}>{timeAgo(n.date)}</div>
                   </div>
                   <button onClick={e => { e.stopPropagation(); supprimer(n.id); }}
-                    style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.2)', padding:2, flexShrink:0, display:'flex', alignItems:'center' }}
-                    onMouseEnter={e => e.currentTarget.style.color='#C75B4E'}
-                    onMouseLeave={e => e.currentTarget.style.color='rgba(255,255,255,0.2)'}>
+                    style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.2)', padding:2, flexShrink:0, display:'flex', alignItems:'center' }}>
                     <X size={12}/>
                   </button>
                 </div>
@@ -167,15 +161,15 @@ function BandeauAlertes({ alertes, onDismiss }) {
   if (visibles.length === 0) return null;
 
   return (
-    <div style={{ background:critiques>0?'rgba(199,91,78,0.08)':'rgba(212,168,83,0.08)', border:`1px solid ${critiques>0?'rgba(199,91,78,0.2)':'rgba(212,168,83,0.15)'}`, borderRadius:14, marginBottom:24, overflow:'hidden' }}>
+    <div style={{ background:critiques>0?'rgba(199,91,78,0.08)':'rgba(212,168,83,0.08)', border:`1px solid ${critiques>0?'rgba(199,91,78,0.2)':'rgba(212,168,83,0.15)'}`, borderRadius:14, marginBottom:20, overflow:'hidden' }}>
       <div onClick={() => setCollapsed(c => !c)} style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', cursor:'pointer' }}>
         <Bell size={15} color={critiques>0?'#C75B4E':'#D4A853'}/>
         <span style={{ fontSize:13, fontWeight:700, color:critiques>0?'#C75B4E':'#D4A853', flex:1 }}>
           {visibles.length} alerte{visibles.length>1?'s':''} en attente
-          {critiques>0 && <span style={{ fontSize:11, fontWeight:600, marginLeft:8, background:'rgba(199,91,78,0.15)', color:'#C75B4E', padding:'2px 7px', borderRadius:20 }}>{critiques} urgent{critiques>1?'es':'e'}</span>}
+          {critiques>0 && <span style={{ fontSize:11, fontWeight:600, marginLeft:8, background:'rgba(199,91,78,0.15)', color:'#C75B4E', padding:'2px 7px', borderRadius:20 }}>{critiques} urgente{critiques>1?'s':''}</span>}
         </span>
         <button onClick={e => { e.stopPropagation(); dismissAll(); }} style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(237,232,219,0.4)', fontSize:11, display:'flex', alignItems:'center', gap:4, padding:'3px 8px', borderRadius:6 }}>
-          <BellOff size={11}/> Tout ignorer
+          <BellOff size={11}/> Ignorer
         </button>
         {collapsed ? <ChevronDown size={14} color="rgba(237,232,219,0.4)"/> : <ChevronUp size={14} color="rgba(237,232,219,0.4)"/>}
       </div>
@@ -232,14 +226,15 @@ export default function ProHome() {
   const [loading,       setLoading]       = useState(true);
   const [profil,        setProfil]        = useState({});
   const [notifs,        setNotifs]        = useState([]);
+  const [isMobile,      setIsMobile]      = useState(window.innerWidth < 768);
   const navigate = useNavigate();
   const { activeWorkspace } = useWorkspace();
 
-  // FIX : fetchAll exposé via useCallback pour être appelé après OCR
+  useEffect(() => { const fn=()=>setIsMobile(window.innerWidth<768); window.addEventListener('resize',fn); return()=>window.removeEventListener('resize',fn); }, []);
+
   const fetchAll = useCallback(async () => {
     if (!activeWorkspace) return;
     setLoading(true);
-
     const { data: { session } } = await supabasePro.auth.getSession();
     const user = session?.user;
     if (!user) { setLoading(false); return; }
@@ -266,7 +261,6 @@ export default function ProHome() {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  // FIX : écouter l'événement OCR enregistré pour rafraîchir le dashboard
   useEffect(() => {
     const handler = () => fetchAll();
     window.addEventListener('vigie_document_saved', handler);
@@ -286,27 +280,33 @@ export default function ProHome() {
   );
 
   return (
-    <div style={{ fontFamily:"'Nunito Sans', sans-serif", padding:'32px 28px', maxWidth:1000, margin:'0 auto' }}>
+    <div style={{ fontFamily:"'Nunito Sans', sans-serif", padding: isMobile ? '16px 12px' : '32px 28px', maxWidth:1000, margin:'0 auto' }}>
 
-      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:28 }}>
+      {/* HEADER */}
+      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom: isMobile ? 16 : 28 }}>
         <div>
-          <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:28, fontWeight:600, color:'#EDE8DB', margin:0 }}>{nomBureau}</h1>
-          <p style={{ fontSize:13, color:'rgba(237,232,219,0.4)', marginTop:4, marginBottom:0 }}>
-            Vue d'ensemble de votre activité
-            {critiques > 0 && <span style={{ marginLeft:10, color:'#C75B4E', fontWeight:700 }}>· {critiques} alerte{critiques>1?'s':''} urgente{critiques>1?'s':''}</span>}
-          </p>
+          <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize: isMobile ? 22 : 28, fontWeight:600, color:'#EDE8DB', margin:0 }}>{nomBureau}</h1>
+          {!isMobile && (
+            <p style={{ fontSize:13, color:'rgba(237,232,219,0.4)', marginTop:4, marginBottom:0 }}>
+              Vue d'ensemble de votre activité
+              {critiques > 0 && <span style={{ marginLeft:10, color:'#C75B4E', fontWeight:700 }}>· {critiques} alerte{critiques>1?'s':''} urgente{critiques>1?'s':''}</span>}
+            </p>
+          )}
         </div>
         <ClocheNotifications notifs={notifs} setNotifs={setNotifs}/>
       </div>
 
-      <div style={{ marginBottom:24, background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:16, overflow:'hidden' }}>
-        <GraphiqueCA compact={true}/>
-      </div>
+      {/* GRAPHIQUE — masqué sur mobile pour alléger */}
+      {!isMobile && (
+        <div style={{ marginBottom:24, background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:16, overflow:'hidden' }}>
+          <GraphiqueCA compact={true}/>
+        </div>
+      )}
 
       {alertes.length > 0 && <BandeauAlertes alertes={alertes} onDismiss={() => setAlertes([])}/>}
 
       {anomalies.length > 0 && showAnomalies && (
-        <div style={{ background:'rgba(199,91,78,0.06)', border:'1px solid rgba(199,91,78,0.25)', borderRadius:14, marginBottom:24, overflow:'hidden' }}>
+        <div style={{ background:'rgba(199,91,78,0.06)', border:'1px solid rgba(199,91,78,0.25)', borderRadius:14, marginBottom:20, overflow:'hidden' }}>
           <div style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px' }}>
             <AlertTriangle size={15} color="#C75B4E"/>
             <span style={{ fontSize:13, fontWeight:700, color:'#C75B4E', flex:1 }}>{anomalies.length} anomalie{anomalies.length>1?'s':''} détectée{anomalies.length>1?'s':''}</span>
@@ -320,30 +320,32 @@ export default function ProHome() {
         </div>
       )}
 
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:14, marginBottom:28 }}>
+      {/* KPIs */}
+      <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fit, minmax(200px, 1fr))', gap: isMobile ? 10 : 14, marginBottom: isMobile ? 20 : 28 }}>
         {[
-          { label:'Dépenses (mois)',     value:formatEuro(totalDepenses), color:'#C75B4E', icon:TrendingDown, action:() => navigate('/pro/depenses') },
-          { label:'Recettes encaissées', value:formatEuro(totalRecettes), color:'#5BC78A', icon:TrendingUp,   action:() => navigate('/pro/recettes?statut=encaisse') },
-          { label:'Devis en attente',    value:devisEnAttente,            color:'#5BC78A', icon:Receipt,      action:() => navigate('/pro/recettes') },
-          { label:'Contrats actifs',     value:contratsActifs,            color:'#5BA3C7', icon:FileCheck,    action:() => navigate('/pro/contrats') },
+          { label: isMobile ? 'Dépenses' : 'Dépenses (mois)',     value:formatEuro(totalDepenses), color:'#C75B4E', icon:TrendingDown, action:() => navigate('/pro/depenses') },
+          { label: isMobile ? 'Recettes' : 'Recettes encaissées', value:formatEuro(totalRecettes), color:'#5BC78A', icon:TrendingUp,   action:() => navigate('/pro/recettes?statut=encaisse') },
+          { label: isMobile ? 'Devis'    : 'Devis en attente',    value:devisEnAttente,            color:'#5BC78A', icon:Receipt,      action:() => navigate('/pro/recettes') },
+          { label: isMobile ? 'Contrats' : 'Contrats actifs',     value:contratsActifs,            color:'#5BA3C7', icon:FileCheck,    action:() => navigate('/pro/contrats') },
         ].map(s => {
           const Icon = s.icon;
           return (
             <div key={s.label} onClick={s.action}
-              style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:12, padding:'18px 20px', cursor:'pointer', transition:'all 120ms ease' }}
-              onMouseEnter={e => { e.currentTarget.style.background='rgba(255,255,255,0.07)'; e.currentTarget.style.borderColor='rgba(255,255,255,0.14)'; e.currentTarget.style.transform='translateY(-1px)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background='rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor='rgba(255,255,255,0.08)'; e.currentTarget.style.transform='translateY(0)'; }}>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
-                <p style={{ fontSize:11, color:'rgba(237,232,219,0.4)', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.06em', margin:0 }}>{s.label}</p>
-                <Icon size={15} color={s.color}/>
+              style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:12, padding: isMobile ? '14px 14px' : '18px 20px', cursor:'pointer', transition:'all 120ms ease' }}
+              onMouseEnter={e => { e.currentTarget.style.background='rgba(255,255,255,0.07)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background='rgba(255,255,255,0.04)'; }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: isMobile ? 6 : 10 }}>
+                <p style={{ fontSize:10, color:'rgba(237,232,219,0.4)', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.06em', margin:0 }}>{s.label}</p>
+                <Icon size={14} color={s.color}/>
               </div>
-              <p style={{ fontSize:24, fontWeight:700, color:s.color, margin:0 }}>{s.value}</p>
+              <p style={{ fontSize: isMobile ? 18 : 24, fontWeight:700, color:s.color, margin:0 }}>{s.value}</p>
             </div>
           );
         })}
       </div>
 
-      {Object.keys(depensesByType).length > 0 && (
+      {/* DÉPENSES PAR CATÉGORIE — masqué sur mobile */}
+      {!isMobile && Object.keys(depensesByType).length > 0 && (
         <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:22, marginBottom:20 }}>
           <h2 style={{ fontSize:13, fontWeight:700, color:'rgba(237,232,219,0.6)', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 16px' }}>Dépenses par catégorie</h2>
           {Object.entries(depensesByType).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([type, total]) => {
@@ -364,21 +366,23 @@ export default function ProHome() {
         </div>
       )}
 
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:12 }}>
+      {/* RACCOURCIS */}
+      <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fit, minmax(200px, 1fr))', gap: isMobile ? 8 : 12 }}>
         {[
-          { label:'Nouvelle dépense',  color:'#5BC78A', path:'/pro/depenses'   },
-          { label:'Nouveau devis',     color:'#5BA3C7', path:'/pro/recettes'   },
-          { label:'Voir les contrats', color:'#5BC78A', path:'/pro/contrats'   },
-          { label:'Formalités',        color:'#A85BC7', path:'/pro/formalites' },
+          { label:'+ Dépense',   color:'#5BC78A', path:'/pro/depenses'   },
+          { label:'+ Document',  color:'#5BA3C7', path:'/pro/recettes'   },
+          { label:'Contrats',    color:'#5BC78A', path:'/pro/contrats'   },
+          { label:'Formalités',  color:'#A85BC7', path:'/pro/formalites' },
         ].map(r => (
           <button key={r.label} onClick={() => navigate(r.path)}
-            style={{ padding:'13px 18px', borderRadius:11, border:`1px solid ${r.color}40`, background:`${r.color}10`, color:r.color, fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', transition:'all 150ms ease' }}
-            onMouseEnter={e => { e.currentTarget.style.background=`${r.color}20`; e.currentTarget.style.borderColor=`${r.color}60`; }}
-            onMouseLeave={e => { e.currentTarget.style.background=`${r.color}10`; e.currentTarget.style.borderColor=`${r.color}40`; }}>
+            style={{ padding: isMobile ? '12px 14px' : '13px 18px', borderRadius:11, border:`1px solid ${r.color}40`, background:`${r.color}10`, color:r.color, fontSize: isMobile ? 13 : 13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', transition:'all 150ms ease' }}
+            onMouseEnter={e => { e.currentTarget.style.background=`${r.color}20`; }}
+            onMouseLeave={e => { e.currentTarget.style.background=`${r.color}10`; }}>
             {r.label} <ChevronRight size={14}/>
           </button>
         ))}
       </div>
+
       <OnboardingChecklist/>
     </div>
   );
