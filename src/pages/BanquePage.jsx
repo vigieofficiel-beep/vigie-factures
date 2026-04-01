@@ -114,9 +114,7 @@ function OngletPrevision({ transactions }) {
     <div>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24, flexWrap:'wrap', gap:12 }}>
         <div>
-          <h2 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:20, fontWeight:700, color:'#EDE8DB', margin:0, display:'flex', alignItems:'center', gap:8 }}>
-            Prévision de trésorerie <Tooltip text={TIPS.prevision_tresorerie} size={15}/>
-          </h2>
+          <h2 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:20, fontWeight:700, color:'#EDE8DB', margin:0 }}>Prévision de trésorerie</h2>
           <p style={{ fontSize:12, color:'rgba(237,232,219,0.4)', marginTop:4 }}>Projection basée sur vos 3 derniers mois d'historique</p>
         </div>
         <div style={{ display:'flex', gap:4, background:'rgba(255,255,255,0.06)', borderRadius:10, padding:3 }}>
@@ -137,7 +135,7 @@ function OngletPrevision({ transactions }) {
 
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(160px, 1fr))', gap:14, marginBottom:24 }}>
         {[
-          { label:<span style={{display:'flex',alignItems:'center',gap:4}}>Solde actuel <Tooltip text={TIPS.solde_previsionnel} size={11}/></span>, value:formatEuro(soldeActuel), color:soldeActuel>=0?VERT:ROUGE, icon:BarChart2 },
+          { label:'Solde actuel', value:formatEuro(soldeActuel), color:soldeActuel>=0?VERT:ROUGE, icon:BarChart2 },
           { label:`Solde dans ${horizon} mois`, value:formatEuro(soldeFinal), color:soldeFinal>=0?VERT:ROUGE, icon:Calendar },
           { label:'Variation prévue', value:(variation>=0?'+':'')+formatEuro(variation), color:variation>=0?VERT:ROUGE, icon:variation>=0?TrendingUp:TrendingDown },
           { label:'Entrées moy./mois', value:formatEuro(moisFuturs[0]?.credits??0), color:ACCENT, icon:ArrowUp },
@@ -214,7 +212,7 @@ function OngletPrevision({ transactions }) {
                 <td style={{ padding:'10px 14px', fontSize:13, fontWeight:600, color:ROUGE }}>−{formatEuro(d.debits)}</td>
                 <td style={{ padding:'10px 14px', fontSize:13, fontWeight:700, color:d.solde>=0?ACCENT:ROUGE }}>{formatEuro(d.solde)}</td>
                 <td style={{ padding:'10px 14px' }}>
-                  {d.solde<0 ? <span style={{ fontSize:10, fontWeight:700, background:'rgba(199,91,78,0.1)', color:ROUGE, padding:'3px 9px', borderRadius:20 }}>⚠️ Déficit prévu</span>
+                  {d.solde<0 ? <span style={{ fontSize:10, fontWeight:700, background:'rgba(199,91,78,0.1)', color:ROUGE, padding:'3px 9px', borderRadius:20 }}>⚠️ Déficit</span>
                   : d.solde<500 ? <span style={{ fontSize:10, fontWeight:700, background:'rgba(212,168,83,0.1)', color:'#D4A853', padding:'3px 9px', borderRadius:20 }}>⚡ Faible</span>
                   : <span style={{ fontSize:10, fontWeight:700, background:'rgba(91,199,138,0.08)', color:VERT, padding:'3px 9px', borderRadius:20 }}>✓ OK</span>}
                 </td>
@@ -227,14 +225,8 @@ function OngletPrevision({ transactions }) {
   );
 }
 
-
 function EditTransactionModal({ tx, onSave, onClose }) {
-  const [form, setForm] = useState({
-    date:    tx.date    || '',
-    libelle: tx.libelle || '',
-    montant: tx.montant || '',
-    notes:   tx.notes   || '',
-  });
+  const [form, setForm] = useState({ date:tx.date||'', libelle:tx.libelle||'', montant:tx.montant||'', notes:tx.notes||'' });
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState('');
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
@@ -245,17 +237,9 @@ function EditTransactionModal({ tx, onSave, onClose }) {
       const { data: { session } } = await supabasePro.auth.getSession();
       if (!session?.user) throw new Error('Session expirée');
       const montant = parseFloat(String(form.montant).replace(',', '.'));
-      const { error: err } = await supabasePro.from('bank_transactions').update({
-        date:    form.date,
-        libelle: form.libelle,
-        montant,
-        type:    montant >= 0 ? 'credit' : 'debit',
-        notes:   form.notes,
-      }).eq('id', tx.id);
-      if (err) throw err;
-      onSave();
-    } catch (err) { setError(err.message); }
-    finally { setLoading(false); }
+      const { error: err } = await supabasePro.from('bank_transactions').update({ date:form.date, libelle:form.libelle, montant, type:montant>=0?'credit':'debit', notes:form.notes }).eq('id', tx.id);
+      if (err) throw err; onSave();
+    } catch (err) { setError(err.message); } finally { setLoading(false); }
   };
 
   const iS = { width:'100%', padding:'9px 12px', borderRadius:8, background:'#1a1d24', border:'1px solid rgba(255,255,255,0.1)', color:'#EDE8DB', fontSize:13, outline:'none', boxSizing:'border-box' };
@@ -297,49 +281,37 @@ export default function BanquePage() {
   const [dateRange,      setDateRange]      = useState({ debut:'', fin:'' });
   const [activeTab,      setActiveTab]      = useState('transactions');
   const [editTx,         setEditTx]         = useState(null);
+  const [isMobile,       setIsMobile]       = useState(window.innerWidth < 768);
   const fileRef = useRef();
   const { activeWorkspace } = useWorkspace();
 
+  useEffect(() => { const fn=()=>setIsMobile(window.innerWidth<768); window.addEventListener('resize',fn); return()=>window.removeEventListener('resize',fn); }, []);
   useEffect(() => { if (activeWorkspace) fetchAll(); }, [activeWorkspace]);
 
   const fetchAll = async () => {
-  setLoading(true);
-  const { data: { session: sess } } = await supabasePro.auth.getSession();
-  const user = sess?.user;
-  if (!user) return;
-  let qTx = supabasePro.from('bank_transactions').select('*').eq('user_id', user.id).order('date', { ascending: false });
-  if (activeWorkspace?.id) qTx = qTx.eq('workspace_id', activeWorkspace.id);
-  const [{ data: tx }, { data: inv }] = await Promise.all([
-    qTx,
-    supabasePro.from('invoices').select('id, provider, amount_ttc, invoice_date').eq('user_id', user.id),
-  ]);
-  setTransactions(tx || []);
-  setInvoices(inv || []);
-  setLoading(false);
-};
+    setLoading(true);
+    const { data: { session: sess } } = await supabasePro.auth.getSession();
+    const user = sess?.user; if (!user) return;
+    let qTx = supabasePro.from('bank_transactions').select('*').eq('user_id', user.id).order('date', { ascending: false });
+    if (activeWorkspace?.id) qTx = qTx.eq('workspace_id', activeWorkspace.id);
+    const [{ data: tx }, { data: inv }] = await Promise.all([qTx, supabasePro.from('invoices').select('id, provider, amount_ttc, invoice_date').eq('user_id', user.id)]);
+    setTransactions(tx || []); setInvoices(inv || []); setLoading(false);
+  };
 
   const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+    const file = e.target.files[0]; if (!file) return;
     const text = await file.text();
     const parsed = parseCSV(text);
     if (parsed.length === 0) { alert('Aucune transaction trouvée. Vérifiez le format du fichier CSV.'); return; }
-    setPreview(parsed);
-    e.target.value = '';
+    setPreview(parsed); e.target.value = '';
   };
 
   const confirmImport = async () => {
-    if (!preview) return;
-    setImporting(true);
+    if (!preview) return; setImporting(true);
     const { data: { session } } = await supabasePro.auth.getSession();
-    const user = session?.user;
-    if (!user) return;
+    const user = session?.user; if (!user) return;
     const withRapprochement = preview.map(tx => {
-      const matched = invoices.find(inv => {
-        const libelleMatch = inv.provider && tx.libelle.toLowerCase().includes(inv.provider.toLowerCase());
-        const montantMatch = Math.abs(Math.abs(tx.montant) - (inv.amount_ttc || 0)) < 1;
-        return libelleMatch || montantMatch;
-      });
+      const matched = invoices.find(inv => { const libelleMatch = inv.provider && tx.libelle.toLowerCase().includes(inv.provider.toLowerCase()); const montantMatch = Math.abs(Math.abs(tx.montant) - (inv.amount_ttc || 0)) < 1; return libelleMatch || montantMatch; });
       return { ...tx, user_id:user.id, workspace_id:activeWorkspace?.id, invoice_id:matched?.id||null, rapproche:!!matched, statut:matched?'rapproche':'non_rapproche' };
     });
     const { error } = await supabasePro.from('bank_transactions').insert(withRapprochement);
@@ -370,61 +342,38 @@ export default function BanquePage() {
   const totalDebits   = transactions.filter(t => t.type === 'debit').reduce((s, t) => s + Math.abs(t.montant || 0), 0);
   const nonRapproches = transactions.filter(t => !t.rapproche).length;
   const rapproches    = transactions.filter(t => t.rapproche).length;
-  const filteredExport = filtered.map(t => ({ ...t, rapproche_label:t.rapproche?'Oui':'Non' }));
 
   return (
-    <div style={{ fontFamily:"'Nunito Sans', sans-serif", padding:'32px 28px', maxWidth:1100, margin:'0 auto' }}>
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24, flexWrap:'wrap', gap:12 }}>
-        <div>
-          <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:26, fontWeight:600, color:'#EDE8DB', margin:0, display:'flex', alignItems:'center', gap:8 }}>
-            Banque & Prévision <Tooltip text={TIPS.banque} size={16}/>
-          </h1>
-          <p style={{ fontSize:13, color:'rgba(237,232,219,0.4)', marginTop:4 }}>Importez vos relevés et visualisez vos prévisions</p>
-        </div>
-        <div style={{ display:'flex', gap:10, flexWrap:'wrap', alignItems:'center' }}>
+    <div style={{ fontFamily:"'Nunito Sans', sans-serif", padding:isMobile?'16px 12px':'32px 28px', maxWidth:1100, margin:'0 auto' }}>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20, flexWrap:'wrap', gap:10 }}>
+        <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:isMobile?22:26, fontWeight:600, color:'#EDE8DB', margin:0 }}>Banque & Prévision</h1>
+        <div style={{ display:'flex', gap:8, flexWrap:'wrap', alignItems:'center' }}>
           {editTx && <EditTransactionModal tx={editTx} onSave={() => { setEditTx(null); fetchAll(); }} onClose={() => setEditTx(null)}/>}
-
-      {activeTab === 'transactions' && (
-            <>
-              <DateFilter onChange={setDateRange} color={ACCENT}/>
-              <ExportButton data={filteredExport} filename={`banque-${new Date().getFullYear()}`} color={ACCENT}
-                columns={[
-                  { key:'date', label:'Date' }, { key:'libelle', label:'Libellé' },
-                  { key:'montant', label:'Montant (€)' }, { key:'type', label:'Type' },
-                  { key:'rapproche_label', label:'Rapproché' },
-                ]}/>
-            </>
-          )}
-          <button onClick={() => fileRef.current?.click()} style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 16px', borderRadius:9, border:'none', background:ACCENT, color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer' }}>
-            <Upload size={13}/> Importer relevé
+          {activeTab==='transactions' && !isMobile && <><DateFilter onChange={setDateRange} color={ACCENT}/><ExportButton data={filtered.map(t=>({...t,rapproche_label:t.rapproche?'Oui':'Non'}))} filename={`banque-${new Date().getFullYear()}`} color={ACCENT} columns={[{key:'date',label:'Date'},{key:'libelle',label:'Libellé'},{key:'montant',label:'Montant (€)'},{key:'type',label:'Type'},{key:'rapproche_label',label:'Rapproché'}]}/></>}
+          <button onClick={() => fileRef.current?.click()} style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 14px', borderRadius:9, border:'none', background:ACCENT, color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer' }}>
+            <Upload size={13}/> {isMobile?'Importer':'Importer relevé'}
           </button>
           <input ref={fileRef} type="file" accept=".csv" style={{ display:'none' }} onChange={handleFileUpload}/>
         </div>
       </div>
 
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))', gap:14, marginBottom:24 }}>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(130px, 1fr))', gap:10, marginBottom:20 }}>
         {[
-          { label:'Crédits',      value:formatEuro(totalCredits),  color:VERT,      icon:TrendingUp   },
-          { label:'Débits',       value:formatEuro(totalDebits),   color:ROUGE,     icon:TrendingDown },
-          { label:'Rapprochés',   value:rapproches,                color:ACCENT,    icon:CheckCircle  },
-          { label:'À rapprocher', value:nonRapproches,             color:'#D4A853', icon:AlertTriangle, alert:nonRapproches>0 },
+          {label:'Crédits',      value:formatEuro(totalCredits),  color:VERT,      icon:TrendingUp},
+          {label:'Débits',       value:formatEuro(totalDebits),   color:ROUGE,     icon:TrendingDown},
+          {label:'Rapprochés',   value:rapproches,                color:ACCENT,    icon:CheckCircle},
+          {label:'À rapprocher', value:nonRapproches,             color:'#D4A853', icon:AlertTriangle, alert:nonRapproches>0},
         ].map((s,i) => { const Icon = s.icon; return (
-          <div key={i} style={{ background:'rgba(255,255,255,0.04)', border:`1px solid ${s.alert?'rgba(212,168,83,0.15)':'rgba(255,255,255,0.08)'}`, borderRadius:12, padding:'16px 18px' }}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
-              <p style={{ fontSize:11, color:'rgba(237,232,219,0.4)', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.06em', margin:0 }}>{s.label}</p>
-              <Icon size={14} color={s.color}/>
-            </div>
-            <p style={{ fontSize:22, fontWeight:700, color:s.color, margin:0 }}>{s.value}</p>
+          <div key={i} style={{ background:'rgba(255,255,255,0.04)', border:`1px solid ${s.alert?'rgba(212,168,83,0.15)':'rgba(255,255,255,0.08)'}`, borderRadius:12, padding:'12px 14px' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}><p style={{ fontSize:10, color:'rgba(237,232,219,0.4)', fontWeight:600, textTransform:'uppercase', margin:0 }}>{s.label}</p><Icon size={13} color={s.color}/></div>
+            <p style={{ fontSize:isMobile?16:20, fontWeight:700, color:s.color, margin:0 }}>{s.value}</p>
           </div>
         );})}
       </div>
 
-      <div style={{ display:'flex', gap:4, marginBottom:24, background:'rgba(255,255,255,0.05)', borderRadius:10, padding:3, width:'fit-content' }}>
-        {[
-          { id:'transactions', label:'Transactions' },
-          { id:'prevision',    label:'Prévision trésorerie' },
-        ].map(tab => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ padding:'8px 20px', borderRadius:8, border:'none', background:activeTab===tab.id?'rgba(91,163,199,0.15)':'transparent', color:activeTab===tab.id?ACCENT:'rgba(237,232,219,0.4)', fontWeight:activeTab===tab.id?700:500, fontSize:13, cursor:'pointer', fontFamily:"'Nunito Sans', sans-serif", transition:'all 150ms' }}>
+      <div style={{ display:'flex', gap:4, marginBottom:20, background:'rgba(255,255,255,0.05)', borderRadius:10, padding:3, width:'fit-content' }}>
+        {[{id:'transactions',label:'Transactions'},{id:'prevision',label:isMobile?'Prévision':'Prévision trésorerie'}].map(tab => (
+          <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ padding:'8px 16px', borderRadius:8, border:'none', background:activeTab===tab.id?'rgba(91,163,199,0.15)':'transparent', color:activeTab===tab.id?ACCENT:'rgba(237,232,219,0.4)', fontWeight:activeTab===tab.id?700:500, fontSize:13, cursor:'pointer', fontFamily:"'Nunito Sans', sans-serif", transition:'all 150ms' }}>
             {tab.label}
           </button>
         ))}
@@ -437,10 +386,7 @@ export default function BanquePage() {
           {preview && (
             <div style={{ background:'rgba(91,163,199,0.06)', border:'1px solid rgba(91,163,199,0.2)', borderRadius:14, padding:20, marginBottom:24 }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
-                <div>
-                  <h3 style={{ fontSize:15, fontWeight:700, color:'#EDE8DB', margin:0 }}>Aperçu — {preview.length} transactions détectées</h3>
-                  <p style={{ fontSize:12, color:'rgba(237,232,219,0.4)', marginTop:4 }}>Le rapprochement automatique sera tenté avec vos factures existantes.</p>
-                </div>
+                <div><h3 style={{ fontSize:15, fontWeight:700, color:'#EDE8DB', margin:0 }}>Aperçu — {preview.length} transactions</h3><p style={{ fontSize:12, color:'rgba(237,232,219,0.4)', marginTop:4 }}>Le rapprochement automatique sera tenté avec vos factures existantes.</p></div>
                 <button onClick={() => setPreview(null)} style={{ background:'transparent', border:'none', cursor:'pointer', color:'rgba(237,232,219,0.3)' }}><X size={16}/></button>
               </div>
               <div style={{ maxHeight:200, overflowY:'auto', marginBottom:16 }}>
@@ -453,7 +399,7 @@ export default function BanquePage() {
                 </table>
               </div>
               <div style={{ display:'flex', gap:10 }}>
-                <button onClick={confirmImport} disabled={importing} style={{ flex:1, padding:'11px', borderRadius:9, border:'none', background:importing?`${ACCENT}50`:ACCENT, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer' }}>{importing?'Import en cours...':`✓ Confirmer l'import (${preview.length} transactions)`}</button>
+                <button onClick={confirmImport} disabled={importing} style={{ flex:1, padding:'11px', borderRadius:9, border:'none', background:importing?`${ACCENT}50`:ACCENT, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer' }}>{importing?'Import en cours...':`✓ Confirmer (${preview.length} transactions)`}</button>
                 <button onClick={() => setPreview(null)} style={{ padding:'11px 18px', borderRadius:9, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'rgba(237,232,219,0.5)', fontSize:13, cursor:'pointer' }}>Annuler</button>
               </div>
             </div>
@@ -467,58 +413,71 @@ export default function BanquePage() {
           )}
 
           {transactions.length > 0 && (
-            <div style={{ display:'flex', gap:8, marginBottom:16, flexWrap:'wrap', alignItems:'center' }}>
-              <div style={{ display:'flex', gap:6 }}>
-                {[{id:'tous',label:'Tous'},{id:'credit',label:'Crédits'},{id:'debit',label:'Débits'}].map(f=>(
-                  <button key={f.id} onClick={()=>setFilterType(f.id)} style={{ padding:'5px 14px', borderRadius:20, border:`1px solid ${filterType===f.id?ACCENT:'rgba(255,255,255,0.1)'}`, background:filterType===f.id?`${ACCENT}20`:'transparent', color:filterType===f.id?ACCENT:'rgba(237,232,219,0.4)', fontSize:12, fontWeight:filterType===f.id?700:500, cursor:'pointer' }}>{f.label}</button>
-                ))}
-              </div>
-              <div style={{ width:1, height:20, background:'rgba(255,255,255,0.08)' }}/>
-              <div style={{ display:'flex', gap:6, alignItems:'center' }}>
-                {[{id:'tous',label:'Tous'},{id:'rapproche',label:'Rapprochés'},{id:'non_rapproche',label:'À rapprocher'}].map(f=>(
-                  <button key={f.id} onClick={()=>setFilterRaproche(f.id)} style={{ padding:'5px 14px', borderRadius:20, border:`1px solid ${filterRaproche===f.id?'#D4A853':'rgba(255,255,255,0.1)'}`, background:filterRaproche===f.id?'rgba(212,168,83,0.1)':'transparent', color:filterRaproche===f.id?'#D4A853':'rgba(237,232,219,0.4)', fontSize:12, fontWeight:filterRaproche===f.id?700:500, cursor:'pointer' }}>{f.label}</button>
-                ))}
-                <Tooltip text={TIPS.rapprochement} size={12}/>
-              </div>
+            <div style={{ display:'flex', gap:6, marginBottom:14, flexWrap:'wrap' }}>
+              {[{id:'tous',label:'Tous'},{id:'credit',label:'Crédits'},{id:'debit',label:'Débits'}].map(f=>(
+                <button key={f.id} onClick={()=>setFilterType(f.id)} style={{ padding:'5px 12px', borderRadius:20, border:`1px solid ${filterType===f.id?ACCENT:'rgba(255,255,255,0.1)'}`, background:filterType===f.id?`${ACCENT}20`:'transparent', color:filterType===f.id?ACCENT:'rgba(237,232,219,0.4)', fontSize:11, fontWeight:filterType===f.id?700:500, cursor:'pointer' }}>{f.label}</button>
+              ))}
+              <div style={{ width:1, height:20, background:'rgba(255,255,255,0.08)', alignSelf:'center' }}/>
+              {[{id:'tous',label:'Tous'},{id:'rapproche',label:'Rapprochés'},{id:'non_rapproche',label:'À rapprocher'}].map(f=>(
+                <button key={f.id} onClick={()=>setFilterRaproche(f.id)} style={{ padding:'5px 12px', borderRadius:20, border:`1px solid ${filterRaproche===f.id?'#D4A853':'rgba(255,255,255,0.1)'}`, background:filterRaproche===f.id?'rgba(212,168,83,0.1)':'transparent', color:filterRaproche===f.id?'#D4A853':'rgba(237,232,219,0.4)', fontSize:11, fontWeight:filterRaproche===f.id?700:500, cursor:'pointer' }}>{f.label}</button>
+              ))}
             </div>
           )}
 
-          <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, overflow:'hidden' }}>
-            {loading ? <div style={{ padding:40, textAlign:'center', color:'rgba(237,232,219,0.4)', fontSize:13 }}>Chargement...</div>
-            : filtered.length === 0 ? (
-              <div style={{ padding:48, textAlign:'center' }}>
-                <Upload size={32} color="rgba(255,255,255,0.1)" style={{ marginBottom:12 }}/>
-                <p style={{ color:'rgba(237,232,219,0.3)', fontSize:13, margin:0 }}>{transactions.length===0?'Aucune transaction — importez votre relevé CSV':'Aucune transaction pour ce filtre'}</p>
-              </div>
-            ) : (
-              <table style={{ width:'100%', borderCollapse:'collapse' }}>
-                <thead>
-                  <tr style={{ borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
-                    {['Date','Libellé','Montant','Statut',''].map((h,i)=>(<th key={i} style={{ padding:'11px 14px', textAlign:'left', fontSize:10, fontWeight:700, color:'rgba(237,232,219,0.3)', textTransform:'uppercase', letterSpacing:'0.06em' }}>{h}</th>))}
+          {/* TABLEAU DESKTOP */}
+          {!isMobile && (
+            <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, overflow:'hidden' }}>
+              {loading?<div style={{padding:40,textAlign:'center',color:'rgba(237,232,219,0.4)',fontSize:13}}>Chargement...</div>
+              :filtered.length===0?<div style={{padding:48,textAlign:'center'}}><Upload size={32} color="rgba(255,255,255,0.1)" style={{marginBottom:12}}/><p style={{color:'rgba(237,232,219,0.3)',fontSize:13,margin:0}}>{transactions.length===0?'Aucune transaction — importez votre relevé CSV':'Aucune transaction pour ce filtre'}</p></div>
+              :<table style={{width:'100%',borderCollapse:'collapse'}}>
+                <thead><tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+                  {['Date','Libellé','Montant','Statut',''].map((h,i)=>(<th key={i} style={{padding:'11px 14px',textAlign:'left',fontSize:10,fontWeight:700,color:'rgba(237,232,219,0.3)',textTransform:'uppercase',letterSpacing:'0.06em'}}>{h}</th>))}
+                </tr></thead>
+                <tbody>{filtered.map((t,i)=>(
+                  <tr key={t.id||i} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}} onMouseEnter={ev=>ev.currentTarget.style.background='rgba(255,255,255,0.03)'} onMouseLeave={ev=>ev.currentTarget.style.background='transparent'}>
+                    <td style={{padding:'11px 14px',fontSize:12,color:'rgba(237,232,219,0.4)'}}>{formatDate(t.date)}</td>
+                    <td style={{padding:'11px 14px',fontSize:13,color:'#EDE8DB',maxWidth:300}}><span style={{display:'block',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t.libelle}</span></td>
+                    <td style={{padding:'11px 14px',fontSize:13,fontWeight:700,color:t.montant>=0?VERT:ROUGE}}>{t.montant>=0?'+':''}{formatEuro(t.montant)}</td>
+                    <td style={{padding:'11px 14px'}}><StatutBadge rapproche={t.rapproche}/></td>
+                    <td style={{padding:'11px 14px'}}>
+                      <div style={{display:'flex',gap:4}}>
+                        <button onClick={()=>toggleRapprochement(t)} style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:t.rapproche?VERT:'#D4A853'}}><RefreshCw size={13}/></button>
+                        <button onClick={()=>setEditTx(t)} style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'rgba(237,232,219,0.3)'}} onMouseEnter={ev=>ev.currentTarget.style.color=ACCENT} onMouseLeave={ev=>ev.currentTarget.style.color='rgba(237,232,219,0.3)'}><Edit2 size={13}/></button>
+                        <button onClick={()=>deleteTransaction(t.id)} style={{background:'transparent',border:'none',cursor:'pointer',padding:4,color:'rgba(237,232,219,0.2)'}} onMouseEnter={ev=>ev.currentTarget.style.color=ROUGE} onMouseLeave={ev=>ev.currentTarget.style.color='rgba(237,232,219,0.2)'}><X size={13}/></button>
+                      </div>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((t,i)=>(
-                    <tr key={t.id||i} style={{ borderBottom:'1px solid rgba(255,255,255,0.04)' }}
-                      onMouseEnter={ev=>ev.currentTarget.style.background='rgba(255,255,255,0.03)'}
-                      onMouseLeave={ev=>ev.currentTarget.style.background='transparent'}>
-                      <td style={{ padding:'11px 14px', fontSize:12, color:'rgba(237,232,219,0.4)' }}>{formatDate(t.date)}</td>
-                      <td style={{ padding:'11px 14px', fontSize:13, color:'#EDE8DB', maxWidth:300 }}><span style={{ display:'block', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.libelle}</span></td>
-                      <td style={{ padding:'11px 14px', fontSize:13, fontWeight:700, color:t.montant>=0?VERT:ROUGE }}>{t.montant>=0?'+':''}{formatEuro(t.montant)}</td>
-                      <td style={{ padding:'11px 14px' }}><StatutBadge rapproche={t.rapproche}/></td>
-                      <td style={{ padding:'11px 14px' }}>
-                        <div style={{ display:'flex', gap:4 }}>
-                          <button onClick={()=>toggleRapprochement(t)} style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:t.rapproche?VERT:'#D4A853' }}><RefreshCw size={13}/></button>
-                          <button onClick={()=>setEditTx(t)} style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(237,232,219,0.3)' }} onMouseEnter={ev=>ev.currentTarget.style.color=ACCENT} onMouseLeave={ev=>ev.currentTarget.style.color='rgba(237,232,219,0.3)'}><Edit2 size={13}/></button>
-                          <button onClick={()=>deleteTransaction(t.id)} style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(237,232,219,0.2)' }} onMouseEnter={ev=>ev.currentTarget.style.color=ROUGE} onMouseLeave={ev=>ev.currentTarget.style.color='rgba(237,232,219,0.2)'}><X size={13}/></button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
+                ))}</tbody>
+              </table>}
+            </div>
+          )}
+
+          {/* CARTES MOBILE */}
+          {isMobile && (
+            <div>
+              {loading?<div style={{padding:40,textAlign:'center',color:'rgba(237,232,219,0.4)'}}>Chargement...</div>
+              :filtered.length===0?<div style={{padding:40,textAlign:'center'}}><p style={{color:'rgba(237,232,219,0.3)',fontSize:13,margin:0}}>{transactions.length===0?'Aucune transaction — importez votre relevé CSV':'Aucune transaction pour ce filtre'}</p></div>
+              :filtered.map((t,i)=>(
+                <div key={t.id||i} style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:'14px 16px', marginBottom:8 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:8 }}>
+                    <div style={{ flex:1, minWidth:0, marginRight:12 }}>
+                      <div style={{ fontSize:13, fontWeight:600, color:'#EDE8DB', marginBottom:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.libelle}</div>
+                      <div style={{ fontSize:11, color:'rgba(237,232,219,0.4)' }}>{formatDate(t.date)}</div>
+                    </div>
+                    <div style={{ fontSize:16, fontWeight:800, color:t.montant>=0?VERT:ROUGE, whiteSpace:'nowrap' }}>{t.montant>=0?'+':''}{formatEuro(t.montant)}</div>
+                  </div>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                    <StatutBadge rapproche={t.rapproche}/>
+                    <div style={{ display:'flex', gap:6 }}>
+                      <button onClick={()=>toggleRapprochement(t)} style={{ background:`${t.rapproche?'rgba(91,199,138,0.1)':'rgba(212,168,83,0.1)'}`, border:'none', borderRadius:6, padding:'6px 8px', cursor:'pointer', color:t.rapproche?VERT:'#D4A853', display:'flex' }}><RefreshCw size={13}/></button>
+                      <button onClick={()=>setEditTx(t)} style={{ background:'rgba(255,255,255,0.06)', border:'none', borderRadius:6, padding:'6px 8px', cursor:'pointer', color:'rgba(237,232,219,0.5)', display:'flex' }}><Edit2 size={13}/></button>
+                      <button onClick={()=>deleteTransaction(t.id)} style={{ background:'rgba(199,91,78,0.08)', border:'none', borderRadius:6, padding:'6px 8px', cursor:'pointer', color:ROUGE, display:'flex' }}><X size={13}/></button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </>
       )}
 
