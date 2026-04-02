@@ -5,7 +5,40 @@ import { Plus, Trash2, Eye, EyeOff, Loader, CheckCircle, AlertTriangle, Lock } f
 const ACCENT = '#5BC78A';
 const ADMIN_EMAIL = 'luciendoppler@gmail.com';
 const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric' }) : '—';
-const CATEGORIES = ['Guide pratique', 'Fiscalité', 'Facturation', 'Gestion', 'Juridique', 'Actualité'];
+
+const CATEGORIES = [
+  // Existantes
+  'Guide pratique',
+  'Fiscalité',
+  'Facturation',
+  'Gestion',
+  'Juridique',
+  'Actualité',
+  // Nouvelles
+  'Création & Statut',
+  'Outils & Productivité',
+  'Comptabilité',
+  'Trésorerie',
+  'Charges & Cotisations',
+  'TVA',
+  'Dépenses & Frais',
+  'Clients & Devis',
+  'Banque & Finances',
+  'Contrats & Assurances',
+  'Ressources Humaines',
+  'Marketing & Communication',
+  'Développement commercial',
+  'Formation & Compétences',
+  'Retraite & Protection sociale',
+  'International & Export',
+  'Immobilier professionnel',
+  'Numérique & IA',
+  'Secteur BTP',
+  'Secteur Santé',
+  'Secteur Conseil',
+  'Secteur Commerce',
+  'Secteur Artisanat',
+];
 
 export default function BlogAdmin() {
   const [articles,   setArticles]   = useState([]);
@@ -16,6 +49,7 @@ export default function BlogAdmin() {
   const [publier,    setPublier]    = useState(true);
   const [msg,        setMsg]        = useState(null);
   const [authorized, setAuthorized] = useState(null);
+  const [filterCat,  setFilterCat]  = useState('tous');
 
   useEffect(() => {
     supabasePro.auth.getSession().then(({ data: { session } }) => {
@@ -45,7 +79,7 @@ export default function BlogAdmin() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setMsg({ type: 'success', text: `Article "${data.article.titre}" généré avec succès !` });
+      setMsg({ type: 'success', text: `✓ Article "${data.article.titre}" généré !` });
       setSujet('');
       fetchArticles();
     } catch (e) { setMsg({ type: 'error', text: e.message }); }
@@ -66,6 +100,9 @@ export default function BlogAdmin() {
 
   const iS = { width:'100%', padding:'10px 14px', borderRadius:8, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', color:'#EDE8DB', fontSize:13, outline:'none', boxSizing:'border-box', fontFamily:"'Nunito Sans', sans-serif" };
 
+  const categoriesPresentes = ['tous', ...new Set(articles.map(a => a.categorie).filter(Boolean))];
+  const filtered = filterCat === 'tous' ? articles : articles.filter(a => a.categorie === filterCat);
+
   if (authorized === null) return (
     <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'60vh', color:'rgba(237,232,219,0.3)', fontSize:14 }}>Vérification...</div>
   );
@@ -81,13 +118,16 @@ export default function BlogAdmin() {
   );
 
   return (
-    <div style={{ fontFamily:"'Nunito Sans', sans-serif", padding:'32px 28px', maxWidth:900, margin:'0 auto' }}>
+    <div style={{ fontFamily:"'Nunito Sans', sans-serif", padding:'32px 28px', maxWidth:1000, margin:'0 auto' }}>
 
       <div style={{ marginBottom:32 }}>
         <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:28, fontWeight:600, color:'#EDE8DB', margin:0 }}>Vigie Blog — Admin</h1>
-        <p style={{ fontSize:13, color:'rgba(237,232,219,0.4)', marginTop:4 }}>Générez et gérez vos articles SEO automatiquement</p>
+        <p style={{ fontSize:13, color:'rgba(237,232,219,0.4)', marginTop:4 }}>
+          {articles.length} articles · {articles.filter(a=>a.statut==='publie').length} publiés · {articles.filter(a=>a.statut==='brouillon').length} brouillons
+        </p>
       </div>
 
+      {/* Formulaire génération */}
       <div style={{ background:'rgba(91,199,138,0.05)', border:'1px solid rgba(91,199,138,0.2)', borderRadius:16, padding:24, marginBottom:32 }}>
         <h2 style={{ fontSize:15, fontWeight:700, color:'#EDE8DB', marginBottom:20, display:'flex', alignItems:'center', gap:8 }}>
           <Plus size={16} color={ACCENT}/> Générer un nouvel article
@@ -99,7 +139,7 @@ export default function BlogAdmin() {
         </div>
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, marginBottom:16 }}>
           <div>
-            <label style={{ fontSize:11, fontWeight:600, color:'rgba(237,232,219,0.5)', display:'block', marginBottom:6 }}>Catégorie</label>
+            <label style={{ fontSize:11, fontWeight:600, color:'rgba(237,232,219,0.5)', display:'block', marginBottom:6 }}>Catégorie ({CATEGORIES.length} disponibles)</label>
             <select value={categorie} onChange={e => setCategorie(e.target.value)} style={{ ...iS, cursor:'pointer' }}>
               {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
@@ -123,17 +163,32 @@ export default function BlogAdmin() {
           {generating ? <><Loader size={15} style={{ animation:'spin 1s linear infinite' }}/> Génération en cours... (30-60s)</> : '✨ Générer l\'article'}
         </button>
         <p style={{ fontSize:11, color:'rgba(237,232,219,0.25)', textAlign:'center', marginTop:8 }}>
-          L'article sera généré par Claude Sonnet (~1500 mots, optimisé SEO)
+          Article généré par GPT-4o (~1500 mots, optimisé SEO)
         </p>
       </div>
 
+      {/* Filtres par catégorie */}
+      {categoriesPresentes.length > 1 && (
+        <div style={{ display:'flex', gap:6, marginBottom:16, flexWrap:'wrap' }}>
+          {categoriesPresentes.map(c => (
+            <button key={c} onClick={() => setFilterCat(c)}
+              style={{ padding:'5px 12px', borderRadius:20, border:`1px solid ${filterCat===c?ACCENT:'rgba(255,255,255,0.1)'}`, background:filterCat===c?`${ACCENT}20`:'transparent', color:filterCat===c?ACCENT:'rgba(237,232,219,0.4)', fontSize:11, fontWeight:filterCat===c?700:500, cursor:'pointer', whiteSpace:'nowrap' }}>
+              {c === 'tous' ? `Tous (${articles.length})` : `${c} (${articles.filter(a=>a.categorie===c).length})`}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Liste articles */}
       <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, overflow:'hidden' }}>
         <div style={{ padding:'16px 20px', borderBottom:'1px solid rgba(255,255,255,0.06)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-          <span style={{ fontSize:13, fontWeight:700, color:'#EDE8DB' }}>Articles ({articles.length})</span>
+          <span style={{ fontSize:13, fontWeight:700, color:'#EDE8DB' }}>
+            {filterCat === 'tous' ? `Tous les articles (${articles.length})` : `${filterCat} (${filtered.length})`}
+          </span>
           <span style={{ fontSize:11, color:'rgba(237,232,219,0.3)' }}>{articles.filter(a=>a.statut==='publie').length} publiés · {articles.filter(a=>a.statut==='brouillon').length} brouillons</span>
         </div>
         {loading ? <div style={{ padding:40, textAlign:'center', color:'rgba(237,232,219,0.3)', fontSize:13 }}>Chargement...</div>
-        : articles.length === 0 ? <div style={{ padding:48, textAlign:'center', color:'rgba(237,232,219,0.3)', fontSize:13 }}>Aucun article — générez votre premier article ci-dessus.</div>
+        : filtered.length === 0 ? <div style={{ padding:48, textAlign:'center', color:'rgba(237,232,219,0.3)', fontSize:13 }}>Aucun article — générez votre premier article ci-dessus.</div>
         : <table style={{ width:'100%', borderCollapse:'collapse' }}>
             <thead>
               <tr style={{ borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
@@ -143,7 +198,7 @@ export default function BlogAdmin() {
               </tr>
             </thead>
             <tbody>
-              {articles.map((a) => (
+              {filtered.map((a) => (
                 <tr key={a.id} style={{ borderBottom:'1px solid rgba(255,255,255,0.04)' }}
                   onMouseEnter={ev => ev.currentTarget.style.background='rgba(255,255,255,0.02)'}
                   onMouseLeave={ev => ev.currentTarget.style.background='transparent'}>
