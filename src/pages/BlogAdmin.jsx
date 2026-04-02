@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabasePro } from '../lib/supabasePro';
-import { Plus, Trash2, Eye, EyeOff, Loader, CheckCircle, AlertTriangle, Lock, RefreshCw, ExternalLink, FileText, X } from 'lucide-react';
+import { Plus, Trash2, Eye, EyeOff, Loader, CheckCircle, AlertTriangle, Lock, RefreshCw, ExternalLink, FileText, X, Edit3, Save } from 'lucide-react';
 
 const ACCENT = '#5BC78A';
 const ADMIN_EMAIL = 'luciendoppler@gmail.com';
@@ -27,7 +27,6 @@ const STATUT_STYLE = {
   a_relire:  { bg: 'rgba(212,168,83,0.1)',   color: '#D4A853',               label: '◐ À relire' },
 };
 
-// Rendu markdown simple
 function renderMarkdown(text) {
   if (!text) return '';
   return text
@@ -49,6 +48,7 @@ export default function BlogAdmin() {
   const [loading,    setLoading]    = useState(true);
   const [generating, setGenerating] = useState(false);
   const [correcting, setCorrecting] = useState(null);
+  const [saving,     setSaving]     = useState(false);
   const [sujet,      setSujet]      = useState('');
   const [categorie,  setCategorie]  = useState('TVA & Régimes fiscaux');
   const [publier,    setPublier]    = useState(true);
@@ -56,7 +56,9 @@ export default function BlogAdmin() {
   const [authorized, setAuthorized] = useState(null);
   const [filterCat,  setFilterCat]  = useState('tous');
   const [filterStat, setFilterStat] = useState('tous');
-  const [preview,    setPreview]    = useState(null); // article en modale
+  const [preview,    setPreview]    = useState(null);
+  const [editMode,   setEditMode]   = useState(false);
+  const [editData,   setEditData]   = useState({});
 
   useEffect(() => {
     supabasePro.auth.getSession().then(({ data: { session } }) => {
@@ -70,10 +72,47 @@ export default function BlogAdmin() {
     setLoading(true);
     const { data } = await supabasePro
       .from('blog_articles')
-      .select('id, slug, titre, contenu, meta_description, categorie, statut, date_publication, created_at, auto_generated, updated_at')
+      .select('id, slug, titre, contenu, meta_description, categorie, tags, statut, date_publication, created_at, auto_generated, updated_at')
       .order('created_at', { ascending: false });
     setArticles(data || []);
     setLoading(false);
+  };
+
+  const openPreview = (article) => {
+    setPreview(article);
+    setEditMode(false);
+    setEditData({
+      titre: article.titre,
+      meta_description: article.meta_description || '',
+      categorie: article.categorie,
+      tags: (article.tags || []).join(', '),
+      contenu: article.contenu || '',
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!preview) return;
+    setSaving(true);
+    try {
+      const tagsArray = editData.tags.split(',').map(t => t.trim()).filter(Boolean);
+      const { error } = await supabasePro.from('blog_articles').update({
+        titre: editData.titre,
+        meta_description: editData.meta_description,
+        categorie: editData.categorie,
+        tags: tagsArray,
+        contenu: editData.contenu,
+        updated_at: new Date().toISOString(),
+      }).eq('id', preview.id);
+      if (error) throw error;
+      setMsg({ type: 'success', text: '✓ Article mis à jour !' });
+      setEditMode(false);
+      await fetchArticles();
+      // Met à jour preview avec les nouvelles données
+      setPreview(prev => ({ ...prev, ...editData, tags: tagsArray }));
+    } catch (e) {
+      setMsg({ type: 'error', text: e.message });
+    }
+    setSaving(false);
   };
 
   const generer = async () => {
@@ -127,6 +166,7 @@ export default function BlogAdmin() {
   };
 
   const iS = { width:'100%', padding:'10px 14px', borderRadius:8, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', color:'#EDE8DB', fontSize:13, outline:'none', boxSizing:'border-box', fontFamily:"'Nunito Sans', sans-serif" };
+  const iSEdit = { ...iS, border:'1px solid rgba(91,163,199,0.4)', background:'rgba(91,163,199,0.05)' };
 
   const nbPublies   = articles.filter(a => a.statut === 'publie').length;
   const nbBrouillon = articles.filter(a => a.statut === 'brouillon').length;
@@ -156,34 +196,102 @@ export default function BlogAdmin() {
   return (
     <div style={{ fontFamily:"'Nunito Sans', sans-serif", padding:'32px 28px', maxWidth:1100, margin:'0 auto' }}>
 
-      {/* Modale prévisualisation */}
+      {/* ── MODALE PRÉVISUALISATION + ÉDITION ── */}
       {preview && (
         <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', zIndex:1000, display:'flex', alignItems:'flex-start', justifyContent:'center', padding:'40px 20px', overflowY:'auto' }}
-          onClick={e => { if (e.target === e.currentTarget) setPreview(null); }}>
-          <div style={{ background:'#1a1d24', border:'1px solid rgba(255,255,255,0.1)', borderRadius:16, maxWidth:800, width:'100%', padding:32, position:'relative' }}>
-            <button onClick={() => setPreview(null)}
-              style={{ position:'absolute', top:16, right:16, background:'rgba(255,255,255,0.06)', border:'none', borderRadius:8, padding:'6px 10px', cursor:'pointer', color:'rgba(237,232,219,0.6)', display:'flex', alignItems:'center', gap:6, fontSize:12 }}>
-              <X size={14}/> Fermer
-            </button>
-            <div style={{ display:'flex', gap:8, marginBottom:8 }}>
-              <span style={{ fontSize:11, padding:'2px 8px', borderRadius:10, background:'rgba(91,163,199,0.1)', color:'#5BA3C7' }}>{preview.categorie}</span>
-              <span style={{ fontSize:11, padding:'2px 8px', borderRadius:10, ...(STATUT_STYLE[preview.statut] || STATUT_STYLE.brouillon) }}>{(STATUT_STYLE[preview.statut] || STATUT_STYLE.brouillon).label}</span>
-            </div>
-            <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:26, fontWeight:700, color:'#EDE8DB', margin:'0 0 8px' }}>{preview.titre}</h1>
-            {preview.meta_description && <p style={{ fontSize:13, color:'rgba(237,232,219,0.4)', margin:'0 0 24px', fontStyle:'italic' }}>{preview.meta_description}</p>}
-            <hr style={{ border:'none', borderTop:'1px solid rgba(255,255,255,0.08)', marginBottom:24 }}/>
-            <div dangerouslySetInnerHTML={{ __html: renderMarkdown(preview.contenu) }}/>
-            <div style={{ marginTop:32, display:'flex', gap:10 }}>
-              <a href={`/blog/${preview.slug}`} target="_blank" rel="noreferrer"
-                style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8, background:'rgba(91,163,199,0.1)', border:'1px solid rgba(91,163,199,0.2)', color:'#5BA3C7', textDecoration:'none', fontSize:13, fontWeight:600 }}>
-                <ExternalLink size={13}/> Voir sur le blog
-              </a>
-              <button onClick={() => { toggleStatut(preview); setPreview(null); }}
-                style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8, background: preview.statut === 'publie' ? 'rgba(199,91,78,0.1)' : 'rgba(91,199,138,0.1)', border:`1px solid ${preview.statut === 'publie' ? 'rgba(199,91,78,0.2)' : 'rgba(91,199,138,0.2)'}`, color: preview.statut === 'publie' ? '#C75B4E' : ACCENT, cursor:'pointer', fontSize:13, fontWeight:600 }}>
-                {preview.statut === 'publie' ? <EyeOff size={13}/> : <Eye size={13}/>}
-                {preview.statut === 'publie' ? 'Dépublier' : 'Publier'}
+          onClick={e => { if (e.target === e.currentTarget) { setPreview(null); setEditMode(false); } }}>
+          <div style={{ background:'#1a1d24', border:`1px solid ${editMode ? 'rgba(91,163,199,0.3)' : 'rgba(255,255,255,0.1)'}`, borderRadius:16, maxWidth:860, width:'100%', padding:32, position:'relative' }}>
+
+            {/* Boutons haut */}
+            <div style={{ position:'absolute', top:16, right:16, display:'flex', gap:8 }}>
+              {!editMode ? (
+                <button onClick={() => setEditMode(true)}
+                  style={{ background:'rgba(91,163,199,0.1)', border:'1px solid rgba(91,163,199,0.3)', borderRadius:8, padding:'6px 12px', cursor:'pointer', color:'#5BA3C7', display:'flex', alignItems:'center', gap:6, fontSize:12, fontWeight:600 }}>
+                  <Edit3 size={13}/> Modifier
+                </button>
+              ) : (
+                <>
+                  <button onClick={() => setEditMode(false)}
+                    style={{ background:'rgba(255,255,255,0.06)', border:'none', borderRadius:8, padding:'6px 12px', cursor:'pointer', color:'rgba(237,232,219,0.5)', fontSize:12 }}>
+                    Annuler
+                  </button>
+                  <button onClick={handleSaveEdit} disabled={saving}
+                    style={{ background: saving ? 'rgba(91,199,138,0.3)' : ACCENT, border:'none', borderRadius:8, padding:'6px 12px', cursor:'pointer', color:'#fff', display:'flex', alignItems:'center', gap:6, fontSize:12, fontWeight:700 }}>
+                    {saving ? <Loader size={13} style={{ animation:'spin 1s linear infinite' }}/> : <Save size={13}/>}
+                    {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+                  </button>
+                </>
+              )}
+              <button onClick={() => { setPreview(null); setEditMode(false); }}
+                style={{ background:'rgba(255,255,255,0.06)', border:'none', borderRadius:8, padding:'6px 10px', cursor:'pointer', color:'rgba(237,232,219,0.6)', display:'flex', alignItems:'center', gap:6, fontSize:12 }}>
+                <X size={14}/>
               </button>
             </div>
+
+            {editMode ? (
+              /* ── MODE ÉDITION ── */
+              <div style={{ marginTop:8 }}>
+                <div style={{ background:'rgba(91,163,199,0.06)', border:'1px solid rgba(91,163,199,0.15)', borderRadius:10, padding:'10px 14px', marginBottom:20, fontSize:12, color:'#5BA3C7' }}>
+                  ✏️ Mode édition — modifiez les champs puis cliquez "Sauvegarder"
+                </div>
+
+                <label style={{ fontSize:11, fontWeight:600, color:'rgba(237,232,219,0.5)', display:'block', marginBottom:6 }}>Titre</label>
+                <input value={editData.titre} onChange={e => setEditData(p => ({ ...p, titre: e.target.value }))} style={{ ...iSEdit, marginBottom:16 }}/>
+
+                <label style={{ fontSize:11, fontWeight:600, color:'rgba(237,232,219,0.5)', display:'block', marginBottom:6 }}>Meta description</label>
+                <input value={editData.meta_description} onChange={e => setEditData(p => ({ ...p, meta_description: e.target.value }))} style={{ ...iSEdit, marginBottom:16 }} placeholder="Description SEO (150-160 caractères)"/>
+
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, marginBottom:16 }}>
+                  <div>
+                    <label style={{ fontSize:11, fontWeight:600, color:'rgba(237,232,219,0.5)', display:'block', marginBottom:6 }}>Catégorie</label>
+                    <select value={editData.categorie} onChange={e => setEditData(p => ({ ...p, categorie: e.target.value }))} style={{ ...iSEdit, cursor:'pointer' }}>
+                      {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ fontSize:11, fontWeight:600, color:'rgba(237,232,219,0.5)', display:'block', marginBottom:6 }}>Tags (séparés par des virgules)</label>
+                    <input value={editData.tags} onChange={e => setEditData(p => ({ ...p, tags: e.target.value }))} style={iSEdit} placeholder="tag1, tag2, tag3"/>
+                  </div>
+                </div>
+
+                <label style={{ fontSize:11, fontWeight:600, color:'rgba(237,232,219,0.5)', display:'block', marginBottom:6 }}>Contenu (Markdown)</label>
+                <textarea
+                  value={editData.contenu}
+                  onChange={e => setEditData(p => ({ ...p, contenu: e.target.value }))}
+                  style={{ ...iSEdit, minHeight:400, resize:'vertical', lineHeight:1.6, fontFamily:'monospace', fontSize:12 }}
+                />
+              </div>
+            ) : (
+              /* ── MODE PRÉVISUALISATION ── */
+              <>
+                <div style={{ display:'flex', gap:8, marginBottom:8 }}>
+                  <span style={{ fontSize:11, padding:'2px 8px', borderRadius:10, background:'rgba(91,163,199,0.1)', color:'#5BA3C7' }}>{preview.categorie}</span>
+                  <span style={{ fontSize:11, padding:'2px 8px', borderRadius:10, ...(STATUT_STYLE[preview.statut] || STATUT_STYLE.brouillon) }}>{(STATUT_STYLE[preview.statut] || STATUT_STYLE.brouillon).label}</span>
+                  {preview.tags?.length > 0 && preview.tags.map(t => (
+                    <span key={t} style={{ fontSize:11, padding:'2px 8px', borderRadius:10, background:'rgba(255,255,255,0.05)', color:'rgba(237,232,219,0.4)' }}>{t}</span>
+                  ))}
+                </div>
+                <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:26, fontWeight:700, color:'#EDE8DB', margin:'0 0 8px', paddingRight:120 }}>{preview.titre}</h1>
+                {preview.meta_description && <p style={{ fontSize:13, color:'rgba(237,232,219,0.4)', margin:'0 0 24px', fontStyle:'italic' }}>{preview.meta_description}</p>}
+                <hr style={{ border:'none', borderTop:'1px solid rgba(255,255,255,0.08)', marginBottom:24 }}/>
+                <div dangerouslySetInnerHTML={{ __html: renderMarkdown(preview.contenu) }}/>
+                <div style={{ marginTop:32, display:'flex', gap:10, flexWrap:'wrap' }}>
+                  <a href={`/blog/${preview.slug}`} target="_blank" rel="noreferrer"
+                    style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8, background:'rgba(91,163,199,0.1)', border:'1px solid rgba(91,163,199,0.2)', color:'#5BA3C7', textDecoration:'none', fontSize:13, fontWeight:600 }}>
+                    <ExternalLink size={13}/> Voir sur le blog
+                  </a>
+                  <button onClick={() => { toggleStatut(preview); setPreview(null); }}
+                    style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8, background: preview.statut === 'publie' ? 'rgba(199,91,78,0.1)' : 'rgba(91,199,138,0.1)', border:`1px solid ${preview.statut === 'publie' ? 'rgba(199,91,78,0.2)' : 'rgba(91,199,138,0.2)'}`, color: preview.statut === 'publie' ? '#C75B4E' : ACCENT, cursor:'pointer', fontSize:13, fontWeight:600 }}>
+                    {preview.statut === 'publie' ? <EyeOff size={13}/> : <Eye size={13}/>}
+                    {preview.statut === 'publie' ? 'Dépublier' : 'Publier'}
+                  </button>
+                  <button onClick={() => supprimer(preview.id)}
+                    style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8, background:'rgba(199,91,78,0.08)', border:'1px solid rgba(199,91,78,0.15)', color:'#C75B4E', cursor:'pointer', fontSize:13, fontWeight:600 }}>
+                    <Trash2 size={13}/> Supprimer
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -205,6 +313,15 @@ export default function BlogAdmin() {
           <button onClick={() => setFilterStat('a_relire')} style={{ marginLeft:'auto', background:'rgba(212,168,83,0.15)', border:'1px solid rgba(212,168,83,0.3)', color:'#D4A853', borderRadius:6, padding:'4px 10px', fontSize:11, fontWeight:700, cursor:'pointer' }}>
             Voir
           </button>
+        </div>
+      )}
+
+      {/* Message global */}
+      {msg && (
+        <div style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 14px', borderRadius:9, background:msg.type==='success'?'rgba(91,199,138,0.1)':'rgba(199,91,78,0.1)', border:`1px solid ${msg.type==='success'?'rgba(91,199,138,0.25)':'rgba(199,91,78,0.25)'}`, marginBottom:16, fontSize:13, color:msg.type==='success'?ACCENT:'#C75B4E' }}>
+          {msg.type==='success' ? <CheckCircle size={14}/> : <AlertTriangle size={14}/>}
+          {msg.text}
+          <button onClick={() => setMsg(null)} style={{ marginLeft:'auto', background:'none', border:'none', cursor:'pointer', color:'inherit', opacity:0.5 }}><X size={12}/></button>
         </div>
       )}
 
@@ -234,12 +351,6 @@ export default function BlogAdmin() {
             </select>
           </div>
         </div>
-        {msg && (
-          <div style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 14px', borderRadius:9, background:msg.type==='success'?'rgba(91,199,138,0.1)':'rgba(199,91,78,0.1)', border:`1px solid ${msg.type==='success'?'rgba(91,199,138,0.25)':'rgba(199,91,78,0.25)'}`, marginBottom:14, fontSize:13, color:msg.type==='success'?ACCENT:'#C75B4E' }}>
-            {msg.type==='success' ? <CheckCircle size={14}/> : <AlertTriangle size={14}/>}
-            {msg.text}
-          </div>
-        )}
         <button onClick={generer} disabled={generating || !sujet.trim()}
           style={{ width:'100%', padding:'12px', borderRadius:10, border:'none', background:generating||!sujet.trim()?`${ACCENT}50`:ACCENT, color:'#fff', fontSize:14, fontWeight:700, cursor:generating||!sujet.trim()?'not-allowed':'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
           {generating ? <><Loader size={15} style={{ animation:'spin 1s linear infinite' }}/> Génération en cours... (30-60s)</> : "✨ Générer l'article"}
@@ -300,13 +411,13 @@ export default function BlogAdmin() {
                     const st = STATUT_STYLE[a.statut] || STATUT_STYLE.brouillon;
                     return (
                       <tr key={a.id}
-                        style={{ borderBottom:'1px solid rgba(255,255,255,0.04)', background: a.statut === 'a_relire' ? 'rgba(212,168,83,0.03)' : 'transparent', cursor:'default' }}
+                        style={{ borderBottom:'1px solid rgba(255,255,255,0.04)', background: a.statut === 'a_relire' ? 'rgba(212,168,83,0.03)' : 'transparent' }}
                         onMouseEnter={ev => ev.currentTarget.style.background='rgba(255,255,255,0.02)'}
                         onMouseLeave={ev => ev.currentTarget.style.background= a.statut === 'a_relire' ? 'rgba(212,168,83,0.03)' : 'transparent'}>
 
                         <td style={{ padding:'12px 14px', fontSize:13, color:'#EDE8DB', maxWidth:300 }}>
                           <span style={{ display:'block', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', cursor:'pointer' }}
-                            onClick={() => setPreview(a)}>{a.titre}</span>
+                            onClick={() => openPreview(a)}>{a.titre}</span>
                           <a href={`/blog/${a.slug}`} target="_blank" rel="noreferrer"
                             style={{ fontSize:11, color:'rgba(237,232,219,0.3)', textDecoration:'none' }}>/blog/{a.slug}</a>
                         </td>
@@ -331,29 +442,22 @@ export default function BlogAdmin() {
 
                         <td style={{ padding:'12px 14px' }}>
                           <div style={{ display:'flex', gap:4, alignItems:'center' }}>
-                            {/* Prévisualiser (modale) */}
-                            <button onClick={() => setPreview(a)} title="Prévisualiser"
+                            <button onClick={() => openPreview(a)} title="Prévisualiser / Modifier"
                               style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(237,232,219,0.4)', display:'flex' }}
                               onMouseEnter={ev => ev.currentTarget.style.color='#EDE8DB'}
                               onMouseLeave={ev => ev.currentTarget.style.color='rgba(237,232,219,0.4)'}>
                               <FileText size={14}/>
                             </button>
-
-                            {/* Ouvrir sur le blog */}
                             <a href={`/blog/${a.slug}`} target="_blank" rel="noreferrer" title="Voir sur le blog"
                               style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(237,232,219,0.4)', display:'flex', textDecoration:'none' }}
                               onMouseEnter={ev => ev.currentTarget.style.color='#5BA3C7'}
                               onMouseLeave={ev => ev.currentTarget.style.color='rgba(237,232,219,0.4)'}>
                               <ExternalLink size={14}/>
                             </a>
-
-                            {/* Publier / Dépublier */}
                             <button onClick={() => toggleStatut(a)} title={a.statut === 'publie' ? 'Dépublier' : 'Publier'}
                               style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:a.statut==='publie'?ACCENT:'rgba(237,232,219,0.3)', display:'flex' }}>
                               {a.statut === 'publie' ? <Eye size={14}/> : <EyeOff size={14}/>}
                             </button>
-
-                            {/* Correction pipeline IA */}
                             <button onClick={() => handleCorrection(a)} title="Régénérer via pipeline IA"
                               disabled={correcting === a.id}
                               style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(212,168,83,0.6)', display:'flex' }}
@@ -361,8 +465,6 @@ export default function BlogAdmin() {
                               onMouseLeave={ev => ev.currentTarget.style.color='rgba(212,168,83,0.6)'}>
                               {correcting === a.id ? <Loader size={14} style={{ animation:'spin 1s linear infinite' }}/> : <RefreshCw size={14}/>}
                             </button>
-
-                            {/* Supprimer */}
                             <button onClick={() => supprimer(a.id)} title="Supprimer"
                               style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(237,232,219,0.2)', display:'flex' }}
                               onMouseEnter={ev => ev.currentTarget.style.color='#C75B4E'}
