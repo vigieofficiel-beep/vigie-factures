@@ -143,7 +143,7 @@ export function FolderTree({ tree, onDrop, onDelete, onCreate, activeFolder, onS
             placeholder="Nom du dossier..."
             style={{
               flex:1, background:'rgba(255,255,255,0.04)',
-              border:'1px solid rgba(212,168,83,0.3)',
+              border:'1px solid rgba(212,168,83,0.15)',
               borderRadius:6, padding:'5px 8px',
               color:'#EDE8DB', fontSize:11, outline:'none',
               fontFamily:"'Nunito Sans', sans-serif",
@@ -151,7 +151,7 @@ export function FolderTree({ tree, onDrop, onDelete, onCreate, activeFolder, onS
           />
           <button
             onClick={handleCreate}
-            style={{ background:'rgba(212,168,83,0.15)', border:'1px solid rgba(212,168,83,0.3)', borderRadius:6, padding:'5px 10px', cursor:'pointer', color:'#5BC78A', fontSize:11 }}
+            style={{ background:'rgba(212,168,83,0.15)', border:'1px solid rgba(212,168,83,0.15)', borderRadius:6, padding:'5px 10px', cursor:'pointer', color:'#5BC78A', fontSize:11 }}
           >
             OK
           </button>

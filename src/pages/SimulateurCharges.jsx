@@ -194,7 +194,7 @@ export default function SimulateurCharges() {
               <div style={{ fontSize:12, fontWeight:700, color:C.light, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:12 }}>Option versement libératoire</div>
               <Bloc label={`IR libératoire (${fmtPct(s.versement_liberatoire*100)} du CA)`} value={fmt(resAE.vlOption)} sub/>
               <Bloc label="Reste à vivre avec VL" value={fmt(resAE.resteVivreVL)} color={resAE.resteVivreVL>resAE.resteVivreBareme?C.green:C.orange}/>
-              <div style={{ marginTop:10, background:resAE.resteVivreVL>resAE.resteVivreBareme?'rgba(91,188,138,0.08)':'rgba(212,168,83,0.08)', border:`1px solid ${resAE.resteVivreVL>resAE.resteVivreBareme?'rgba(91,188,138,0.3)':'rgba(212,168,83,0.3)'}`, borderRadius:9, padding:'10px 14px', fontSize:12, fontWeight:600, color:resAE.resteVivreVL>resAE.resteVivreBareme?C.green:C.orange }}>
+              <div style={{ marginTop:10, background:resAE.resteVivreVL>resAE.resteVivreBareme?'rgba(91,188,138,0.08)':'rgba(212,168,83,0.08)', border:`1px solid ${resAE.resteVivreVL>resAE.resteVivreBareme?'rgba(91,188,138,0.3)':'rgba(212,168,83,0.15)'}`, borderRadius:9, padding:'10px 14px', fontSize:12, fontWeight:600, color:resAE.resteVivreVL>resAE.resteVivreBareme?C.green:C.orange }}>
                 {resAE.resteVivreVL>resAE.resteVivreBareme?'✓ Le versement libératoire est avantageux pour vous':'Le barème progressif est plus avantageux pour vous'}
               </div>
             </div>

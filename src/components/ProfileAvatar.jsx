@@ -50,7 +50,7 @@ export function ProfileAvatar({ mode, size = 32 }) {
   const accentColor = mode === 'pro' ? '#5BA3C7' : '#5BC78A';
   const gradientBg  = mode === 'pro'
     ? 'linear-gradient(135deg, rgba(37,99,235,0.3), rgba(91,163,199,0.2))'
-    : 'linear-gradient(135deg, rgba(212,168,83,0.3), rgba(199,138,91,0.2))';
+    : 'linear-gradient(135deg, rgba(212,168,83,0.15), rgba(199,138,91,0.2))';
   const userInitial = user?.email?.[0]?.toUpperCase() ?? '?';
 
   const handleFileChange = async (e) => {
