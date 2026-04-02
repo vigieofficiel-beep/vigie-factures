@@ -1,5 +1,7 @@
 // /api/blog-agent.js
-// Agent Blog unifié — action: 'topics' | 'pipeline' | 'refresh'
+// Actions : 'generate' | 'topics' | 'pipeline' | 'refresh'
+// Remplace blog-generate.js + blog-topics.js + blog-pipeline.js + blog-refresh.js
+
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 
@@ -58,7 +60,64 @@ function generateSlug(titre) {
     .slice(0, 80);
 }
 
-// ── ACTION : topics ────────────────────────────────────────────────
+// ── ACTION : generate (interface manuelle BlogAdmin) ───────────────
+async function handleGenerate(body) {
+  const { sujet, categorie = 'Guide pratique', publier = false } = body;
+  if (!sujet) throw new Error('Sujet requis');
+
+  const prompt = `Tu es un rédacteur SEO expert en gestion d'entreprise et fiscalité française pour auto-entrepreneurs et TPE.
+
+Rédige un article de blog complet et optimisé SEO sur le sujet suivant : "${sujet}"
+
+L'article doit :
+- Cibler les auto-entrepreneurs, micro-entrepreneurs et TPE françaises
+- Être informatif et pédagogique (pas de conseil personnalisé)
+- Faire entre 1200 et 1800 mots
+- Utiliser un ton professionnel mais accessible
+- Inclure des exemples concrets chiffrés quand c'est pertinent
+- Se terminer par un CTA naturel vers Vigie Pro (application de gestion pour auto-entrepreneurs)
+
+Format de réponse UNIQUEMENT en JSON valide, sans balises markdown :
+{
+  "titre": "Titre optimisé SEO (60 caractères max)",
+  "meta_description": "Description meta SEO (155 caractères max)",
+  "contenu": "Article complet en markdown avec ## H2 et ### H3",
+  "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"]
+}
+
+Termine toujours l'article par ce disclaimer :
+"*Ces informations sont fournies à titre indicatif. Pour votre situation personnelle, consultez un expert-comptable ou un conseiller juridique.*"`;
+
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    max_tokens: 4000,
+    temperature: 0.7,
+    messages: [{ role: 'user', content: prompt }]
+  });
+
+  const raw = completion.choices[0].message.content;
+  const clean = raw.replace(/```json|```/g, '').trim();
+  const article = JSON.parse(clean);
+
+  const slug = generateSlug(article.titre) + '-' + Date.now().toString(36);
+
+  const { data, error } = await supabase.from('blog_articles').insert([{
+    slug,
+    titre: article.titre,
+    meta_description: article.meta_description,
+    contenu: article.contenu,
+    categorie,
+    tags: article.tags || [],
+    statut: publier ? 'publie' : 'brouillon',
+    date_publication: publier ? new Date().toISOString() : null,
+    auto_generated: false
+  }]).select().single();
+
+  if (error) throw error;
+  return { ok: true, article: data };
+}
+
+// ── ACTION : topics (Agent 1 — choix sujet anti-doublon) ──────────
 async function handleTopics() {
   const { data: existingArticles } = await supabase
     .from('blog_articles')
@@ -79,7 +138,11 @@ async function handleTopics() {
   const sortedCategories = [...CATEGORIES].sort((a, b) => categoryCounts[a] - categoryCounts[b]);
   const targetCategory = sortedCategories[0];
 
-  const prompt = `Tu es un expert en gestion d'entreprise pour auto-entrepreneurs français.
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [{
+      role: 'user',
+      content: `Tu es un expert en gestion d'entreprise pour auto-entrepreneurs français.
 
 Catégorie cible : "${targetCategory}"
 
@@ -95,11 +158,8 @@ Réponds UNIQUEMENT en JSON valide, sans markdown :
   "categorie": "${targetCategory}",
   "angle": "En une phrase, l'angle précis de l'article",
   "mots_cles": ["mot1", "mot2", "mot3"]
-}`;
-
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    messages: [{ role: 'user', content: prompt }],
+}`
+    }],
     temperature: 0.7,
     max_tokens: 300
   });
@@ -108,7 +168,7 @@ Réponds UNIQUEMENT en JSON valide, sans markdown :
   return { success: true, topic };
 }
 
-// ── ACTION : pipeline ──────────────────────────────────────────────
+// ── ACTION : pipeline (Agents 2+3+4+5 — automatique) ─────────────
 async function handlePipeline(body) {
   const { titre, categorie, angle, mots_cles, auto_generated = true } = body;
   if (!titre || !categorie) throw new Error('titre et categorie requis');
@@ -120,18 +180,15 @@ async function handlePipeline(body) {
       role: 'user',
       content: `Tu es un agent de recherche spécialisé en droit et gestion pour auto-entrepreneurs français.
 
-Sujet : "${titre}"
-Angle : "${angle}"
-Catégorie : "${categorie}"
+Sujet : "${titre}" | Angle : "${angle}" | Catégorie : "${categorie}"
 
 Recherche les informations factuelles, chiffres officiels, textes de loi sur ce sujet en 2026.
-Cite uniquement des sources officielles : URSSAF, Service-Public.fr, Legifrance, INPI, Bpifrance, impots.gouv.fr.
+Sources uniquement : URSSAF, Service-Public.fr, Legifrance, INPI, Bpifrance, impots.gouv.fr.
 
 Réponds en JSON valide uniquement :
 {
   "faits_cles": ["fait 1 avec chiffre/date précis", "fait 2", "fait 3", "fait 4", "fait 5"],
   "sources": ["https://url-officielle-1.fr", "https://url-officielle-2.fr"],
-  "date_validite": "2026",
   "points_attention": ["piège ou erreur courante 1", "piège ou erreur courante 2"]
 }`
     }],
@@ -148,31 +205,23 @@ Réponds en JSON valide uniquement :
       role: 'user',
       content: `Tu es un rédacteur expert en gestion d'entreprise pour auto-entrepreneurs français.
 
-Titre : "${titre}"
-Catégorie : "${categorie}"
-Angle : "${angle}"
+Titre : "${titre}" | Catégorie : "${categorie}" | Angle : "${angle}"
 Mots-clés : ${mots_cles?.join(', ')}
 
-Faits vérifiés à intégrer obligatoirement :
+Faits vérifiés à intégrer :
 ${recherche.faits_cles.map((f, i) => `${i + 1}. ${f}`).join('\n')}
 
 Points d'attention :
 ${recherche.points_attention.map((p, i) => `${i + 1}. ${p}`).join('\n')}
 
 Rédige un article complet de 1500 mots minimum en markdown.
-Structure obligatoire :
-- Introduction (accroche + promesse)
-- H2 : contexte/définition
-- H2 : comment ça fonctionne concrètement
-- H2 : chiffres et règles à retenir
-- H2 : erreurs à éviter
-- H2 : conseils pratiques
-- Conclusion avec CTA vers Vigie Pro
+Structure : Introduction → ## Contexte → ## Fonctionnement → ## Chiffres clés → ## Erreurs à éviter → ## Conseils pratiques → Conclusion CTA Vigie Pro
 
-Règles : ton professionnel mais accessible, exemples concrets, phrases courtes.
-Termine par : "---\\n*Article libre de droit — Vigie Pro 2026. Sources : ${recherche.sources.join(', ')}*"
+Termine par :
+"---\\n*Article libre de droit — Vigie Pro 2026. Sources : ${recherche.sources.join(', ')}*"
+"*Ces informations sont fournies à titre indicatif. Consultez un expert-comptable pour votre situation.*"
 
-Réponds avec le contenu markdown uniquement.`
+Réponds en markdown uniquement.`
     }],
     temperature: 0.5,
     max_tokens: 3000
@@ -185,22 +234,18 @@ Réponds avec le contenu markdown uniquement.`
     model: 'gpt-4o',
     messages: [{
       role: 'user',
-      content: `Tu es un expert SEO et fact-checker pour contenu juridique/fiscal français.
+      content: `Expert SEO et fact-checker contenu juridique/fiscal français.
 
-Titre original : "${titre}"
-Catégorie : "${categorie}"
-Mots-clés cibles : ${mots_cles?.join(', ')}
-
-Extrait du contenu :
-${contenu.slice(0, 2000)}...
+Titre : "${titre}" | Catégorie : "${categorie}" | Mots-clés : ${mots_cles?.join(', ')}
+Extrait contenu : ${contenu.slice(0, 2000)}...
 
 Réponds en JSON valide uniquement :
 {
-  "titre_seo": "Titre optimisé SEO (55-60 caractères)",
+  "titre_seo": "Titre optimisé 55-60 caractères",
   "meta_description": "Description 150-160 caractères avec mot-clé principal",
   "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
   "score_factuel": 8,
-  "remarques": "Aucune anomalie détectée"
+  "remarques": "Aucune anomalie"
 }`
     }],
     temperature: 0.2,
@@ -209,15 +254,10 @@ Réponds en JSON valide uniquement :
 
   const seo = JSON.parse(seoRes.choices[0].message.content.trim());
 
-  // Agent 5 — Publication Supabase
+  // Agent 5 — Publication
   let slug = generateSlug(seo.titre_seo || titre);
-
   const { data: existing } = await supabase
-    .from('blog_articles')
-    .select('id')
-    .eq('slug', slug)
-    .single();
-
+    .from('blog_articles').select('id').eq('slug', slug).single();
   if (existing) slug = `${slug}-${Date.now()}`;
 
   const statut = auto_generated ? 'a_relire' : 'publie';
@@ -236,8 +276,7 @@ Réponds en JSON valide uniquement :
       auto_generated,
       date_publication: statut === 'publie' ? new Date().toISOString() : null
     })
-    .select()
-    .single();
+    .select().single();
 
   if (error) throw error;
 
@@ -252,7 +291,7 @@ Réponds en JSON valide uniquement :
   };
 }
 
-// ── ACTION : refresh ───────────────────────────────────────────────
+// ── ACTION : refresh (mise à jour articles > 30 jours) ─────────────
 async function handleRefresh(req) {
   const { authorization } = req.headers;
   if (authorization !== `Bearer ${process.env.MAKE_WEBHOOK_SECRET}`) {
@@ -264,7 +303,7 @@ async function handleRefresh(req) {
 
   const { data: articles } = await supabase
     .from('blog_articles')
-    .select('id, titre, contenu, categorie, source_urls')
+    .select('id, titre, contenu, categorie')
     .eq('statut', 'publie')
     .lt('updated_at', thirtyDaysAgo.toISOString())
     .limit(3);
@@ -280,23 +319,18 @@ async function handleRefresh(req) {
       model: 'gpt-4o',
       messages: [{
         role: 'user',
-        content: `Tu es un expert en veille juridique et fiscale pour auto-entrepreneurs français.
+        content: `Expert veille juridique/fiscale auto-entrepreneurs français.
 
-Titre : "${article.titre}"
-Catégorie : "${article.categorie}"
+Titre : "${article.titre}" | Catégorie : "${article.categorie}"
+Extrait contenu : ${article.contenu?.slice(0, 1500)}
 
-Extrait du contenu actuel :
-${article.contenu?.slice(0, 1500)}
-
-Nous sommes en 2026. Vérifie si des informations sont potentiellement obsolètes.
-Pense aux changements récents : taux URSSAF, plafonds auto-entrepreneur, e-invoicing 2026.
+En 2026, vérifie si des informations sont obsolètes (taux URSSAF, plafonds, e-invoicing, nouvelles lois).
 
 Réponds en JSON valide uniquement :
 {
   "necessite_update": true,
   "raisons": ["raison 1"],
-  "corrections": ["correction 1"],
-  "nouveau_paragraphe": "Paragraphe de mise à jour à ajouter (ou null)"
+  "nouveau_paragraphe": "Paragraphe de mise à jour à ajouter en tête d'article (ou null)"
 }`
       }],
       temperature: 0.2,
@@ -307,19 +341,16 @@ Réponds en JSON valide uniquement :
 
     if (check.necessite_update && check.nouveau_paragraphe) {
       const updatedContenu = `> ⚠️ **Mis à jour le ${new Date().toLocaleDateString('fr-FR')}** — ${check.raisons.join('. ')}\n\n${check.nouveau_paragraphe}\n\n---\n\n${article.contenu}`;
-
       await supabase
         .from('blog_articles')
         .update({ contenu: updatedContenu, updated_at: new Date().toISOString() })
         .eq('id', article.id);
-
-      results.push({ id: article.id, titre: article.titre, updated: true, raisons: check.raisons });
+      results.push({ id: article.id, titre: article.titre, updated: true });
     } else {
       await supabase
         .from('blog_articles')
         .update({ updated_at: new Date().toISOString() })
         .eq('id', article.id);
-
       results.push({ id: article.id, titre: article.titre, updated: false });
     }
   }
@@ -335,14 +366,17 @@ export default async function handler(req, res) {
 
   try {
     let result;
-    if (action === 'topics') result = await handleTopics();
+    if (action === 'generate')      result = await handleGenerate(body);
+    else if (action === 'topics')   result = await handleTopics();
     else if (action === 'pipeline') result = await handlePipeline(body);
-    else if (action === 'refresh') result = await handleRefresh(req);
-    else return res.status(400).json({ error: 'action invalide — utilise: topics | pipeline | refresh' });
+    else if (action === 'refresh')  result = await handleRefresh(req);
+    else return res.status(400).json({
+      error: 'action invalide — utilise: generate | topics | pipeline | refresh'
+    });
 
     return res.status(200).json(result);
   } catch (error) {
-    console.error(`blog-agent [${action}] error:`, error);
+    console.error(`[blog-agent/${action}]`, error);
     return res.status(500).json({ error: error.message });
   }
 }
