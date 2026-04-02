@@ -1,67 +1,62 @@
 import { useState, useEffect } from 'react';
 import { supabasePro } from '../lib/supabasePro';
-import { Plus, Trash2, Eye, EyeOff, Loader, CheckCircle, AlertTriangle, Lock, RefreshCw } from 'lucide-react';
+import { Plus, Trash2, Eye, EyeOff, Loader, CheckCircle, AlertTriangle, Lock, RefreshCw, ExternalLink, FileText, X } from 'lucide-react';
 
 const ACCENT = '#5BC78A';
 const ADMIN_EMAIL = 'luciendoppler@gmail.com';
 const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric' }) : '—';
 
 const CATEGORIES = [
-  'TVA & Régimes fiscaux',
-  'Charges & Cotisations URSSAF',
-  'Facturation & Devis',
-  'Contrats & Assurances',
-  'Comptabilité & Trésorerie',
-  'Seuils & Plafonds',
-  'Radiation & Cessation',
-  'Création d\'entreprise',
-  'Droit du travail indépendant',
-  'RGPD & Données personnelles',
-  'Propriété intellectuelle',
-  'Contrats clients & CGV',
-  'Réglementation sectorielle',
-  'Outils SaaS indépendants',
-  'Automatisation & IA',
-  'Gestion du temps',
-  'Facturation électronique (e-invoicing 2026)',
-  'Épargne & Prévoyance',
-  'Financement & Aides',
-  'Optimisation fiscale',
-  'Trésorerie & Cash flow',
-  'Trouver des clients',
-  'Tarification & Positionnement',
-  'Personal branding',
-  'Réseaux sociaux pro',
-  'Artisans & BTP',
-  'Consultants & Freelances',
-  'Créatifs & Développeurs',
-  'Santé & Bien-être indépendant',
-  'Nouveautés légales',
-  'Actualité auto-entrepreneur',
-  'Chiffres & Statistiques',
-  'Europe & International',
-  'Formation & Montée en compétences',
-  'Cybersécurité & Protection données',
+  'TVA & Régimes fiscaux', 'Charges & Cotisations URSSAF', 'Facturation & Devis',
+  'Contrats & Assurances', 'Comptabilité & Trésorerie', 'Seuils & Plafonds',
+  'Radiation & Cessation', "Création d'entreprise", 'Droit du travail indépendant',
+  'RGPD & Données personnelles', 'Propriété intellectuelle', 'Contrats clients & CGV',
+  'Réglementation sectorielle', 'Outils SaaS indépendants', 'Automatisation & IA',
+  'Gestion du temps', 'Facturation électronique (e-invoicing 2026)', 'Épargne & Prévoyance',
+  'Financement & Aides', 'Optimisation fiscale', 'Trésorerie & Cash flow',
+  'Trouver des clients', 'Tarification & Positionnement', 'Personal branding',
+  'Réseaux sociaux pro', 'Artisans & BTP', 'Consultants & Freelances',
+  'Créatifs & Développeurs', 'Santé & Bien-être indépendant', 'Nouveautés légales',
+  'Actualité auto-entrepreneur', 'Chiffres & Statistiques', 'Europe & International',
+  'Formation & Montée en compétences', 'Cybersécurité & Protection données',
 ];
 
 const STATUT_STYLE = {
-  publie:    { bg: 'rgba(91,199,138,0.1)',  color: '#5BC78A',              label: '● Publié'    },
-  brouillon: { bg: 'rgba(255,255,255,0.06)', color: 'rgba(237,232,219,0.4)', label: '○ Brouillon' },
-  a_relire:  { bg: 'rgba(212,168,83,0.1)',  color: '#D4A853',              label: '◐ À relire'  },
+  publie:    { bg: 'rgba(91,199,138,0.1)',   color: '#5BC78A',               label: '● Publié'   },
+  brouillon: { bg: 'rgba(255,255,255,0.06)', color: 'rgba(237,232,219,0.4)', label: '○ Brouillon'},
+  a_relire:  { bg: 'rgba(212,168,83,0.1)',   color: '#D4A853',               label: '◐ À relire' },
 };
 
+// Rendu markdown simple
+function renderMarkdown(text) {
+  if (!text) return '';
+  return text
+    .replace(/^### (.+)$/gm, '<h3 style="font-size:15px;color:#EDE8DB;margin:16px 0 8px">$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2 style="font-size:18px;color:#EDE8DB;margin:24px 0 12px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:8px">$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1 style="font-size:22px;color:#EDE8DB;margin:0 0 16px">$1</h1>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em style="color:rgba(237,232,219,0.6)">$1</em>')
+    .replace(/^> (.+)$/gm, '<blockquote style="border-left:3px solid #D4A853;padding:8px 16px;margin:12px 0;background:rgba(212,168,83,0.05);color:#D4A853;border-radius:0 6px 6px 0">$1</blockquote>')
+    .replace(/^- (.+)$/gm, '<li style="margin:4px 0;color:rgba(237,232,219,0.8)">$1</li>')
+    .replace(/(<li.*<\/li>\n?)+/g, '<ul style="padding-left:20px;margin:8px 0">$&</ul>')
+    .replace(/^---$/gm, '<hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:24px 0"/>')
+    .replace(/\n\n/g, '</p><p style="margin:8px 0;color:rgba(237,232,219,0.8);line-height:1.7">')
+    .replace(/^(?!<[h|u|b|l|p])(.+)$/gm, '<p style="margin:8px 0;color:rgba(237,232,219,0.8);line-height:1.7">$1</p>');
+}
+
 export default function BlogAdmin() {
-  const [articles,    setArticles]    = useState([]);
-  const [loading,     setLoading]     = useState(true);
-  const [generating,  setGenerating]  = useState(false);
-  const [correcting,  setCorrecting]  = useState(null); // id de l'article en cours
-  const [sujet,       setSujet]       = useState('');
-  const [categorie,   setCategorie]   = useState('TVA & Régimes fiscaux');
-  const [publier,     setPublier]     = useState(true);
-  const [msg,         setMsg]         = useState(null);
-  const [authorized,  setAuthorized]  = useState(null);
-  const [filterCat,   setFilterCat]   = useState('tous');
-  const [filterStat,  setFilterStat]  = useState('tous');
+  const [articles,   setArticles]   = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [correcting, setCorrecting] = useState(null);
+  const [sujet,      setSujet]      = useState('');
+  const [categorie,  setCategorie]  = useState('TVA & Régimes fiscaux');
+  const [publier,    setPublier]    = useState(true);
+  const [msg,        setMsg]        = useState(null);
+  const [authorized, setAuthorized] = useState(null);
+  const [filterCat,  setFilterCat]  = useState('tous');
+  const [filterStat, setFilterStat] = useState('tous');
+  const [preview,    setPreview]    = useState(null); // article en modale
 
   useEffect(() => {
     supabasePro.auth.getSession().then(({ data: { session } }) => {
@@ -75,13 +70,12 @@ export default function BlogAdmin() {
     setLoading(true);
     const { data } = await supabasePro
       .from('blog_articles')
-      .select('id, slug, titre, categorie, statut, date_publication, created_at, auto_generated, updated_at')
+      .select('id, slug, titre, contenu, meta_description, categorie, statut, date_publication, created_at, auto_generated, updated_at')
       .order('created_at', { ascending: false });
     setArticles(data || []);
     setLoading(false);
   };
 
-  // ── Génération manuelle (action: generate) ──────────────────────
   const generer = async () => {
     if (!sujet.trim()) return;
     setGenerating(true); setMsg(null);
@@ -100,7 +94,6 @@ export default function BlogAdmin() {
     setGenerating(false);
   };
 
-  // ── Correction pipeline IA (action: pipeline) ──────────────────
   const handleCorrection = async (article) => {
     if (!confirm(`Relancer le pipeline de correction IA sur "${article.titre}" ?`)) return;
     setCorrecting(article.id); setMsg(null);
@@ -108,13 +101,7 @@ export default function BlogAdmin() {
       const res = await fetch('/api/blog-agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'pipeline',
-          titre: article.titre,
-          categorie: article.categorie,
-          angle: article.titre,
-          auto_generated: false,
-        }),
+        body: JSON.stringify({ action: 'pipeline', titre: article.titre, categorie: article.categorie, angle: article.titre, auto_generated: false }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -144,7 +131,6 @@ export default function BlogAdmin() {
   const nbPublies   = articles.filter(a => a.statut === 'publie').length;
   const nbBrouillon = articles.filter(a => a.statut === 'brouillon').length;
   const nbARelire   = articles.filter(a => a.statut === 'a_relire').length;
-
   const categoriesPresentes = ['tous', ...new Set(articles.map(a => a.categorie).filter(Boolean))];
 
   const filtered = articles.filter(a => {
@@ -170,6 +156,38 @@ export default function BlogAdmin() {
   return (
     <div style={{ fontFamily:"'Nunito Sans', sans-serif", padding:'32px 28px', maxWidth:1100, margin:'0 auto' }}>
 
+      {/* Modale prévisualisation */}
+      {preview && (
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', zIndex:1000, display:'flex', alignItems:'flex-start', justifyContent:'center', padding:'40px 20px', overflowY:'auto' }}
+          onClick={e => { if (e.target === e.currentTarget) setPreview(null); }}>
+          <div style={{ background:'#1a1d24', border:'1px solid rgba(255,255,255,0.1)', borderRadius:16, maxWidth:800, width:'100%', padding:32, position:'relative' }}>
+            <button onClick={() => setPreview(null)}
+              style={{ position:'absolute', top:16, right:16, background:'rgba(255,255,255,0.06)', border:'none', borderRadius:8, padding:'6px 10px', cursor:'pointer', color:'rgba(237,232,219,0.6)', display:'flex', alignItems:'center', gap:6, fontSize:12 }}>
+              <X size={14}/> Fermer
+            </button>
+            <div style={{ display:'flex', gap:8, marginBottom:8 }}>
+              <span style={{ fontSize:11, padding:'2px 8px', borderRadius:10, background:'rgba(91,163,199,0.1)', color:'#5BA3C7' }}>{preview.categorie}</span>
+              <span style={{ fontSize:11, padding:'2px 8px', borderRadius:10, ...(STATUT_STYLE[preview.statut] || STATUT_STYLE.brouillon) }}>{(STATUT_STYLE[preview.statut] || STATUT_STYLE.brouillon).label}</span>
+            </div>
+            <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:26, fontWeight:700, color:'#EDE8DB', margin:'0 0 8px' }}>{preview.titre}</h1>
+            {preview.meta_description && <p style={{ fontSize:13, color:'rgba(237,232,219,0.4)', margin:'0 0 24px', fontStyle:'italic' }}>{preview.meta_description}</p>}
+            <hr style={{ border:'none', borderTop:'1px solid rgba(255,255,255,0.08)', marginBottom:24 }}/>
+            <div dangerouslySetInnerHTML={{ __html: renderMarkdown(preview.contenu) }}/>
+            <div style={{ marginTop:32, display:'flex', gap:10 }}>
+              <a href={`/blog/${preview.slug}`} target="_blank" rel="noreferrer"
+                style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8, background:'rgba(91,163,199,0.1)', border:'1px solid rgba(91,163,199,0.2)', color:'#5BA3C7', textDecoration:'none', fontSize:13, fontWeight:600 }}>
+                <ExternalLink size={13}/> Voir sur le blog
+              </a>
+              <button onClick={() => { toggleStatut(preview); setPreview(null); }}
+                style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8, background: preview.statut === 'publie' ? 'rgba(199,91,78,0.1)' : 'rgba(91,199,138,0.1)', border:`1px solid ${preview.statut === 'publie' ? 'rgba(199,91,78,0.2)' : 'rgba(91,199,138,0.2)'}`, color: preview.statut === 'publie' ? '#C75B4E' : ACCENT, cursor:'pointer', fontSize:13, fontWeight:600 }}>
+                {preview.statut === 'publie' ? <EyeOff size={13}/> : <Eye size={13}/>}
+                {preview.statut === 'publie' ? 'Dépublier' : 'Publier'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div style={{ marginBottom:32 }}>
         <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:28, fontWeight:600, color:'#EDE8DB', margin:0 }}>Vigie Blog — Admin</h1>
@@ -190,7 +208,7 @@ export default function BlogAdmin() {
         </div>
       )}
 
-      {/* Formulaire génération manuelle */}
+      {/* Formulaire génération */}
       <div style={{ background:'rgba(91,199,138,0.05)', border:'1px solid rgba(91,199,138,0.2)', borderRadius:16, padding:24, marginBottom:32 }}>
         <h2 style={{ fontSize:15, fontWeight:700, color:'#EDE8DB', marginBottom:20, display:'flex', alignItems:'center', gap:8 }}>
           <Plus size={16} color={ACCENT}/> Générer un nouvel article
@@ -224,31 +242,26 @@ export default function BlogAdmin() {
         )}
         <button onClick={generer} disabled={generating || !sujet.trim()}
           style={{ width:'100%', padding:'12px', borderRadius:10, border:'none', background:generating||!sujet.trim()?`${ACCENT}50`:ACCENT, color:'#fff', fontSize:14, fontWeight:700, cursor:generating||!sujet.trim()?'not-allowed':'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
-          {generating
-            ? <><Loader size={15} style={{ animation:'spin 1s linear infinite' }}/> Génération en cours... (30-60s)</>
-            : '✨ Générer l\'article'}
+          {generating ? <><Loader size={15} style={{ animation:'spin 1s linear infinite' }}/> Génération en cours... (30-60s)</> : "✨ Générer l'article"}
         </button>
         <p style={{ fontSize:11, color:'rgba(237,232,219,0.25)', textAlign:'center', marginTop:8 }}>
-          Article généré par GPT-4o (~1500 mots, optimisé SEO) · Publié immédiatement sans pipeline de validation
+          Article généré par GPT-4o (~1500 mots, optimisé SEO)
         </p>
       </div>
 
-      {/* Filtres */}
-      <div style={{ display:'flex', gap:16, marginBottom:16, flexWrap:'wrap', alignItems:'center' }}>
-        {/* Filtre statut */}
-        <div style={{ display:'flex', gap:6 }}>
-          {[
-            { val:'tous',      label:`Tous (${articles.length})` },
-            { val:'publie',    label:`Publiés (${nbPublies})` },
-            { val:'a_relire',  label:`À relire (${nbARelire})` },
-            { val:'brouillon', label:`Brouillons (${nbBrouillon})` },
-          ].map(({ val, label }) => (
-            <button key={val} onClick={() => setFilterStat(val)}
-              style={{ padding:'5px 12px', borderRadius:20, border:`1px solid ${filterStat===val?ACCENT:'rgba(255,255,255,0.1)'}`, background:filterStat===val?`${ACCENT}20`:'transparent', color:filterStat===val?ACCENT:'rgba(237,232,219,0.4)', fontSize:11, fontWeight:filterStat===val?700:500, cursor:'pointer', whiteSpace:'nowrap' }}>
-              {label}
-            </button>
-          ))}
-        </div>
+      {/* Filtres statut */}
+      <div style={{ display:'flex', gap:6, marginBottom:12, flexWrap:'wrap' }}>
+        {[
+          { val:'tous',      label:`Tous (${articles.length})` },
+          { val:'publie',    label:`Publiés (${nbPublies})` },
+          { val:'a_relire',  label:`À relire (${nbARelire})` },
+          { val:'brouillon', label:`Brouillons (${nbBrouillon})` },
+        ].map(({ val, label }) => (
+          <button key={val} onClick={() => setFilterStat(val)}
+            style={{ padding:'5px 12px', borderRadius:20, border:`1px solid ${filterStat===val?ACCENT:'rgba(255,255,255,0.1)'}`, background:filterStat===val?`${ACCENT}20`:'transparent', color:filterStat===val?ACCENT:'rgba(237,232,219,0.4)', fontSize:11, fontWeight:filterStat===val?700:500, cursor:'pointer', whiteSpace:'nowrap' }}>
+            {label}
+          </button>
+        ))}
       </div>
 
       {/* Filtres catégorie */}
@@ -257,7 +270,7 @@ export default function BlogAdmin() {
           {categoriesPresentes.map(c => (
             <button key={c} onClick={() => setFilterCat(c)}
               style={{ padding:'5px 12px', borderRadius:20, border:`1px solid ${filterCat===c?'rgba(91,163,199,0.8)':'rgba(255,255,255,0.1)'}`, background:filterCat===c?'rgba(91,163,199,0.15)':'transparent', color:filterCat===c?'#5BA3C7':'rgba(237,232,219,0.4)', fontSize:11, fontWeight:filterCat===c?700:500, cursor:'pointer', whiteSpace:'nowrap' }}>
-              {c === 'tous' ? `Toutes catégories` : c}
+              {c === 'tous' ? 'Toutes catégories' : c}
             </button>
           ))}
         </div>
@@ -266,12 +279,8 @@ export default function BlogAdmin() {
       {/* Liste articles */}
       <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, overflow:'hidden' }}>
         <div style={{ padding:'16px 20px', borderBottom:'1px solid rgba(255,255,255,0.06)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-          <span style={{ fontSize:13, fontWeight:700, color:'#EDE8DB' }}>
-            {filtered.length} article{filtered.length !== 1 ? 's' : ''}
-          </span>
-          <span style={{ fontSize:11, color:'rgba(237,232,219,0.3)' }}>
-            {nbPublies} publiés · {nbBrouillon} brouillons · {nbARelire} à relire
-          </span>
+          <span style={{ fontSize:13, fontWeight:700, color:'#EDE8DB' }}>{filtered.length} article{filtered.length !== 1 ? 's' : ''}</span>
+          <span style={{ fontSize:11, color:'rgba(237,232,219,0.3)' }}>{nbPublies} publiés · {nbBrouillon} brouillons · {nbARelire} à relire</span>
         </div>
 
         {loading
@@ -291,12 +300,13 @@ export default function BlogAdmin() {
                     const st = STATUT_STYLE[a.statut] || STATUT_STYLE.brouillon;
                     return (
                       <tr key={a.id}
-                        style={{ borderBottom:'1px solid rgba(255,255,255,0.04)', background: a.statut === 'a_relire' ? 'rgba(212,168,83,0.03)' : 'transparent' }}
+                        style={{ borderBottom:'1px solid rgba(255,255,255,0.04)', background: a.statut === 'a_relire' ? 'rgba(212,168,83,0.03)' : 'transparent', cursor:'default' }}
                         onMouseEnter={ev => ev.currentTarget.style.background='rgba(255,255,255,0.02)'}
                         onMouseLeave={ev => ev.currentTarget.style.background= a.statut === 'a_relire' ? 'rgba(212,168,83,0.03)' : 'transparent'}>
 
                         <td style={{ padding:'12px 14px', fontSize:13, color:'#EDE8DB', maxWidth:300 }}>
-                          <span style={{ display:'block', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.titre}</span>
+                          <span style={{ display:'block', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', cursor:'pointer' }}
+                            onClick={() => setPreview(a)}>{a.titre}</span>
                           <a href={`/blog/${a.slug}`} target="_blank" rel="noreferrer"
                             style={{ fontSize:11, color:'rgba(237,232,219,0.3)', textDecoration:'none' }}>/blog/{a.slug}</a>
                         </td>
@@ -306,9 +316,7 @@ export default function BlogAdmin() {
                         </td>
 
                         <td style={{ padding:'12px 14px' }}>
-                          <span style={{ fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:20, background:st.bg, color:st.color }}>
-                            {st.label}
-                          </span>
+                          <span style={{ fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:20, background:st.bg, color:st.color }}>{st.label}</span>
                         </td>
 
                         <td style={{ padding:'12px 14px', fontSize:12, color:'rgba(237,232,219,0.4)', whiteSpace:'nowrap' }}>
@@ -322,24 +330,36 @@ export default function BlogAdmin() {
                         </td>
 
                         <td style={{ padding:'12px 14px' }}>
-                          <div style={{ display:'flex', gap:6, alignItems:'center' }}>
+                          <div style={{ display:'flex', gap:4, alignItems:'center' }}>
+                            {/* Prévisualiser (modale) */}
+                            <button onClick={() => setPreview(a)} title="Prévisualiser"
+                              style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(237,232,219,0.4)', display:'flex' }}
+                              onMouseEnter={ev => ev.currentTarget.style.color='#EDE8DB'}
+                              onMouseLeave={ev => ev.currentTarget.style.color='rgba(237,232,219,0.4)'}>
+                              <FileText size={14}/>
+                            </button>
+
+                            {/* Ouvrir sur le blog */}
+                            <a href={`/blog/${a.slug}`} target="_blank" rel="noreferrer" title="Voir sur le blog"
+                              style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(237,232,219,0.4)', display:'flex', textDecoration:'none' }}
+                              onMouseEnter={ev => ev.currentTarget.style.color='#5BA3C7'}
+                              onMouseLeave={ev => ev.currentTarget.style.color='rgba(237,232,219,0.4)'}>
+                              <ExternalLink size={14}/>
+                            </a>
+
                             {/* Publier / Dépublier */}
-                            <button onClick={() => toggleStatut(a)}
-                              title={a.statut === 'publie' ? 'Dépublier' : 'Publier'}
+                            <button onClick={() => toggleStatut(a)} title={a.statut === 'publie' ? 'Dépublier' : 'Publier'}
                               style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:a.statut==='publie'?ACCENT:'rgba(237,232,219,0.3)', display:'flex' }}>
                               {a.statut === 'publie' ? <Eye size={14}/> : <EyeOff size={14}/>}
                             </button>
 
                             {/* Correction pipeline IA */}
-                            <button onClick={() => handleCorrection(a)}
-                              title="Régénérer via pipeline IA (fact-check + SEO)"
+                            <button onClick={() => handleCorrection(a)} title="Régénérer via pipeline IA"
                               disabled={correcting === a.id}
                               style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(212,168,83,0.6)', display:'flex' }}
                               onMouseEnter={ev => ev.currentTarget.style.color='#D4A853'}
                               onMouseLeave={ev => ev.currentTarget.style.color='rgba(212,168,83,0.6)'}>
-                              {correcting === a.id
-                                ? <Loader size={14} style={{ animation:'spin 1s linear infinite' }}/>
-                                : <RefreshCw size={14}/>}
+                              {correcting === a.id ? <Loader size={14} style={{ animation:'spin 1s linear infinite' }}/> : <RefreshCw size={14}/>}
                             </button>
 
                             {/* Supprimer */}
