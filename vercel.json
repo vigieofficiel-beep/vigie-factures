@@ -3,6 +3,11 @@
   "devCommand": "vite --port $PORT",
   "outputDirectory": "dist",
   "framework": "vite",
+  "functions": {
+    "api/blog-agent.js": {
+      "maxDuration": 60
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
