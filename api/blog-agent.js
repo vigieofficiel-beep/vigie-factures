@@ -1,5 +1,6 @@
 // /api/blog-agent.js
-// Actions : 'generate' | 'topics' | 'pipeline' | 'refresh'
+// Actions POST : 'generate' | 'topics' | 'pipeline' | 'refresh'
+// Action GET   : 'sitemap' (via /api/blog-agent?action=sitemap)
 
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
@@ -11,48 +12,24 @@ const supabase = createClient(
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Helper robuste — nettoie les backticks avant JSON.parse
 function parseJSON(raw) {
   const clean = raw.trim().replace(/```json|```/g, '').trim();
   return JSON.parse(clean);
 }
 
 const CATEGORIES = [
-  "TVA & Régimes fiscaux",
-  "Charges & Cotisations URSSAF",
-  "Facturation & Devis",
-  "Contrats & Assurances",
-  "Comptabilité & Trésorerie",
-  "Seuils & Plafonds",
-  "Radiation & Cessation",
-  "Création d'entreprise",
-  "Droit du travail indépendant",
-  "RGPD & Données personnelles",
-  "Propriété intellectuelle",
-  "Contrats clients & CGV",
-  "Réglementation sectorielle",
-  "Outils SaaS indépendants",
-  "Automatisation & IA",
-  "Gestion du temps",
-  "Facturation électronique (e-invoicing 2026)",
-  "Épargne & Prévoyance",
-  "Financement & Aides",
-  "Optimisation fiscale",
-  "Trésorerie & Cash flow",
-  "Trouver des clients",
-  "Tarification & Positionnement",
-  "Personal branding",
-  "Réseaux sociaux pro",
-  "Artisans & BTP",
-  "Consultants & Freelances",
-  "Créatifs & Développeurs",
-  "Santé & Bien-être indépendant",
-  "Nouveautés légales",
-  "Actualité auto-entrepreneur",
-  "Chiffres & Statistiques",
-  "Europe & International",
-  "Formation & Montée en compétences",
-  "Cybersécurité & Protection données"
+  "TVA & Régimes fiscaux", "Charges & Cotisations URSSAF", "Facturation & Devis",
+  "Contrats & Assurances", "Comptabilité & Trésorerie", "Seuils & Plafonds",
+  "Radiation & Cessation", "Création d'entreprise", "Droit du travail indépendant",
+  "RGPD & Données personnelles", "Propriété intellectuelle", "Contrats clients & CGV",
+  "Réglementation sectorielle", "Outils SaaS indépendants", "Automatisation & IA",
+  "Gestion du temps", "Facturation électronique (e-invoicing 2026)", "Épargne & Prévoyance",
+  "Financement & Aides", "Optimisation fiscale", "Trésorerie & Cash flow",
+  "Trouver des clients", "Tarification & Positionnement", "Personal branding",
+  "Réseaux sociaux pro", "Artisans & BTP", "Consultants & Freelances",
+  "Créatifs & Développeurs", "Santé & Bien-être indépendant", "Nouveautés légales",
+  "Actualité auto-entrepreneur", "Chiffres & Statistiques", "Europe & International",
+  "Formation & Montée en compétences", "Cybersécurité & Protection données"
 ];
 
 function generateSlug(titre) {
@@ -63,6 +40,55 @@ function generateSlug(titre) {
     .trim()
     .replace(/\s+/g, '-')
     .slice(0, 80);
+}
+
+// ── ACTION : sitemap (GET) ─────────────────────────────────────────
+async function handleSitemap(res) {
+  const BASE_URL = 'https://vigie-officiel.com';
+  const STATIC_PAGES = [
+    { url: '/',         priority: '1.0', changefreq: 'weekly'  },
+    { url: '/blog',     priority: '0.9', changefreq: 'daily'   },
+    { url: '/features', priority: '0.8', changefreq: 'monthly' },
+    { url: '/pricing',  priority: '0.8', changefreq: 'monthly' },
+    { url: '/contact',  priority: '0.6', changefreq: 'monthly' },
+  ];
+
+  const { data: articles } = await supabase
+    .from('blog_articles')
+    .select('slug, updated_at, created_at')
+    .eq('statut', 'publie')
+    .order('created_at', { ascending: false });
+
+  const now = new Date().toISOString().split('T')[0];
+
+  const staticUrls = STATIC_PAGES.map(p => `
+  <url>
+    <loc>${BASE_URL}${p.url}</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>${p.changefreq}</changefreq>
+    <priority>${p.priority}</priority>
+  </url>`).join('');
+
+  const articleUrls = (articles || []).map(a => {
+    const lastmod = (a.updated_at || a.created_at || now).split('T')[0];
+    return `
+  <url>
+    <loc>${BASE_URL}/blog/${a.slug}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>`;
+  }).join('');
+
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${staticUrls}
+${articleUrls}
+</urlset>`;
+
+  res.setHeader('Content-Type', 'application/xml');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  return res.status(200).send(sitemap);
 }
 
 // ── ACTION : generate ──────────────────────────────────────────────
@@ -106,12 +132,8 @@ Termine toujours l'article par ce disclaimer :
   const slug = generateSlug(article.titre) + '-' + Date.now().toString(36);
 
   const { data, error } = await supabase.from('blog_articles').insert([{
-    slug,
-    titre: article.titre,
-    meta_description: article.meta_description,
-    contenu: article.contenu,
-    categorie,
-    tags: article.tags || [],
+    slug, titre: article.titre, meta_description: article.meta_description,
+    contenu: article.contenu, categorie, tags: article.tags || [],
     statut: publier ? 'publie' : 'brouillon',
     date_publication: publier ? new Date().toISOString() : null,
     auto_generated: false
@@ -130,17 +152,13 @@ async function handleTopics() {
     .limit(200);
 
   const existingTitles = existingArticles?.map(a => a.titre).join('\n') || '';
-
   const categoryCounts = {};
   CATEGORIES.forEach(c => categoryCounts[c] = 0);
   existingArticles?.forEach(a => {
-    if (a.categorie && categoryCounts[a.categorie] !== undefined) {
-      categoryCounts[a.categorie]++;
-    }
+    if (a.categorie && categoryCounts[a.categorie] !== undefined) categoryCounts[a.categorie]++;
   });
 
-  const sortedCategories = [...CATEGORIES].sort((a, b) => categoryCounts[a] - categoryCounts[b]);
-  const targetCategory = sortedCategories[0];
+  const targetCategory = [...CATEGORIES].sort((a, b) => categoryCounts[a] - categoryCounts[b])[0];
 
   const completion = await openai.chat.completions.create({
     model: 'gpt-4o',
@@ -157,7 +175,6 @@ Articles déjà publiés (ÉVITE tout sujet similaire) :
 ${existingTitles}
 
 Propose UN sujet d'article factuel, utile, pratique sur "${targetCategory}" différent de tous les articles existants.
-Il doit répondre à une vraie question qu'un auto-entrepreneur se pose en 2026.
 
 Réponds UNIQUEMENT en JSON valide :
 {
@@ -178,210 +195,143 @@ async function handlePipeline(body) {
   const { titre, categorie, angle, mots_cles, auto_generated = true } = body;
   if (!titre || !categorie) throw new Error('titre et categorie requis');
 
-  // Agent 2 — Recherche
   const rechercheRes = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    response_format: { type: "json_object" },
-    temperature: 0.2,
-    max_tokens: 800,
+    model: 'gpt-4o', response_format: { type: "json_object" },
+    temperature: 0.2, max_tokens: 800,
     messages: [{
       role: 'user',
-      content: `Tu es un agent de recherche spécialisé en droit et gestion pour auto-entrepreneurs français.
-
+      content: `Agent de recherche droit/gestion auto-entrepreneurs français.
 Sujet : "${titre}" | Angle : "${angle}" | Catégorie : "${categorie}"
-
-Recherche les informations factuelles, chiffres officiels, textes de loi sur ce sujet en 2026.
-Sources uniquement : URSSAF, Service-Public.fr, Legifrance, INPI, Bpifrance, impots.gouv.fr.
-
-Réponds en JSON valide uniquement :
+Sources : URSSAF, Service-Public.fr, Legifrance, INPI, Bpifrance, impots.gouv.fr.
+Réponds en JSON :
 {
-  "faits_cles": ["fait 1 avec chiffre/date précis", "fait 2", "fait 3", "fait 4", "fait 5"],
-  "sources": ["https://url-officielle-1.fr", "https://url-officielle-2.fr"],
-  "points_attention": ["piège ou erreur courante 1", "piège ou erreur courante 2"]
+  "faits_cles": ["fait 1", "fait 2", "fait 3", "fait 4", "fait 5"],
+  "sources": ["https://url1.fr", "https://url2.fr"],
+  "points_attention": ["piège 1", "piège 2"]
 }`
     }]
   });
-
   const recherche = parseJSON(rechercheRes.choices[0].message.content);
 
-  // Agent 3 — Rédaction (markdown — pas de response_format json_object)
   const redactionRes = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    temperature: 0.5,
-    max_tokens: 3000,
+    model: 'gpt-4o', temperature: 0.5, max_tokens: 3000,
     messages: [{
       role: 'user',
-      content: `Tu es un rédacteur expert en gestion d'entreprise pour auto-entrepreneurs français.
-
+      content: `Rédacteur expert gestion auto-entrepreneurs français.
 Titre : "${titre}" | Catégorie : "${categorie}" | Angle : "${angle}"
 Mots-clés : ${Array.isArray(mots_cles) ? mots_cles.join(', ') : mots_cles}
-
-Faits vérifiés à intégrer :
-${recherche.faits_cles.map((f, i) => `${i + 1}. ${f}`).join('\n')}
-
-Points d'attention :
-${recherche.points_attention.map((p, i) => `${i + 1}. ${p}`).join('\n')}
-
-Rédige un article complet de 1500 mots minimum en markdown.
+Faits : ${recherche.faits_cles.map((f, i) => `${i + 1}. ${f}`).join('\n')}
+Points attention : ${recherche.points_attention.map((p, i) => `${i + 1}. ${p}`).join('\n')}
+Rédige 1500 mots minimum en markdown.
 Structure : Introduction → ## Contexte → ## Fonctionnement → ## Chiffres clés → ## Erreurs à éviter → ## Conseils pratiques → Conclusion CTA Vigie Pro
-
-Termine par :
-"---\\n*Article libre de droit — Vigie Pro 2026. Sources : ${recherche.sources.join(', ')}*"
+Termine par : "---\\n*Article libre de droit — Vigie Pro 2026. Sources : ${recherche.sources.join(', ')}*"
 "*Ces informations sont fournies à titre indicatif. Consultez un expert-comptable pour votre situation.*"
-
-Réponds en markdown uniquement, sans JSON.`
+Réponds en markdown uniquement.`
     }]
   });
-
   const contenu = redactionRes.choices[0].message.content.trim();
 
-  // Agent 4 — SEO + Fact-check
   const seoRes = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    response_format: { type: "json_object" },
-    temperature: 0.2,
-    max_tokens: 400,
+    model: 'gpt-4o', response_format: { type: "json_object" },
+    temperature: 0.2, max_tokens: 400,
     messages: [{
       role: 'user',
-      content: `Expert SEO et fact-checker contenu juridique/fiscal français.
-
+      content: `Expert SEO fact-checker juridique/fiscal français.
 Titre : "${titre}" | Catégorie : "${categorie}" | Mots-clés : ${Array.isArray(mots_cles) ? mots_cles.join(', ') : mots_cles}
-Extrait contenu : ${contenu.slice(0, 2000)}...
-
-Réponds en JSON valide uniquement :
+Extrait : ${contenu.slice(0, 2000)}...
+Réponds en JSON :
 {
-  "titre_seo": "Titre optimisé 55-60 caractères",
-  "meta_description": "Description 150-160 caractères avec mot-clé principal",
+  "titre_seo": "Titre 55-60 caractères",
+  "meta_description": "Description 150-160 caractères",
   "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
   "score_factuel": 8,
   "remarques": "Aucune anomalie"
 }`
     }]
   });
-
   const seo = parseJSON(seoRes.choices[0].message.content);
 
-  // Agent 5 — Publication
   let slug = generateSlug(seo.titre_seo || titre);
-  const { data: existing } = await supabase
-    .from('blog_articles').select('id').eq('slug', slug).single();
+  const { data: existing } = await supabase.from('blog_articles').select('id').eq('slug', slug).single();
   if (existing) slug = `${slug}-${Date.now()}`;
 
   const statut = auto_generated ? 'a_relire' : 'publie';
-
-  const { data: article, error } = await supabase
-    .from('blog_articles')
-    .insert({
-      slug,
-      titre: seo.titre_seo || titre,
-      meta_description: seo.meta_description,
-      contenu,
-      categorie,
-      tags: seo.tags,
-      statut,
-      source_urls: recherche.sources,
-      auto_generated,
-      date_publication: statut === 'publie' ? new Date().toISOString() : null
-    })
-    .select().single();
+  const { data: article, error } = await supabase.from('blog_articles').insert({
+    slug, titre: seo.titre_seo || titre, meta_description: seo.meta_description,
+    contenu, categorie, tags: seo.tags, statut, source_urls: recherche.sources,
+    auto_generated, date_publication: statut === 'publie' ? new Date().toISOString() : null
+  }).select().single();
 
   if (error) throw error;
-
-  return {
-    success: true,
-    article_id: article.id,
-    slug: article.slug,
-    titre: article.titre,
-    statut,
-    score_factuel: seo.score_factuel,
-    remarques: seo.remarques
-  };
+  return { success: true, article_id: article.id, slug: article.slug, titre: article.titre, statut, score_factuel: seo.score_factuel, remarques: seo.remarques };
 }
 
 // ── ACTION : refresh ───────────────────────────────────────────────
 async function handleRefresh(req) {
   const { authorization } = req.headers;
-  if (authorization !== `Bearer ${process.env.MAKE_WEBHOOK_SECRET}`) {
-    throw new Error('Unauthorized');
-  }
+  if (authorization !== `Bearer ${process.env.MAKE_WEBHOOK_SECRET}`) throw new Error('Unauthorized');
 
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  const { data: articles } = await supabase
-    .from('blog_articles')
+  const { data: articles } = await supabase.from('blog_articles')
     .select('id, titre, contenu, categorie')
     .eq('statut', 'publie')
     .lt('updated_at', thirtyDaysAgo.toISOString())
     .limit(3);
 
-  if (!articles || articles.length === 0) {
-    return { success: true, message: 'Aucun article à rafraîchir' };
-  }
+  if (!articles || articles.length === 0) return { success: true, message: 'Aucun article à rafraîchir' };
 
   const results = [];
-
   for (const article of articles) {
     const checkRes = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      response_format: { type: "json_object" },
-      temperature: 0.2,
-      max_tokens: 600,
+      model: 'gpt-4o', response_format: { type: "json_object" },
+      temperature: 0.2, max_tokens: 600,
       messages: [{
         role: 'user',
         content: `Expert veille juridique/fiscale auto-entrepreneurs français.
-
 Titre : "${article.titre}" | Catégorie : "${article.categorie}"
-Extrait contenu : ${article.contenu?.slice(0, 1500)}
-
-En 2026, vérifie si des informations sont obsolètes (taux URSSAF, plafonds, e-invoicing, nouvelles lois).
-
-Réponds en JSON valide uniquement :
+Extrait : ${article.contenu?.slice(0, 1500)}
+En 2026, vérifie si des infos sont obsolètes (URSSAF, plafonds, e-invoicing).
+Réponds en JSON :
 {
   "necessite_update": true,
   "raisons": ["raison 1"],
-  "nouveau_paragraphe": "Paragraphe de mise à jour à ajouter en tête d'article (ou null)"
+  "nouveau_paragraphe": "Paragraphe à ajouter en tête (ou null)"
 }`
       }]
     });
-
     const check = parseJSON(checkRes.choices[0].message.content);
-
     if (check.necessite_update && check.nouveau_paragraphe) {
       const updatedContenu = `> ⚠️ **Mis à jour le ${new Date().toLocaleDateString('fr-FR')}** — ${check.raisons.join('. ')}\n\n${check.nouveau_paragraphe}\n\n---\n\n${article.contenu}`;
-      await supabase
-        .from('blog_articles')
-        .update({ contenu: updatedContenu, updated_at: new Date().toISOString() })
-        .eq('id', article.id);
+      await supabase.from('blog_articles').update({ contenu: updatedContenu, updated_at: new Date().toISOString() }).eq('id', article.id);
       results.push({ id: article.id, titre: article.titre, updated: true });
     } else {
-      await supabase
-        .from('blog_articles')
-        .update({ updated_at: new Date().toISOString() })
-        .eq('id', article.id);
+      await supabase.from('blog_articles').update({ updated_at: new Date().toISOString() }).eq('id', article.id);
       results.push({ id: article.id, titre: article.titre, updated: false });
     }
   }
-
   return { success: true, results };
 }
 
 // ── HANDLER PRINCIPAL ──────────────────────────────────────────────
 export default async function handler(req, res) {
+  // GET → sitemap
+  if (req.method === 'GET') {
+    try { return await handleSitemap(res); }
+    catch (error) { return res.status(500).json({ error: error.message }); }
+  }
+
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { action, ...body } = req.body;
-
   try {
     let result;
-    if (action === 'generate')      result = await handleGenerate(body);
-    else if (action === 'topics')   result = await handleTopics();
-    else if (action === 'pipeline') result = await handlePipeline(body);
-    else if (action === 'refresh')  result = await handleRefresh(req);
-    else return res.status(400).json({
-      error: 'action invalide — utilise: generate | topics | pipeline | refresh'
-    });
-
+    if (action === 'generate')        result = await handleGenerate(body);
+    else if (action === 'topics')     result = await handleTopics();
+    else if (action === 'pipeline')   result = await handlePipeline(body);
+    else if (action === 'refresh')    result = await handleRefresh(req);
+    else return res.status(400).json({ error: 'action invalide — utilise: generate | topics | pipeline | refresh' });
     return res.status(200).json(result);
   } catch (error) {
     console.error(`[blog-agent/${action}]`, error);
