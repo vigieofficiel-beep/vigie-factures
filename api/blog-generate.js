@@ -1,8 +1,6 @@
-import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@supabase/supabase-js';
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const supabase  = createClient(
+const supabase = createClient(
   process.env.VITE_SUPABASE_PRO_URL,
   process.env.SUPABASE_PRO_SERVICE_KEY
 );
@@ -20,6 +18,9 @@ export default async function handler(req, res) {
 
   const { sujet, categorie = 'Guide pratique', publier = false } = req.body;
   if (!sujet) return res.status(400).json({ error: 'Sujet requis' });
+
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY manquante' });
 
   try {
     const prompt = `Tu es un rédacteur SEO expert en gestion d'entreprise et fiscalité française pour auto-entrepreneurs et TPE.
@@ -45,13 +46,24 @@ Format de réponse UNIQUEMENT en JSON valide :
 IMPORTANT : Termine toujours l'article par ce disclaimer :
 "*Ces informations sont fournies à titre indicatif. Pour votre situation personnelle, consultez un expert-comptable ou un conseiller juridique.*"`;
 
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 4000,
-      messages: [{ role: 'user', content: prompt }],
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 4000,
+        messages: [{ role: 'user', content: prompt }],
+      }),
     });
 
-    const raw = message.content[0].text;
+    const claudeData = await response.json();
+    if (!response.ok) return res.status(500).json({ error: JSON.stringify(claudeData) });
+
+    const raw = claudeData.content[0].text;
     const clean = raw.replace(/```json|```/g, '').trim();
     const article = JSON.parse(clean);
 
