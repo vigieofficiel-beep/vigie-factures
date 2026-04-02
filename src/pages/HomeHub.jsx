@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Briefcase, ArrowRight, Lock, ChevronDown, Check, Zap, Shield, BarChart2, Bell, BookOpen } from 'lucide-react';
+import { User, Briefcase, ArrowRight, Lock, ChevronDown, Check, Zap, Shield, BarChart2, Bell, BookOpen, Settings } from 'lucide-react';
 import Footer from '../components/Footer';
 import ExitIntent from '../components/ExitIntent';
+import { supabasePro } from '../lib/supabasePro';
+
+const ADMIN_EMAIL = 'luciendoppler@gmail.com';
 
 const FEATURES = [
   { icon: '🧾', label: 'Dépenses & Recettes',    desc: 'Suivi complet de votre trésorerie en temps réel' },
@@ -32,11 +35,18 @@ export default function HomeHub() {
   const [scrolled,       setScrolled]       = useState(false);
   const [hoveredCard,    setHoveredCard]     = useState(null);
   const [hoveredFeature, setHoveredFeature]  = useState(null);
+  const [isAdmin,        setIsAdmin]         = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    supabasePro.auth.getSession().then(({ data: { session } }) => {
+      setIsAdmin(session?.user?.email === ADMIN_EMAIL);
+    });
   }, []);
 
   return (
@@ -48,8 +58,13 @@ export default function HomeHub() {
           <img src="/logo-vigie.png" alt="Vigie" style={{ height:36, width:'auto', objectFit:'contain' }} onError={e => { e.currentTarget.style.display='none'; if(e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display='block'; }}/>
           <span style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:22, fontWeight:700, color:'#EDE8DB', display:'none' }}>Vigie</span>
         </div>
-        <div style={{ display:'flex', gap:10 }}>
+        <div style={{ display:'flex', gap:10, alignItems:'center' }}>
           <Link to="/blog" style={{ padding:'8px 18px', borderRadius:8, border:'1px solid rgba(255,255,255,0.15)', color:'rgba(237,232,219,0.7)', fontSize:13, fontWeight:600, textDecoration:'none', backdropFilter:'blur(8px)', background:'rgba(255,255,255,0.04)' }}>Blog</Link>
+          {isAdmin && (
+            <Link to="/pro/blog-admin" style={{ padding:'8px 18px', borderRadius:8, border:'1px solid rgba(212,168,83,0.4)', color:'#D4A853', fontSize:13, fontWeight:600, textDecoration:'none', backdropFilter:'blur(8px)', background:'rgba(212,168,83,0.08)', display:'flex', alignItems:'center', gap:6 }}>
+              <Settings size={13}/> Admin
+            </Link>
+          )}
           <Link to="/pro/login"  style={{ padding:'8px 18px', borderRadius:8, border:'1px solid rgba(255,255,255,0.15)', color:'rgba(237,232,219,0.7)', fontSize:13, fontWeight:600, textDecoration:'none', backdropFilter:'blur(8px)', background:'rgba(255,255,255,0.04)' }}>Connexion</Link>
           <Link to="/pro/signup" style={{ padding:'8px 18px', borderRadius:8, background:'linear-gradient(135deg, #5BA3C7, #3d7fa8)', color:'#fff', fontSize:13, fontWeight:700, textDecoration:'none' }}>S'inscrire</Link>
         </div>
@@ -78,8 +93,8 @@ export default function HomeHub() {
           </div>
 
           {/* CARTES PRODUITS */}
-          <div style={{ maxWidth:680, width:'100%', margin:'0 auto', animation:'fadeUp 0.7s 0.3s ease both' }}>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(280px, 1fr))', gap:12, marginBottom:10 }}>
+          <div style={{ maxWidth:isAdmin ? 1020 : 680, width:'100%', margin:'0 auto', animation:'fadeUp 0.7s 0.3s ease both' }}>
+            <div style={{ display:'grid', gridTemplateColumns: isAdmin ? 'repeat(auto-fit, minmax(260px, 1fr))' : 'repeat(auto-fit, minmax(280px, 1fr))', gap:12, marginBottom:10 }}>
 
               {/* Vigie Pro */}
               <Link to="/pro" style={{ textDecoration:'none' }} onMouseEnter={() => setHoveredCard('pro')} onMouseLeave={() => setHoveredCard(null)}>
@@ -106,6 +121,22 @@ export default function HomeHub() {
                   <div style={{ display:'flex', alignItems:'center', gap:6, color:'#5BC78A', fontSize:13, fontWeight:700 }}>Lire <ArrowRight size={14}/></div>
                 </div>
               </Link>
+
+              {/* Blog Admin — visible uniquement pour l'admin */}
+              {isAdmin && (
+                <Link to="/pro/blog-admin" style={{ textDecoration:'none' }} onMouseEnter={() => setHoveredCard('admin')} onMouseLeave={() => setHoveredCard(null)}>
+                  <div style={{ position:'relative', overflow:'hidden', background:hoveredCard==='admin'?'rgba(212,168,83,0.15)':'rgba(255,255,255,0.04)', border:`1px solid ${hoveredCard==='admin'?'rgba(212,168,83,0.5)':'rgba(212,168,83,0.2)'}`, borderRadius:20, padding:'32px 28px', backdropFilter:'blur(16px)', transform:hoveredCard==='admin'?'translateY(-4px)':'translateY(0)', boxShadow:hoveredCard==='admin'?'0 20px 60px rgba(212,168,83,0.15)':'0 8px 32px rgba(0,0,0,0.3)', transition:'all 0.3s ease', height:'100%' }}>
+                    {hoveredCard==='admin' && <div style={{ position:'absolute', top:-30, right:-30, width:120, height:120, background:'radial-gradient(circle, rgba(212,168,83,0.2), transparent 70%)', pointerEvents:'none' }}/>}
+                    <div style={{ position:'absolute', top:16, right:16, background:'rgba(212,168,83,0.15)', border:'1px solid rgba(212,168,83,0.3)', borderRadius:6, padding:'2px 8px', fontSize:9, fontWeight:700, color:'#D4A853', letterSpacing:'0.08em', textTransform:'uppercase' }}>Admin</div>
+                    <div style={{ width:52, height:52, borderRadius:14, background:'rgba(212,168,83,0.15)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:16 }}>
+                      <Settings size={22} color="#D4A853" strokeWidth={2}/>
+                    </div>
+                    <h2 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:24, fontWeight:700, color:'#EDE8DB', marginBottom:8, textAlign:'left' }}>Blog Admin</h2>
+                    <p style={{ fontSize:13, color:'rgba(237,232,219,0.5)', lineHeight:1.6, textAlign:'left', marginBottom:18 }}>Gérer les articles, pipeline IA, publication, correction</p>
+                    <div style={{ display:'flex', alignItems:'center', gap:6, color:'#D4A853', fontSize:13, fontWeight:700 }}>Gérer <ArrowRight size={14}/></div>
+                  </div>
+                </Link>
+              )}
             </div>
 
             <Link to="/tarifs" style={{ textDecoration:'none' }}>
@@ -177,7 +208,7 @@ export default function HomeHub() {
         </p>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(220px, 1fr))', gap:16, maxWidth:700, margin:'0 auto' }}>
           {[
-            { icon:'🚀', titre:'Accès immédiat',      desc:'Compte opérationnel en moins d\'une minute' },
+            { icon:'🚀', titre:'Accès immédiat',      desc:"Compte opérationnel en moins d'une minute" },
             { icon:'💬', titre:'Retours bienvenus',   desc:'Vos suggestions impactent directement le produit' },
             { icon:'🎯', titre:'Plan gratuit inclus', desc:'Fonctionnalités essentielles sans limite de durée' },
           ].map((item, i) => (
