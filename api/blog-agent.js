@@ -164,7 +164,9 @@ Réponds UNIQUEMENT en JSON valide, sans markdown :
     max_tokens: 300
   });
 
-  const topic = JSON.parse(completion.choices[0].message.content.trim());
+  const raw = completion.choices[0].message.content.trim();
+const clean = raw.replace(/```json|```/g, '').trim();
+const topic = JSON.parse(clean);
   return { success: true, topic };
 }
 
