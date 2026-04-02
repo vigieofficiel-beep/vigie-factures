@@ -1,6 +1,5 @@
 // /api/blog-agent.js
 // Actions : 'generate' | 'topics' | 'pipeline' | 'refresh'
-// Remplace blog-generate.js + blog-topics.js + blog-pipeline.js + blog-refresh.js
 
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
@@ -11,6 +10,12 @@ const supabase = createClient(
 );
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// Helper robuste — nettoie les backticks avant JSON.parse
+function parseJSON(raw) {
+  const clean = raw.trim().replace(/```json|```/g, '').trim();
+  return JSON.parse(clean);
+}
 
 const CATEGORIES = [
   "TVA & Régimes fiscaux",
@@ -60,12 +65,18 @@ function generateSlug(titre) {
     .slice(0, 80);
 }
 
-// ── ACTION : generate (interface manuelle BlogAdmin) ───────────────
+// ── ACTION : generate ──────────────────────────────────────────────
 async function handleGenerate(body) {
   const { sujet, categorie = 'Guide pratique', publier = false } = body;
   if (!sujet) throw new Error('Sujet requis');
 
-  const prompt = `Tu es un rédacteur SEO expert en gestion d'entreprise et fiscalité française pour auto-entrepreneurs et TPE.
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    max_tokens: 4000,
+    temperature: 0.7,
+    messages: [{
+      role: 'user',
+      content: `Tu es un rédacteur SEO expert en gestion d'entreprise et fiscalité française pour auto-entrepreneurs et TPE.
 
 Rédige un article de blog complet et optimisé SEO sur le sujet suivant : "${sujet}"
 
@@ -86,19 +97,11 @@ Format de réponse UNIQUEMENT en JSON valide, sans balises markdown :
 }
 
 Termine toujours l'article par ce disclaimer :
-"*Ces informations sont fournies à titre indicatif. Pour votre situation personnelle, consultez un expert-comptable ou un conseiller juridique.*"`;
-
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    max_tokens: 4000,
-    temperature: 0.7,
-    messages: [{ role: 'user', content: prompt }]
+"*Ces informations sont fournies à titre indicatif. Pour votre situation personnelle, consultez un expert-comptable ou un conseiller juridique.*"`
+    }]
   });
 
-  const raw = completion.choices[0].message.content;
-  const clean = raw.replace(/```json|```/g, '').trim();
-  const article = JSON.parse(clean);
-
+  const article = parseJSON(completion.choices[0].message.content);
   const slug = generateSlug(article.titre) + '-' + Date.now().toString(36);
 
   const { data, error } = await supabase.from('blog_articles').insert([{
@@ -117,7 +120,7 @@ Termine toujours l'article par ce disclaimer :
   return { ok: true, article: data };
 }
 
-// ── ACTION : topics (Agent 1 — choix sujet anti-doublon) ──────────
+// ── ACTION : topics ────────────────────────────────────────────────
 async function handleTopics() {
   const { data: existingArticles } = await supabase
     .from('blog_articles')
@@ -164,13 +167,11 @@ Réponds UNIQUEMENT en JSON valide, sans markdown :
     max_tokens: 300
   });
 
-  const raw = completion.choices[0].message.content.trim();
-const clean = raw.replace(/```json|```/g, '').trim();
-const topic = JSON.parse(clean);
+  const topic = parseJSON(completion.choices[0].message.content);
   return { success: true, topic };
 }
 
-// ── ACTION : pipeline (Agents 2+3+4+5 — automatique) ─────────────
+// ── ACTION : pipeline ──────────────────────────────────────────────
 async function handlePipeline(body) {
   const { titre, categorie, angle, mots_cles, auto_generated = true } = body;
   if (!titre || !categorie) throw new Error('titre et categorie requis');
@@ -187,7 +188,7 @@ Sujet : "${titre}" | Angle : "${angle}" | Catégorie : "${categorie}"
 Recherche les informations factuelles, chiffres officiels, textes de loi sur ce sujet en 2026.
 Sources uniquement : URSSAF, Service-Public.fr, Legifrance, INPI, Bpifrance, impots.gouv.fr.
 
-Réponds en JSON valide uniquement :
+Réponds en JSON valide uniquement, sans markdown :
 {
   "faits_cles": ["fait 1 avec chiffre/date précis", "fait 2", "fait 3", "fait 4", "fait 5"],
   "sources": ["https://url-officielle-1.fr", "https://url-officielle-2.fr"],
@@ -198,7 +199,7 @@ Réponds en JSON valide uniquement :
     max_tokens: 800
   });
 
-  const recherche = JSON.parse(rechercheRes.choices[0].message.content.trim());
+  const recherche = parseJSON(rechercheRes.choices[0].message.content);
 
   // Agent 3 — Rédaction
   const redactionRes = await openai.chat.completions.create({
@@ -208,7 +209,7 @@ Réponds en JSON valide uniquement :
       content: `Tu es un rédacteur expert en gestion d'entreprise pour auto-entrepreneurs français.
 
 Titre : "${titre}" | Catégorie : "${categorie}" | Angle : "${angle}"
-Mots-clés : ${mots_cles?.join(', ')}
+Mots-clés : ${Array.isArray(mots_cles) ? mots_cles.join(', ') : mots_cles}
 
 Faits vérifiés à intégrer :
 ${recherche.faits_cles.map((f, i) => `${i + 1}. ${f}`).join('\n')}
@@ -223,7 +224,7 @@ Termine par :
 "---\\n*Article libre de droit — Vigie Pro 2026. Sources : ${recherche.sources.join(', ')}*"
 "*Ces informations sont fournies à titre indicatif. Consultez un expert-comptable pour votre situation.*"
 
-Réponds en markdown uniquement.`
+Réponds en markdown uniquement, sans JSON.`
     }],
     temperature: 0.5,
     max_tokens: 3000
@@ -238,10 +239,10 @@ Réponds en markdown uniquement.`
       role: 'user',
       content: `Expert SEO et fact-checker contenu juridique/fiscal français.
 
-Titre : "${titre}" | Catégorie : "${categorie}" | Mots-clés : ${mots_cles?.join(', ')}
+Titre : "${titre}" | Catégorie : "${categorie}" | Mots-clés : ${Array.isArray(mots_cles) ? mots_cles.join(', ') : mots_cles}
 Extrait contenu : ${contenu.slice(0, 2000)}...
 
-Réponds en JSON valide uniquement :
+Réponds en JSON valide uniquement, sans markdown :
 {
   "titre_seo": "Titre optimisé 55-60 caractères",
   "meta_description": "Description 150-160 caractères avec mot-clé principal",
@@ -254,7 +255,7 @@ Réponds en JSON valide uniquement :
     max_tokens: 400
   });
 
-  const seo = JSON.parse(seoRes.choices[0].message.content.trim());
+  const seo = parseJSON(seoRes.choices[0].message.content);
 
   // Agent 5 — Publication
   let slug = generateSlug(seo.titre_seo || titre);
@@ -293,7 +294,7 @@ Réponds en JSON valide uniquement :
   };
 }
 
-// ── ACTION : refresh (mise à jour articles > 30 jours) ─────────────
+// ── ACTION : refresh ───────────────────────────────────────────────
 async function handleRefresh(req) {
   const { authorization } = req.headers;
   if (authorization !== `Bearer ${process.env.MAKE_WEBHOOK_SECRET}`) {
@@ -328,7 +329,7 @@ Extrait contenu : ${article.contenu?.slice(0, 1500)}
 
 En 2026, vérifie si des informations sont obsolètes (taux URSSAF, plafonds, e-invoicing, nouvelles lois).
 
-Réponds en JSON valide uniquement :
+Réponds en JSON valide uniquement, sans markdown :
 {
   "necessite_update": true,
   "raisons": ["raison 1"],
@@ -339,7 +340,7 @@ Réponds en JSON valide uniquement :
       max_tokens: 600
     });
 
-    const check = JSON.parse(checkRes.choices[0].message.content.trim());
+    const check = parseJSON(checkRes.choices[0].message.content);
 
     if (check.necessite_update && check.nouveau_paragraphe) {
       const updatedContenu = `> ⚠️ **Mis à jour le ${new Date().toLocaleDateString('fr-FR')}** — ${check.raisons.join('. ')}\n\n${check.nouveau_paragraphe}\n\n---\n\n${article.contenu}`;
