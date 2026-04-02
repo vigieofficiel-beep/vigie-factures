@@ -74,6 +74,7 @@ async function handleGenerate(body) {
     model: 'gpt-4o',
     max_tokens: 4000,
     temperature: 0.7,
+    response_format: { type: "json_object" },
     messages: [{
       role: 'user',
       content: `Tu es un rédacteur SEO expert en gestion d'entreprise et fiscalité française pour auto-entrepreneurs et TPE.
@@ -88,7 +89,7 @@ L'article doit :
 - Inclure des exemples concrets chiffrés quand c'est pertinent
 - Se terminer par un CTA naturel vers Vigie Pro (application de gestion pour auto-entrepreneurs)
 
-Format de réponse UNIQUEMENT en JSON valide, sans balises markdown :
+Réponds UNIQUEMENT en JSON valide :
 {
   "titre": "Titre optimisé SEO (60 caractères max)",
   "meta_description": "Description meta SEO (155 caractères max)",
@@ -143,6 +144,9 @@ async function handleTopics() {
 
   const completion = await openai.chat.completions.create({
     model: 'gpt-4o',
+    response_format: { type: "json_object" },
+    temperature: 0.7,
+    max_tokens: 300,
     messages: [{
       role: 'user',
       content: `Tu es un expert en gestion d'entreprise pour auto-entrepreneurs français.
@@ -155,16 +159,14 @@ ${existingTitles}
 Propose UN sujet d'article factuel, utile, pratique sur "${targetCategory}" différent de tous les articles existants.
 Il doit répondre à une vraie question qu'un auto-entrepreneur se pose en 2026.
 
-Réponds UNIQUEMENT en JSON valide, sans markdown :
+Réponds UNIQUEMENT en JSON valide :
 {
   "titre": "Titre de l'article (60 caractères max)",
   "categorie": "${targetCategory}",
   "angle": "En une phrase, l'angle précis de l'article",
   "mots_cles": ["mot1", "mot2", "mot3"]
 }`
-    }],
-    temperature: 0.7,
-    max_tokens: 300
+    }]
   });
 
   const topic = parseJSON(completion.choices[0].message.content);
@@ -179,6 +181,9 @@ async function handlePipeline(body) {
   // Agent 2 — Recherche
   const rechercheRes = await openai.chat.completions.create({
     model: 'gpt-4o',
+    response_format: { type: "json_object" },
+    temperature: 0.2,
+    max_tokens: 800,
     messages: [{
       role: 'user',
       content: `Tu es un agent de recherche spécialisé en droit et gestion pour auto-entrepreneurs français.
@@ -188,22 +193,22 @@ Sujet : "${titre}" | Angle : "${angle}" | Catégorie : "${categorie}"
 Recherche les informations factuelles, chiffres officiels, textes de loi sur ce sujet en 2026.
 Sources uniquement : URSSAF, Service-Public.fr, Legifrance, INPI, Bpifrance, impots.gouv.fr.
 
-Réponds en JSON valide uniquement, sans markdown :
+Réponds en JSON valide uniquement :
 {
   "faits_cles": ["fait 1 avec chiffre/date précis", "fait 2", "fait 3", "fait 4", "fait 5"],
   "sources": ["https://url-officielle-1.fr", "https://url-officielle-2.fr"],
   "points_attention": ["piège ou erreur courante 1", "piège ou erreur courante 2"]
 }`
-    }],
-    temperature: 0.2,
-    max_tokens: 800
+    }]
   });
 
   const recherche = parseJSON(rechercheRes.choices[0].message.content);
 
-  // Agent 3 — Rédaction
+  // Agent 3 — Rédaction (markdown — pas de response_format json_object)
   const redactionRes = await openai.chat.completions.create({
     model: 'gpt-4o',
+    temperature: 0.5,
+    max_tokens: 3000,
     messages: [{
       role: 'user',
       content: `Tu es un rédacteur expert en gestion d'entreprise pour auto-entrepreneurs français.
@@ -225,9 +230,7 @@ Termine par :
 "*Ces informations sont fournies à titre indicatif. Consultez un expert-comptable pour votre situation.*"
 
 Réponds en markdown uniquement, sans JSON.`
-    }],
-    temperature: 0.5,
-    max_tokens: 3000
+    }]
   });
 
   const contenu = redactionRes.choices[0].message.content.trim();
@@ -235,6 +238,9 @@ Réponds en markdown uniquement, sans JSON.`
   // Agent 4 — SEO + Fact-check
   const seoRes = await openai.chat.completions.create({
     model: 'gpt-4o',
+    response_format: { type: "json_object" },
+    temperature: 0.2,
+    max_tokens: 400,
     messages: [{
       role: 'user',
       content: `Expert SEO et fact-checker contenu juridique/fiscal français.
@@ -242,7 +248,7 @@ Réponds en markdown uniquement, sans JSON.`
 Titre : "${titre}" | Catégorie : "${categorie}" | Mots-clés : ${Array.isArray(mots_cles) ? mots_cles.join(', ') : mots_cles}
 Extrait contenu : ${contenu.slice(0, 2000)}...
 
-Réponds en JSON valide uniquement, sans markdown :
+Réponds en JSON valide uniquement :
 {
   "titre_seo": "Titre optimisé 55-60 caractères",
   "meta_description": "Description 150-160 caractères avec mot-clé principal",
@@ -250,9 +256,7 @@ Réponds en JSON valide uniquement, sans markdown :
   "score_factuel": 8,
   "remarques": "Aucune anomalie"
 }`
-    }],
-    temperature: 0.2,
-    max_tokens: 400
+    }]
   });
 
   const seo = parseJSON(seoRes.choices[0].message.content);
@@ -320,6 +324,9 @@ async function handleRefresh(req) {
   for (const article of articles) {
     const checkRes = await openai.chat.completions.create({
       model: 'gpt-4o',
+      response_format: { type: "json_object" },
+      temperature: 0.2,
+      max_tokens: 600,
       messages: [{
         role: 'user',
         content: `Expert veille juridique/fiscale auto-entrepreneurs français.
@@ -329,15 +336,13 @@ Extrait contenu : ${article.contenu?.slice(0, 1500)}
 
 En 2026, vérifie si des informations sont obsolètes (taux URSSAF, plafonds, e-invoicing, nouvelles lois).
 
-Réponds en JSON valide uniquement, sans markdown :
+Réponds en JSON valide uniquement :
 {
   "necessite_update": true,
   "raisons": ["raison 1"],
   "nouveau_paragraphe": "Paragraphe de mise à jour à ajouter en tête d'article (ou null)"
 }`
-      }],
-      temperature: 0.2,
-      max_tokens: 600
+      }]
     });
 
     const check = parseJSON(checkRes.choices[0].message.content);
