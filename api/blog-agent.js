@@ -42,52 +42,41 @@ function generateSlug(titre) {
     .slice(0, 80);
 }
 
-// ── Unsplash ───────────────────────────────────────────────────────
-function getUnsplashQuery(titre) {
+// ── Images fixes par catégorie (zéro appel externe) ────────────────
+function fetchUnsplashImage(titre) {
   const t = titre.toLowerCase();
-  const map = [
-    { keys: ['tva', 'taxe', 'fiscal', 'impôt'],         q: 'tax business accounting' },
-    { keys: ['urssaf', 'cotisation', 'charge'],          q: 'entrepreneur office work' },
-    { keys: ['factur', 'devis'],                         q: 'invoice business document' },
-    { keys: ['contrat', 'assurance', 'juridique'],       q: 'contract signing business' },
-    { keys: ['trésorerie', 'cash', 'banque', 'finance'], q: 'finance money business' },
-    { keys: ['comptab'],                                  q: 'accounting office laptop' },
-    { keys: ['client', 'prospect', 'commercial'],        q: 'business meeting client' },
-    { keys: ['création', 'créer', 'lancer', 'startup'],  q: 'startup entrepreneur launch' },
-    { keys: ['numérique', 'ia', 'digital', 'outil'],     q: 'digital technology laptop' },
-    { keys: ['marketing', 'brand', 'réseaux'],           q: 'marketing social media' },
-    { keys: ['santé', 'bien-être'],                      q: 'health wellness work' },
-    { keys: ['formation', 'compétence', 'apprendre'],    q: 'learning education training' },
-    { keys: ['sécurité', 'rgpd', 'données'],             q: 'cybersecurity data protection' },
-    { keys: ['retraite', 'épargne', 'prévoyance'],       q: 'savings retirement finance' },
-    { keys: ['artisan', 'btp', 'chantier'],              q: 'craftsman workshop tools' },
-    { keys: ['seuil', 'plafond', 'chiffre'],             q: 'business revenue growth' },
+  const imageMap = [
+    { keys: ['tva', 'taxe', 'fiscal', 'impôt'],          url: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1200' },
+    { keys: ['urssaf', 'cotisation', 'charge'],           url: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=1200' },
+    { keys: ['factur', 'devis'],                          url: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1200' },
+    { keys: ['contrat', 'assurance', 'juridique'],        url: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=1200' },
+    { keys: ['trésorerie', 'cash', 'banque', 'finance'],  url: 'https://images.unsplash.com/photo-1579621970795-87facc2f976d?w=1200' },
+    { keys: ['comptab'],                                   url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200' },
+    { keys: ['client', 'prospect', 'commercial'],         url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200' },
+    { keys: ['création', 'créer', 'lancer', 'startup'],   url: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=1200' },
+    { keys: ['numérique', 'ia', 'digital', 'outil'],      url: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200' },
+    { keys: ['marketing', 'brand', 'réseaux'],            url: 'https://images.unsplash.com/photo-1432888622747-4eb9a8f5c9a8?w=1200' },
+    { keys: ['formation', 'compétence', 'apprendre'],     url: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1200' },
+    { keys: ['sécurité', 'rgpd', 'données'],              url: 'https://images.unsplash.com/photo-1563986768494-4dee2763ff3f?w=1200' },
+    { keys: ['artisan', 'btp', 'chantier'],               url: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1200' },
+    { keys: ['seuil', 'plafond', 'chiffre'],              url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200' },
+    { keys: ['santé', 'bien-être'],                       url: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1200' },
+    { keys: ['retraite', 'épargne', 'prévoyance'],        url: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=1200' },
+    { keys: ['radiation', 'cessation', 'fermer'],         url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200' },
+    { keys: ['propriété', 'intellectuelle', 'brevet'],    url: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=1200' },
   ];
-  for (const { keys, q } of map) {
-    if (keys.some(k => t.includes(k))) return q;
-  }
-  return 'small business entrepreneur office';
-}
 
-async function fetchUnsplashImage(titre) {
-  try {
-    const query = getUnsplashQuery(titre);
-    const res = await fetch(
-      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1&orientation=landscape`,
-      { headers: { Authorization: `Client-ID ${process.env.UNSPLASH_ACCESS_KEY}` } }
-    );
-    const data = await res.json();
-    const photo = data?.results?.[0];
-    if (!photo) return { image_url: null, image_credit: null, image_credit_url: null };
-    return {
-      image_url: photo.urls.regular,
-      image_credit: photo.user.name,
-      image_credit_url: photo.user.links.html,
-    };
-  } catch (e) {
-    console.error('[unsplash]', e.message);
-    return { image_url: null, image_credit: null, image_credit_url: null };
+  for (const { keys, url } of imageMap) {
+    if (keys.some(k => t.includes(k))) {
+      return { image_url: url, image_credit: 'Unsplash', image_credit_url: 'https://unsplash.com' };
+    }
   }
+  // Image par défaut
+  return {
+    image_url: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=1200',
+    image_credit: 'Unsplash',
+    image_credit_url: 'https://unsplash.com'
+  };
 }
 
 // ── ACTION : sitemap (GET) ─────────────────────────────────────────
@@ -120,14 +109,14 @@ async function handleGenerate(body) {
   const { sujet, categorie = 'Guide pratique', publier = false } = body;
   if (!sujet) throw new Error('Sujet requis');
 
-  // Lance OpenAI et Unsplash en parallèle
-  const [completion, imageData] = await Promise.all([
-    openai.chat.completions.create({
-      model: 'gpt-4o', max_tokens: 4000, temperature: 0.7,
-      response_format: { type: "json_object" },
-      messages: [{
-        role: 'user',
-        content: `Tu es un rédacteur SEO expert en gestion d'entreprise et fiscalité française pour auto-entrepreneurs et TPE.
+  const imageData = fetchUnsplashImage(sujet); // synchrone, zéro latence
+
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-4o', max_tokens: 4000, temperature: 0.7,
+    response_format: { type: "json_object" },
+    messages: [{
+      role: 'user',
+      content: `Tu es un rédacteur SEO expert en gestion d'entreprise et fiscalité française pour auto-entrepreneurs et TPE.
 Rédige un article de blog complet et optimisé SEO sur : "${sujet}"
 - Entre 1200 et 1800 mots, ton professionnel mais accessible
 - Se termine par un CTA vers Vigie Pro
@@ -139,10 +128,8 @@ Réponds UNIQUEMENT en JSON valide :
   "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"]
 }
 Termine par : "*Ces informations sont fournies à titre indicatif. Consultez un expert-comptable ou un conseiller juridique.*"`
-      }]
-    }),
-    fetchUnsplashImage(sujet)
-  ]);
+    }]
+  });
 
   const article = parseJSON(completion.choices[0].message.content);
   const slug = generateSlug(article.titre) + '-' + Date.now().toString(36);
@@ -199,24 +186,21 @@ async function handlePipeline(body) {
   const { titre, categorie, angle, mots_cles, auto_generated = true } = body;
   if (!titre || !categorie) throw new Error('titre et categorie requis');
 
-  // Agent 2 — Recherche + Unsplash en parallèle
-  const [rechercheRes, imageData] = await Promise.all([
-    openai.chat.completions.create({
-      model: 'gpt-4o', response_format: { type: "json_object" },
-      temperature: 0.2, max_tokens: 800,
-      messages: [{
-        role: 'user',
-        content: `Agent recherche droit/gestion auto-entrepreneurs.
+  const imageData = fetchUnsplashImage(titre); // synchrone
+
+  const rechercheRes = await openai.chat.completions.create({
+    model: 'gpt-4o', response_format: { type: "json_object" },
+    temperature: 0.2, max_tokens: 800,
+    messages: [{
+      role: 'user',
+      content: `Agent recherche droit/gestion auto-entrepreneurs.
 Sujet:"${titre}"|Angle:"${angle}"|Catégorie:"${categorie}"
 Sources: URSSAF,Service-Public.fr,Legifrance,INPI,Bpifrance,impots.gouv.fr
 JSON: {"faits_cles":["f1","f2","f3","f4","f5"],"sources":["url1","url2"],"points_attention":["p1","p2"]}`
-      }]
-    }),
-    fetchUnsplashImage(titre)
-  ]);
+    }]
+  });
   const recherche = parseJSON(rechercheRes.choices[0].message.content);
 
-  // Agent 3 — Rédaction
   const redactionRes = await openai.chat.completions.create({
     model: 'gpt-4o', temperature: 0.5, max_tokens: 3000,
     messages: [{
@@ -233,7 +217,6 @@ Markdown uniquement.`
   });
   const contenu = redactionRes.choices[0].message.content.trim();
 
-  // Agent 4 — SEO
   const seoRes = await openai.chat.completions.create({
     model: 'gpt-4o', response_format: { type: "json_object" },
     temperature: 0.2, max_tokens: 400,
@@ -249,7 +232,6 @@ JSON:{"titre_seo":"55-60 car","meta_description":"150-160 car","tags":["t1","t2"
 
   console.log('[pipeline] image_url:', imageData.image_url);
 
-  // Agent 5 — Publication
   let slug = generateSlug(seo.titre_seo || titre);
   const { data: existing } = await supabase.from('blog_articles').select('id').eq('slug', slug).single();
   if (existing) slug = `${slug}-${Date.now()}`;
