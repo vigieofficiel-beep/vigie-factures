@@ -42,33 +42,36 @@ function generateSlug(titre) {
     .slice(0, 80);
 }
 
-// ── Unsplash — query en anglais basée sur le titre ────────────────
+// ── Unsplash ───────────────────────────────────────────────────────
+function getUnsplashQuery(titre) {
+  const t = titre.toLowerCase();
+  const map = [
+    { keys: ['tva', 'taxe', 'fiscal', 'impôt'],         q: 'tax business accounting' },
+    { keys: ['urssaf', 'cotisation', 'charge'],          q: 'entrepreneur office work' },
+    { keys: ['factur', 'devis'],                         q: 'invoice business document' },
+    { keys: ['contrat', 'assurance', 'juridique'],       q: 'contract signing business' },
+    { keys: ['trésorerie', 'cash', 'banque', 'finance'], q: 'finance money business' },
+    { keys: ['comptab'],                                  q: 'accounting office laptop' },
+    { keys: ['client', 'prospect', 'commercial'],        q: 'business meeting client' },
+    { keys: ['création', 'créer', 'lancer', 'startup'],  q: 'startup entrepreneur launch' },
+    { keys: ['numérique', 'ia', 'digital', 'outil'],     q: 'digital technology laptop' },
+    { keys: ['marketing', 'brand', 'réseaux'],           q: 'marketing social media' },
+    { keys: ['santé', 'bien-être'],                      q: 'health wellness work' },
+    { keys: ['formation', 'compétence', 'apprendre'],    q: 'learning education training' },
+    { keys: ['sécurité', 'rgpd', 'données'],             q: 'cybersecurity data protection' },
+    { keys: ['retraite', 'épargne', 'prévoyance'],       q: 'savings retirement finance' },
+    { keys: ['artisan', 'btp', 'chantier'],              q: 'craftsman workshop tools' },
+    { keys: ['seuil', 'plafond', 'chiffre'],             q: 'business revenue growth' },
+  ];
+  for (const { keys, q } of map) {
+    if (keys.some(k => t.includes(k))) return q;
+  }
+  return 'small business entrepreneur office';
+}
+
 async function fetchUnsplashImage(titre) {
   try {
-    const titreLower = titre.toLowerCase();
-    const keywordMap = [
-      { keys: ['tva', 'taxe', 'fiscal', 'impôt'],          query: 'tax business accounting' },
-      { keys: ['urssaf', 'cotisation', 'charge'],           query: 'entrepreneur office work' },
-      { keys: ['factur', 'devis', 'invoice'],               query: 'invoice business document' },
-      { keys: ['contrat', 'assurance', 'juridique'],        query: 'contract signing business' },
-      { keys: ['trésorerie', 'cash', 'banque', 'finance'],  query: 'finance money business' },
-      { keys: ['comptab'],                                   query: 'accounting office laptop' },
-      { keys: ['client', 'prospect', 'commercial'],         query: 'business meeting client' },
-      { keys: ['création', 'lancer', 'startup'],            query: 'startup entrepreneur launch' },
-      { keys: ['numérique', 'ia', 'digital', 'outil'],      query: 'digital technology laptop' },
-      { keys: ['marketing', 'brand', 'réseaux'],            query: 'marketing social media' },
-      { keys: ['santé', 'bien-être'],                       query: 'health wellness work' },
-      { keys: ['formation', 'compétence', 'apprendre'],     query: 'learning education training' },
-      { keys: ['sécurité', 'rgpd', 'données'],              query: 'cybersecurity data protection' },
-      { keys: ['retraite', 'épargne', 'prévoyance'],        query: 'savings retirement finance' },
-      { keys: ['artisan', 'btp', 'chantier'],               query: 'craftsman workshop tools' },
-    ];
-
-    let query = 'small business entrepreneur france office';
-    for (const { keys, query: q } of keywordMap) {
-      if (keys.some(k => titreLower.includes(k))) { query = q; break; }
-    }
-
+    const query = getUnsplashQuery(titre);
     const res = await fetch(
       `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1&orientation=landscape`,
       { headers: { Authorization: `Client-ID ${process.env.UNSPLASH_ACCESS_KEY}` } }
@@ -81,7 +84,8 @@ async function fetchUnsplashImage(titre) {
       image_credit: photo.user.name,
       image_credit_url: photo.user.links.html,
     };
-  } catch {
+  } catch (e) {
+    console.error('[unsplash]', e.message);
     return { image_url: null, image_credit: null, image_credit_url: null };
   }
 }
@@ -96,43 +100,19 @@ async function handleSitemap(res) {
     { url: '/pricing',  priority: '0.8', changefreq: 'monthly' },
     { url: '/contact',  priority: '0.6', changefreq: 'monthly' },
   ];
-
   const { data: articles } = await supabase
-    .from('blog_articles')
-    .select('slug, updated_at, created_at')
-    .eq('statut', 'publie')
-    .order('created_at', { ascending: false });
-
+    .from('blog_articles').select('slug, updated_at, created_at')
+    .eq('statut', 'publie').order('created_at', { ascending: false });
   const now = new Date().toISOString().split('T')[0];
-
   const staticUrls = STATIC_PAGES.map(p => `
-  <url>
-    <loc>${BASE_URL}${p.url}</loc>
-    <lastmod>${now}</lastmod>
-    <changefreq>${p.changefreq}</changefreq>
-    <priority>${p.priority}</priority>
-  </url>`).join('');
-
+  <url><loc>${BASE_URL}${p.url}</loc><lastmod>${now}</lastmod><changefreq>${p.changefreq}</changefreq><priority>${p.priority}</priority></url>`).join('');
   const articleUrls = (articles || []).map(a => {
     const lastmod = (a.updated_at || a.created_at || now).split('T')[0];
-    return `
-  <url>
-    <loc>${BASE_URL}/blog/${a.slug}</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>`;
+    return `\n  <url><loc>${BASE_URL}/blog/${a.slug}</loc><lastmod>${lastmod}</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>`;
   }).join('');
-
-  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${staticUrls}
-${articleUrls}
-</urlset>`;
-
   res.setHeader('Content-Type', 'application/xml');
   res.setHeader('Cache-Control', 'public, max-age=3600');
-  return res.status(200).send(sitemap);
+  return res.status(200).send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${staticUrls}${articleUrls}\n</urlset>`);
 }
 
 // ── ACTION : generate ──────────────────────────────────────────────
@@ -140,25 +120,17 @@ async function handleGenerate(body) {
   const { sujet, categorie = 'Guide pratique', publier = false } = body;
   if (!sujet) throw new Error('Sujet requis');
 
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    max_tokens: 4000,
-    temperature: 0.7,
-    response_format: { type: "json_object" },
-    messages: [{
-      role: 'user',
-      content: `Tu es un rédacteur SEO expert en gestion d'entreprise et fiscalité française pour auto-entrepreneurs et TPE.
-
-Rédige un article de blog complet et optimisé SEO sur le sujet suivant : "${sujet}"
-
-L'article doit :
-- Cibler les auto-entrepreneurs, micro-entrepreneurs et TPE françaises
-- Être informatif et pédagogique (pas de conseil personnalisé)
-- Faire entre 1200 et 1800 mots
-- Utiliser un ton professionnel mais accessible
-- Inclure des exemples concrets chiffrés quand c'est pertinent
-- Se terminer par un CTA naturel vers Vigie Pro
-
+  // Lance OpenAI et Unsplash en parallèle
+  const [completion, imageData] = await Promise.all([
+    openai.chat.completions.create({
+      model: 'gpt-4o', max_tokens: 4000, temperature: 0.7,
+      response_format: { type: "json_object" },
+      messages: [{
+        role: 'user',
+        content: `Tu es un rédacteur SEO expert en gestion d'entreprise et fiscalité française pour auto-entrepreneurs et TPE.
+Rédige un article de blog complet et optimisé SEO sur : "${sujet}"
+- Entre 1200 et 1800 mots, ton professionnel mais accessible
+- Se termine par un CTA vers Vigie Pro
 Réponds UNIQUEMENT en JSON valide :
 {
   "titre": "Titre optimisé SEO (60 caractères max)",
@@ -166,22 +138,26 @@ Réponds UNIQUEMENT en JSON valide :
   "contenu": "Article complet en markdown avec ## H2 et ### H3",
   "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"]
 }
-
-Termine toujours l'article par :
-"*Ces informations sont fournies à titre indicatif. Pour votre situation personnelle, consultez un expert-comptable ou un conseiller juridique.*"`
-    }]
-  });
+Termine par : "*Ces informations sont fournies à titre indicatif. Consultez un expert-comptable ou un conseiller juridique.*"`
+      }]
+    }),
+    fetchUnsplashImage(sujet)
+  ]);
 
   const article = parseJSON(completion.choices[0].message.content);
   const slug = generateSlug(article.titre) + '-' + Date.now().toString(36);
-  const imageData = await fetchUnsplashImage(article.titre);
+
+  console.log('[generate] image_url:', imageData.image_url);
 
   const { data, error } = await supabase.from('blog_articles').insert([{
     slug, titre: article.titre, meta_description: article.meta_description,
     contenu: article.contenu, categorie, tags: article.tags || [],
     statut: publier ? 'publie' : 'brouillon',
     date_publication: publier ? new Date().toISOString() : null,
-    auto_generated: false, ...imageData
+    auto_generated: false,
+    image_url: imageData.image_url,
+    image_credit: imageData.image_credit,
+    image_credit_url: imageData.image_credit_url,
   }]).select().single();
 
   if (error) throw error;
@@ -191,10 +167,8 @@ Termine toujours l'article par :
 // ── ACTION : topics ────────────────────────────────────────────────
 async function handleTopics() {
   const { data: existingArticles } = await supabase
-    .from('blog_articles')
-    .select('titre, categorie')
-    .order('created_at', { ascending: false })
-    .limit(200);
+    .from('blog_articles').select('titre, categorie')
+    .order('created_at', { ascending: false }).limit(200);
 
   const existingTitles = existingArticles?.map(a => a.titre).join('\n') || '';
   const categoryCounts = {};
@@ -202,30 +176,20 @@ async function handleTopics() {
   existingArticles?.forEach(a => {
     if (a.categorie && categoryCounts[a.categorie] !== undefined) categoryCounts[a.categorie]++;
   });
-
   const targetCategory = [...CATEGORIES].sort((a, b) => categoryCounts[a] - categoryCounts[b])[0];
 
   const completion = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    response_format: { type: "json_object" },
+    model: 'gpt-4o', response_format: { type: "json_object" },
     temperature: 0.7, max_tokens: 300,
     messages: [{
       role: 'user',
-      content: `Tu es un expert en gestion d'entreprise pour auto-entrepreneurs français.
-Catégorie cible : "${targetCategory}"
-Articles déjà publiés (ÉVITE tout sujet similaire) :
-${existingTitles}
-Propose UN sujet d'article factuel, utile, pratique sur "${targetCategory}" différent de tous les articles existants.
-Réponds UNIQUEMENT en JSON valide :
-{
-  "titre": "Titre de l'article (60 caractères max)",
-  "categorie": "${targetCategory}",
-  "angle": "En une phrase, l'angle précis de l'article",
-  "mots_cles": ["mot1", "mot2", "mot3"]
-}`
+      content: `Expert gestion auto-entrepreneurs français.
+Catégorie : "${targetCategory}"
+Articles existants (ÉVITE) : ${existingTitles}
+Propose UN sujet différent. JSON :
+{"titre":"60 car max","categorie":"${targetCategory}","angle":"une phrase","mots_cles":["mot1","mot2","mot3"]}`
     }]
   });
-
   const topic = parseJSON(completion.choices[0].message.content);
   return { success: true, topic };
 }
@@ -235,63 +199,57 @@ async function handlePipeline(body) {
   const { titre, categorie, angle, mots_cles, auto_generated = true } = body;
   if (!titre || !categorie) throw new Error('titre et categorie requis');
 
-  const rechercheRes = await openai.chat.completions.create({
-    model: 'gpt-4o', response_format: { type: "json_object" },
-    temperature: 0.2, max_tokens: 800,
-    messages: [{
-      role: 'user',
-      content: `Agent de recherche droit/gestion auto-entrepreneurs français.
-Sujet : "${titre}" | Angle : "${angle}" | Catégorie : "${categorie}"
-Sources : URSSAF, Service-Public.fr, Legifrance, INPI, Bpifrance, impots.gouv.fr.
-Réponds en JSON :
-{
-  "faits_cles": ["fait 1", "fait 2", "fait 3", "fait 4", "fait 5"],
-  "sources": ["https://url1.fr", "https://url2.fr"],
-  "points_attention": ["piège 1", "piège 2"]
-}`
-    }]
-  });
+  // Agent 2 — Recherche + Unsplash en parallèle
+  const [rechercheRes, imageData] = await Promise.all([
+    openai.chat.completions.create({
+      model: 'gpt-4o', response_format: { type: "json_object" },
+      temperature: 0.2, max_tokens: 800,
+      messages: [{
+        role: 'user',
+        content: `Agent recherche droit/gestion auto-entrepreneurs.
+Sujet:"${titre}"|Angle:"${angle}"|Catégorie:"${categorie}"
+Sources: URSSAF,Service-Public.fr,Legifrance,INPI,Bpifrance,impots.gouv.fr
+JSON: {"faits_cles":["f1","f2","f3","f4","f5"],"sources":["url1","url2"],"points_attention":["p1","p2"]}`
+      }]
+    }),
+    fetchUnsplashImage(titre)
+  ]);
   const recherche = parseJSON(rechercheRes.choices[0].message.content);
 
+  // Agent 3 — Rédaction
   const redactionRes = await openai.chat.completions.create({
     model: 'gpt-4o', temperature: 0.5, max_tokens: 3000,
     messages: [{
       role: 'user',
-      content: `Rédacteur expert gestion auto-entrepreneurs français.
-Titre : "${titre}" | Catégorie : "${categorie}" | Angle : "${angle}"
-Mots-clés : ${Array.isArray(mots_cles) ? mots_cles.join(', ') : mots_cles}
-Faits : ${recherche.faits_cles.map((f, i) => `${i + 1}. ${f}`).join('\n')}
-Points attention : ${recherche.points_attention.map((p, i) => `${i + 1}. ${p}`).join('\n')}
-Rédige 1500 mots minimum en markdown.
-Structure : Introduction → ## Contexte → ## Fonctionnement → ## Chiffres clés → ## Erreurs à éviter → ## Conseils pratiques → Conclusion CTA Vigie Pro
-Termine par : "---\\n*Article libre de droit — Vigie Pro 2026. Sources : ${recherche.sources.join(', ')}*"
-"*Ces informations sont fournies à titre indicatif. Consultez un expert-comptable pour votre situation.*"
-Réponds en markdown uniquement.`
+      content: `Rédacteur expert auto-entrepreneurs français.
+Titre:"${titre}"|Cat:"${categorie}"|Angle:"${angle}"
+Mots-clés: ${Array.isArray(mots_cles) ? mots_cles.join(', ') : mots_cles}
+Faits: ${recherche.faits_cles.map((f,i)=>`${i+1}.${f}`).join('\n')}
+Points: ${recherche.points_attention.map((p,i)=>`${i+1}.${p}`).join('\n')}
+1500 mots markdown. Structure: Intro→##Contexte→##Fonctionnement→##Chiffres→##Erreurs→##Conseils→Conclusion CTA Vigie Pro
+Fin: "---\\n*Article libre de droit — Vigie Pro 2026. Sources: ${recherche.sources.join(', ')}*\\n*Informations indicatives. Consultez un expert-comptable.*"
+Markdown uniquement.`
     }]
   });
   const contenu = redactionRes.choices[0].message.content.trim();
 
+  // Agent 4 — SEO
   const seoRes = await openai.chat.completions.create({
     model: 'gpt-4o', response_format: { type: "json_object" },
     temperature: 0.2, max_tokens: 400,
     messages: [{
       role: 'user',
-      content: `Expert SEO fact-checker juridique/fiscal français.
-Titre : "${titre}" | Catégorie : "${categorie}" | Mots-clés : ${Array.isArray(mots_cles) ? mots_cles.join(', ') : mots_cles}
-Extrait : ${contenu.slice(0, 2000)}...
-Réponds en JSON :
-{
-  "titre_seo": "Titre 55-60 caractères",
-  "meta_description": "Description 150-160 caractères",
-  "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
-  "score_factuel": 8,
-  "remarques": "Aucune anomalie"
-}`
+      content: `SEO fact-checker juridique/fiscal français.
+Titre:"${titre}"|Cat:"${categorie}"|Mots-clés:${Array.isArray(mots_cles)?mots_cles.join(','):mots_cles}
+Extrait:${contenu.slice(0,2000)}...
+JSON:{"titre_seo":"55-60 car","meta_description":"150-160 car","tags":["t1","t2","t3","t4","t5"],"score_factuel":8,"remarques":"ok"}`
     }]
   });
   const seo = parseJSON(seoRes.choices[0].message.content);
-  const imageData = await fetchUnsplashImage(seo.titre_seo || titre);
 
+  console.log('[pipeline] image_url:', imageData.image_url);
+
+  // Agent 5 — Publication
   let slug = generateSlug(seo.titre_seo || titre);
   const { data: existing } = await supabase.from('blog_articles').select('id').eq('slug', slug).single();
   if (existing) slug = `${slug}-${Date.now()}`;
@@ -299,13 +257,16 @@ Réponds en JSON :
   const statut = auto_generated ? 'a_relire' : 'publie';
   const { data: article, error } = await supabase.from('blog_articles').insert({
     slug, titre: seo.titre_seo || titre, meta_description: seo.meta_description,
-    contenu, categorie, tags: seo.tags, statut, source_urls: recherche.sources,
-    auto_generated, date_publication: statut === 'publie' ? new Date().toISOString() : null,
-    ...imageData
+    contenu, categorie, tags: seo.tags, statut,
+    source_urls: recherche.sources, auto_generated,
+    date_publication: statut === 'publie' ? new Date().toISOString() : null,
+    image_url: imageData.image_url,
+    image_credit: imageData.image_credit,
+    image_credit_url: imageData.image_credit_url,
   }).select().single();
 
   if (error) throw error;
-  return { success: true, article_id: article.id, slug: article.slug, titre: article.titre, statut, score_factuel: seo.score_factuel, remarques: seo.remarques, image_url: imageData.image_url };
+  return { success: true, article_id: article.id, slug: article.slug, titre: article.titre, statut, score_factuel: seo.score_factuel, image_url: imageData.image_url };
 }
 
 // ── ACTION : refresh ───────────────────────────────────────────────
@@ -317,10 +278,8 @@ async function handleRefresh(req) {
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
   const { data: articles } = await supabase.from('blog_articles')
-    .select('id, titre, contenu, categorie')
-    .eq('statut', 'publie')
-    .lt('updated_at', thirtyDaysAgo.toISOString())
-    .limit(3);
+    .select('id, titre, contenu, categorie').eq('statut', 'publie')
+    .lt('updated_at', thirtyDaysAgo.toISOString()).limit(3);
 
   if (!articles || articles.length === 0) return { success: true, message: 'Aucun article à rafraîchir' };
 
@@ -331,16 +290,11 @@ async function handleRefresh(req) {
       temperature: 0.2, max_tokens: 600,
       messages: [{
         role: 'user',
-        content: `Expert veille juridique/fiscale auto-entrepreneurs français.
-Titre : "${article.titre}" | Catégorie : "${article.categorie}"
-Extrait : ${article.contenu?.slice(0, 1500)}
-En 2026, vérifie si des infos sont obsolètes (URSSAF, plafonds, e-invoicing).
-Réponds en JSON :
-{
-  "necessite_update": true,
-  "raisons": ["raison 1"],
-  "nouveau_paragraphe": "Paragraphe à ajouter en tête (ou null)"
-}`
+        content: `Veille juridique/fiscale auto-entrepreneurs 2026.
+Titre:"${article.titre}"|Cat:"${article.categorie}"
+Extrait:${article.contenu?.slice(0,1500)}
+Vérifie si infos obsolètes (URSSAF,plafonds,e-invoicing).
+JSON:{"necessite_update":true,"raisons":["r1"],"nouveau_paragraphe":"texte ou null"}`
       }]
     });
     const check = parseJSON(checkRes.choices[0].message.content);
@@ -362,7 +316,6 @@ export default async function handler(req, res) {
     try { return await handleSitemap(res); }
     catch (error) { return res.status(500).json({ error: error.message }); }
   }
-
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { action, ...body } = req.body;
@@ -372,7 +325,7 @@ export default async function handler(req, res) {
     else if (action === 'topics')     result = await handleTopics();
     else if (action === 'pipeline')   result = await handlePipeline(body);
     else if (action === 'refresh')    result = await handleRefresh(req);
-    else return res.status(400).json({ error: 'action invalide — utilise: generate | topics | pipeline | refresh' });
+    else return res.status(400).json({ error: 'action invalide' });
     return res.status(200).json(result);
   } catch (error) {
     console.error(`[blog-agent/${action}]`, error);
