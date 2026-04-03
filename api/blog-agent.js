@@ -14,6 +14,8 @@ const supabase = createClient(
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+const FROM_EMAIL = 'Vigie Blog <vigie.officiel@vigie-officiel.com>';
+
 function parseJSON(raw) {
   const clean = raw.trim().replace(/```json|```/g, '').trim();
   return JSON.parse(clean);
@@ -110,7 +112,7 @@ async function handleSubscribe(body) {
   if (error) throw error;
 
   await resend.emails.send({
-    from: 'Vigie Blog <blog@vigie-officiel.com>',
+    from: FROM_EMAIL,
     to: email,
     subject: '✅ Inscription confirmée — Vigie Blog',
     html: `<div style="font-family:sans-serif;background:#06080B;color:#EDE8DB;padding:40px;max-width:560px;margin:0 auto;border-radius:16px">
@@ -152,7 +154,7 @@ async function handleNewsletterSend(body) {
   for (let i = 0; i < emails.length; i += 50) {
     const batch = emails.slice(i, i + 50);
     await resend.emails.send({
-      from: 'Vigie Blog <blog@vigie-officiel.com>',
+      from: FROM_EMAIL,
       to: batch,
       subject: `📖 ${article.titre}`,
       html: `<div style="font-family:sans-serif;background:#06080B;color:#EDE8DB;padding:40px;max-width:560px;margin:0 auto;border-radius:16px">
@@ -356,11 +358,11 @@ export default async function handler(req, res) {
   const { action, ...body } = req.body;
   try {
     let result;
-    if (action === 'generate')          result = await handleGenerate(body);
-    else if (action === 'topics')       result = await handleTopics();
-    else if (action === 'pipeline')     result = await handlePipeline(body);
-    else if (action === 'refresh')      result = await handleRefresh(req);
-    else if (action === 'subscribe')    result = await handleSubscribe(body);
+    if (action === 'generate')             result = await handleGenerate(body);
+    else if (action === 'topics')          result = await handleTopics();
+    else if (action === 'pipeline')        result = await handlePipeline(body);
+    else if (action === 'refresh')         result = await handleRefresh(req);
+    else if (action === 'subscribe')       result = await handleSubscribe(body);
     else if (action === 'newsletter-send') result = await handleNewsletterSend(body);
     else return res.status(400).json({ error: 'action invalide' });
     return res.status(200).json(result);

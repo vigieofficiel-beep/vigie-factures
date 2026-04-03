@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { supabasePro } from '../lib/supabasePro';
-import { Plus, Trash2, Eye, EyeOff, Loader, CheckCircle, AlertTriangle, Lock, RefreshCw, ExternalLink, FileText, X, Edit3, Save } from 'lucide-react';
+import { Plus, Trash2, Eye, EyeOff, Loader, CheckCircle, AlertTriangle, Lock, RefreshCw, ExternalLink, FileText, X, Edit3, Save, MessageSquare } from 'lucide-react';
 
 const ACCENT = '#5BC78A';
 const ADMIN_EMAIL = 'luciendoppler@gmail.com';
 const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric' }) : '—';
+const formatDateTime = (d) => d ? new Date(d).toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
 
 const CATEGORIES = [
   'TVA & Régimes fiscaux', 'Charges & Cotisations URSSAF', 'Facturation & Devis',
@@ -59,6 +60,9 @@ export default function BlogAdmin() {
   const [preview,    setPreview]    = useState(null);
   const [editMode,   setEditMode]   = useState(false);
   const [editData,   setEditData]   = useState({});
+  const [activeTab,  setActiveTab]  = useState('articles'); // 'articles' | 'commentaires'
+  const [comments,   setComments]   = useState([]);
+  const [cmtLoading, setCmtLoading] = useState(false);
 
   useEffect(() => {
     supabasePro.auth.getSession().then(({ data: { session } }) => {
@@ -66,7 +70,12 @@ export default function BlogAdmin() {
     });
   }, []);
 
-  useEffect(() => { if (authorized) fetchArticles(); }, [authorized]);
+  useEffect(() => {
+    if (authorized) {
+      fetchArticles();
+      fetchComments();
+    }
+  }, [authorized]);
 
   const fetchArticles = async () => {
     setLoading(true);
@@ -76,6 +85,22 @@ export default function BlogAdmin() {
       .order('created_at', { ascending: false });
     setArticles(data || []);
     setLoading(false);
+  };
+
+  const fetchComments = async () => {
+    setCmtLoading(true);
+    const { data } = await supabasePro
+      .from('blog_comments')
+      .select('id, nom, message, created_at, approuve, article_id, blog_articles(titre, slug)')
+      .order('created_at', { ascending: false });
+    setComments(data || []);
+    setCmtLoading(false);
+  };
+
+  const supprimerComment = async (id) => {
+    if (!confirm('Supprimer ce commentaire ?')) return;
+    await supabasePro.from('blog_comments').delete().eq('id', id);
+    fetchComments();
   };
 
   const openPreview = (article) => {
@@ -96,22 +121,16 @@ export default function BlogAdmin() {
     try {
       const tagsArray = editData.tags.split(',').map(t => t.trim()).filter(Boolean);
       const { error } = await supabasePro.from('blog_articles').update({
-        titre: editData.titre,
-        meta_description: editData.meta_description,
-        categorie: editData.categorie,
-        tags: tagsArray,
-        contenu: editData.contenu,
+        titre: editData.titre, meta_description: editData.meta_description,
+        categorie: editData.categorie, tags: tagsArray, contenu: editData.contenu,
         updated_at: new Date().toISOString(),
       }).eq('id', preview.id);
       if (error) throw error;
       setMsg({ type: 'success', text: '✓ Article mis à jour !' });
       setEditMode(false);
       await fetchArticles();
-      // Met à jour preview avec les nouvelles données
       setPreview(prev => ({ ...prev, ...editData, tags: tagsArray }));
-    } catch (e) {
-      setMsg({ type: 'error', text: e.message });
-    }
+    } catch (e) { setMsg({ type: 'error', text: e.message }); }
     setSaving(false);
   };
 
@@ -120,15 +139,13 @@ export default function BlogAdmin() {
     setGenerating(true); setMsg(null);
     try {
       const res = await fetch('/api/blog-agent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'generate', sujet, categorie, publier }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setMsg({ type: 'success', text: `✓ Article "${data.article.titre}" généré !` });
-      setSujet('');
-      fetchArticles();
+      setSujet(''); fetchArticles();
     } catch (e) { setMsg({ type: 'error', text: e.message }); }
     setGenerating(false);
   };
@@ -138,8 +155,7 @@ export default function BlogAdmin() {
     setCorrecting(article.id); setMsg(null);
     try {
       const res = await fetch('/api/blog-agent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'pipeline', titre: article.titre, categorie: article.categorie, angle: article.titre, auto_generated: false }),
       });
       const data = await res.json();
@@ -196,13 +212,11 @@ export default function BlogAdmin() {
   return (
     <div style={{ fontFamily:"'Nunito Sans', sans-serif", padding:'32px 28px', maxWidth:1100, margin:'0 auto' }}>
 
-      {/* ── MODALE PRÉVISUALISATION + ÉDITION ── */}
+      {/* ── MODALE ── */}
       {preview && (
         <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', zIndex:1000, display:'flex', alignItems:'flex-start', justifyContent:'center', padding:'40px 20px', overflowY:'auto' }}
           onClick={e => { if (e.target === e.currentTarget) { setPreview(null); setEditMode(false); } }}>
           <div style={{ background:'#1a1d24', border:`1px solid ${editMode ? 'rgba(91,163,199,0.3)' : 'rgba(255,255,255,0.1)'}`, borderRadius:16, maxWidth:860, width:'100%', padding:32, position:'relative' }}>
-
-            {/* Boutons haut */}
             <div style={{ position:'absolute', top:16, right:16, display:'flex', gap:8 }}>
               {!editMode ? (
                 <button onClick={() => setEditMode(true)}
@@ -229,18 +243,14 @@ export default function BlogAdmin() {
             </div>
 
             {editMode ? (
-              /* ── MODE ÉDITION ── */
               <div style={{ marginTop:8 }}>
                 <div style={{ background:'rgba(91,163,199,0.06)', border:'1px solid rgba(91,163,199,0.15)', borderRadius:10, padding:'10px 14px', marginBottom:20, fontSize:12, color:'#5BA3C7' }}>
                   ✏️ Mode édition — modifiez les champs puis cliquez "Sauvegarder"
                 </div>
-
                 <label style={{ fontSize:11, fontWeight:600, color:'rgba(237,232,219,0.5)', display:'block', marginBottom:6 }}>Titre</label>
                 <input value={editData.titre} onChange={e => setEditData(p => ({ ...p, titre: e.target.value }))} style={{ ...iSEdit, marginBottom:16 }}/>
-
                 <label style={{ fontSize:11, fontWeight:600, color:'rgba(237,232,219,0.5)', display:'block', marginBottom:6 }}>Meta description</label>
-                <input value={editData.meta_description} onChange={e => setEditData(p => ({ ...p, meta_description: e.target.value }))} style={{ ...iSEdit, marginBottom:16 }} placeholder="Description SEO (150-160 caractères)"/>
-
+                <input value={editData.meta_description} onChange={e => setEditData(p => ({ ...p, meta_description: e.target.value }))} style={{ ...iSEdit, marginBottom:16 }}/>
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, marginBottom:16 }}>
                   <div>
                     <label style={{ fontSize:11, fontWeight:600, color:'rgba(237,232,219,0.5)', display:'block', marginBottom:6 }}>Catégorie</label>
@@ -249,20 +259,15 @@ export default function BlogAdmin() {
                     </select>
                   </div>
                   <div>
-                    <label style={{ fontSize:11, fontWeight:600, color:'rgba(237,232,219,0.5)', display:'block', marginBottom:6 }}>Tags (séparés par des virgules)</label>
-                    <input value={editData.tags} onChange={e => setEditData(p => ({ ...p, tags: e.target.value }))} style={iSEdit} placeholder="tag1, tag2, tag3"/>
+                    <label style={{ fontSize:11, fontWeight:600, color:'rgba(237,232,219,0.5)', display:'block', marginBottom:6 }}>Tags</label>
+                    <input value={editData.tags} onChange={e => setEditData(p => ({ ...p, tags: e.target.value }))} style={iSEdit} placeholder="tag1, tag2"/>
                   </div>
                 </div>
-
                 <label style={{ fontSize:11, fontWeight:600, color:'rgba(237,232,219,0.5)', display:'block', marginBottom:6 }}>Contenu (Markdown)</label>
-                <textarea
-                  value={editData.contenu}
-                  onChange={e => setEditData(p => ({ ...p, contenu: e.target.value }))}
-                  style={{ ...iSEdit, minHeight:400, resize:'vertical', lineHeight:1.6, fontFamily:'monospace', fontSize:12 }}
-                />
+                <textarea value={editData.contenu} onChange={e => setEditData(p => ({ ...p, contenu: e.target.value }))}
+                  style={{ ...iSEdit, minHeight:400, resize:'vertical', lineHeight:1.6, fontFamily:'monospace', fontSize:12 }}/>
               </div>
             ) : (
-              /* ── MODE PRÉVISUALISATION ── */
               <>
                 <div style={{ display:'flex', gap:8, marginBottom:8 }}>
                   <span style={{ fontSize:11, padding:'2px 8px', borderRadius:10, background:'rgba(91,163,199,0.1)', color:'#5BA3C7' }}>{preview.categorie}</span>
@@ -297,24 +302,29 @@ export default function BlogAdmin() {
       )}
 
       {/* Header */}
-      <div style={{ marginBottom:32 }}>
-        <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:28, fontWeight:600, color:'#EDE8DB', margin:0 }}>Vigie Blog — Admin</h1>
-        <p style={{ fontSize:13, color:'rgba(237,232,219,0.4)', marginTop:4 }}>
-          {articles.length} articles · {nbPublies} publiés · {nbBrouillon} brouillons
-          {nbARelire > 0 && <span style={{ color:'#D4A853', fontWeight:700 }}> · {nbARelire} à relire</span>}
-        </p>
+      <div style={{ marginBottom:24, display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+        <div>
+          <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:28, fontWeight:600, color:'#EDE8DB', margin:0 }}>Vigie Blog — Admin</h1>
+          <p style={{ fontSize:13, color:'rgba(237,232,219,0.4)', marginTop:4 }}>
+            {articles.length} articles · {nbPublies} publiés · {nbBrouillon} brouillons
+            {nbARelire > 0 && <span style={{ color:'#D4A853', fontWeight:700 }}> · {nbARelire} à relire</span>}
+            {comments.length > 0 && <span style={{ color:'#5BA3C7' }}> · {comments.length} commentaire{comments.length > 1 ? 's' : ''}</span>}
+          </p>
+        </div>
       </div>
 
-      {/* Alerte articles à relire */}
-      {nbARelire > 0 && (
-        <div style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', borderRadius:10, background:'rgba(212,168,83,0.08)', border:'1px solid rgba(212,168,83,0.25)', marginBottom:24, fontSize:13, color:'#D4A853' }}>
-          <AlertTriangle size={15}/>
-          <span><strong>{nbARelire} article{nbARelire > 1 ? 's' : ''}</strong> généré{nbARelire > 1 ? 's' : ''} automatiquement attend{nbARelire > 1 ? 'ent' : ''} votre validation.</span>
-          <button onClick={() => setFilterStat('a_relire')} style={{ marginLeft:'auto', background:'rgba(212,168,83,0.15)', border:'1px solid rgba(212,168,83,0.3)', color:'#D4A853', borderRadius:6, padding:'4px 10px', fontSize:11, fontWeight:700, cursor:'pointer' }}>
-            Voir
+      {/* Tabs */}
+      <div style={{ display:'flex', gap:4, marginBottom:28, borderBottom:'1px solid rgba(255,255,255,0.06)', paddingBottom:0 }}>
+        {[
+          { val:'articles',      label:'Articles',      count: articles.length },
+          { val:'commentaires',  label:'Commentaires',  count: comments.length },
+        ].map(({ val, label, count }) => (
+          <button key={val} onClick={() => setActiveTab(val)}
+            style={{ padding:'8px 20px', borderRadius:'8px 8px 0 0', border:'none', background: activeTab===val ? 'rgba(255,255,255,0.06)' : 'transparent', color: activeTab===val ? '#EDE8DB' : 'rgba(237,232,219,0.4)', fontSize:13, fontWeight: activeTab===val ? 700 : 500, cursor:'pointer', borderBottom: activeTab===val ? '2px solid #5BC78A' : '2px solid transparent' }}>
+            {label} {count > 0 && <span style={{ fontSize:10, background:'rgba(255,255,255,0.08)', padding:'1px 6px', borderRadius:10, marginLeft:4 }}>{count}</span>}
           </button>
-        </div>
-      )}
+        ))}
+      </div>
 
       {/* Message global */}
       {msg && (
@@ -325,161 +335,168 @@ export default function BlogAdmin() {
         </div>
       )}
 
-      {/* Formulaire génération */}
-      <div style={{ background:'rgba(91,199,138,0.05)', border:'1px solid rgba(91,199,138,0.2)', borderRadius:16, padding:24, marginBottom:32 }}>
-        <h2 style={{ fontSize:15, fontWeight:700, color:'#EDE8DB', marginBottom:20, display:'flex', alignItems:'center', gap:8 }}>
-          <Plus size={16} color={ACCENT}/> Générer un nouvel article
-        </h2>
-        <div style={{ marginBottom:14 }}>
-          <label style={{ fontSize:11, fontWeight:600, color:'rgba(237,232,219,0.5)', display:'block', marginBottom:6 }}>Sujet ou mot-clé *</label>
-          <input value={sujet} onChange={e => setSujet(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && !generating) generer(); }}
-            placeholder="Ex: Comment calculer ses charges sociales en micro-entreprise" style={iS}/>
-        </div>
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, marginBottom:16 }}>
-          <div>
-            <label style={{ fontSize:11, fontWeight:600, color:'rgba(237,232,219,0.5)', display:'block', marginBottom:6 }}>Catégorie ({CATEGORIES.length} disponibles)</label>
-            <select value={categorie} onChange={e => setCategorie(e.target.value)} style={{ ...iS, cursor:'pointer' }}>
-              {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-          <div>
-            <label style={{ fontSize:11, fontWeight:600, color:'rgba(237,232,219,0.5)', display:'block', marginBottom:6 }}>Statut à la génération</label>
-            <select value={publier} onChange={e => setPublier(e.target.value === 'true')} style={{ ...iS, cursor:'pointer' }}>
-              <option value="true">Publier immédiatement</option>
-              <option value="false">Garder en brouillon</option>
-            </select>
-          </div>
-        </div>
-        <button onClick={generer} disabled={generating || !sujet.trim()}
-          style={{ width:'100%', padding:'12px', borderRadius:10, border:'none', background:generating||!sujet.trim()?`${ACCENT}50`:ACCENT, color:'#fff', fontSize:14, fontWeight:700, cursor:generating||!sujet.trim()?'not-allowed':'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
-          {generating ? <><Loader size={15} style={{ animation:'spin 1s linear infinite' }}/> Génération en cours... (30-60s)</> : "✨ Générer l'article"}
-        </button>
-        <p style={{ fontSize:11, color:'rgba(237,232,219,0.25)', textAlign:'center', marginTop:8 }}>
-          Article généré par GPT-4o (~1500 mots, optimisé SEO)
-        </p>
-      </div>
+      {/* ── TAB ARTICLES ── */}
+      {activeTab === 'articles' && (
+        <>
+          {nbARelire > 0 && (
+            <div style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', borderRadius:10, background:'rgba(212,168,83,0.08)', border:'1px solid rgba(212,168,83,0.25)', marginBottom:24, fontSize:13, color:'#D4A853' }}>
+              <AlertTriangle size={15}/>
+              <span><strong>{nbARelire} article{nbARelire > 1 ? 's' : ''}</strong> attend{nbARelire > 1 ? 'ent' : ''} votre validation.</span>
+              <button onClick={() => setFilterStat('a_relire')} style={{ marginLeft:'auto', background:'rgba(212,168,83,0.15)', border:'1px solid rgba(212,168,83,0.3)', color:'#D4A853', borderRadius:6, padding:'4px 10px', fontSize:11, fontWeight:700, cursor:'pointer' }}>Voir</button>
+            </div>
+          )}
 
-      {/* Filtres statut */}
-      <div style={{ display:'flex', gap:6, marginBottom:12, flexWrap:'wrap' }}>
-        {[
-          { val:'tous',      label:`Tous (${articles.length})` },
-          { val:'publie',    label:`Publiés (${nbPublies})` },
-          { val:'a_relire',  label:`À relire (${nbARelire})` },
-          { val:'brouillon', label:`Brouillons (${nbBrouillon})` },
-        ].map(({ val, label }) => (
-          <button key={val} onClick={() => setFilterStat(val)}
-            style={{ padding:'5px 12px', borderRadius:20, border:`1px solid ${filterStat===val?ACCENT:'rgba(255,255,255,0.1)'}`, background:filterStat===val?`${ACCENT}20`:'transparent', color:filterStat===val?ACCENT:'rgba(237,232,219,0.4)', fontSize:11, fontWeight:filterStat===val?700:500, cursor:'pointer', whiteSpace:'nowrap' }}>
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* Filtres catégorie */}
-      {categoriesPresentes.length > 1 && (
-        <div style={{ display:'flex', gap:6, marginBottom:16, flexWrap:'wrap' }}>
-          {categoriesPresentes.map(c => (
-            <button key={c} onClick={() => setFilterCat(c)}
-              style={{ padding:'5px 12px', borderRadius:20, border:`1px solid ${filterCat===c?'rgba(91,163,199,0.8)':'rgba(255,255,255,0.1)'}`, background:filterCat===c?'rgba(91,163,199,0.15)':'transparent', color:filterCat===c?'#5BA3C7':'rgba(237,232,219,0.4)', fontSize:11, fontWeight:filterCat===c?700:500, cursor:'pointer', whiteSpace:'nowrap' }}>
-              {c === 'tous' ? 'Toutes catégories' : c}
+          <div style={{ background:'rgba(91,199,138,0.05)', border:'1px solid rgba(91,199,138,0.2)', borderRadius:16, padding:24, marginBottom:32 }}>
+            <h2 style={{ fontSize:15, fontWeight:700, color:'#EDE8DB', marginBottom:20, display:'flex', alignItems:'center', gap:8 }}>
+              <Plus size={16} color={ACCENT}/> Générer un nouvel article
+            </h2>
+            <div style={{ marginBottom:14 }}>
+              <label style={{ fontSize:11, fontWeight:600, color:'rgba(237,232,219,0.5)', display:'block', marginBottom:6 }}>Sujet ou mot-clé *</label>
+              <input value={sujet} onChange={e => setSujet(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && !generating) generer(); }}
+                placeholder="Ex: Comment calculer ses charges sociales en micro-entreprise" style={iS}/>
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, marginBottom:16 }}>
+              <div>
+                <label style={{ fontSize:11, fontWeight:600, color:'rgba(237,232,219,0.5)', display:'block', marginBottom:6 }}>Catégorie</label>
+                <select value={categorie} onChange={e => setCategorie(e.target.value)} style={{ ...iS, cursor:'pointer' }}>
+                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize:11, fontWeight:600, color:'rgba(237,232,219,0.5)', display:'block', marginBottom:6 }}>Statut</label>
+                <select value={publier} onChange={e => setPublier(e.target.value === 'true')} style={{ ...iS, cursor:'pointer' }}>
+                  <option value="true">Publier immédiatement</option>
+                  <option value="false">Garder en brouillon</option>
+                </select>
+              </div>
+            </div>
+            <button onClick={generer} disabled={generating || !sujet.trim()}
+              style={{ width:'100%', padding:'12px', borderRadius:10, border:'none', background:generating||!sujet.trim()?`${ACCENT}50`:ACCENT, color:'#fff', fontSize:14, fontWeight:700, cursor:generating||!sujet.trim()?'not-allowed':'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+              {generating ? <><Loader size={15} style={{ animation:'spin 1s linear infinite' }}/> Génération en cours... (30-60s)</> : "✨ Générer l'article"}
             </button>
-          ))}
+          </div>
+
+          <div style={{ display:'flex', gap:6, marginBottom:12, flexWrap:'wrap' }}>
+            {[{ val:'tous', label:`Tous (${articles.length})` }, { val:'publie', label:`Publiés (${nbPublies})` }, { val:'a_relire', label:`À relire (${nbARelire})` }, { val:'brouillon', label:`Brouillons (${nbBrouillon})` }].map(({ val, label }) => (
+              <button key={val} onClick={() => setFilterStat(val)}
+                style={{ padding:'5px 12px', borderRadius:20, border:`1px solid ${filterStat===val?ACCENT:'rgba(255,255,255,0.1)'}`, background:filterStat===val?`${ACCENT}20`:'transparent', color:filterStat===val?ACCENT:'rgba(237,232,219,0.4)', fontSize:11, fontWeight:filterStat===val?700:500, cursor:'pointer', whiteSpace:'nowrap' }}>
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {categoriesPresentes.length > 1 && (
+            <div style={{ display:'flex', gap:6, marginBottom:16, flexWrap:'wrap' }}>
+              {categoriesPresentes.map(c => (
+                <button key={c} onClick={() => setFilterCat(c)}
+                  style={{ padding:'5px 12px', borderRadius:20, border:`1px solid ${filterCat===c?'rgba(91,163,199,0.8)':'rgba(255,255,255,0.1)'}`, background:filterCat===c?'rgba(91,163,199,0.15)':'transparent', color:filterCat===c?'#5BA3C7':'rgba(237,232,219,0.4)', fontSize:11, fontWeight:filterCat===c?700:500, cursor:'pointer', whiteSpace:'nowrap' }}>
+                  {c === 'tous' ? 'Toutes catégories' : c}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, overflow:'hidden' }}>
+            <div style={{ padding:'16px 20px', borderBottom:'1px solid rgba(255,255,255,0.06)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <span style={{ fontSize:13, fontWeight:700, color:'#EDE8DB' }}>{filtered.length} article{filtered.length !== 1 ? 's' : ''}</span>
+              <span style={{ fontSize:11, color:'rgba(237,232,219,0.3)' }}>{nbPublies} publiés · {nbBrouillon} brouillons · {nbARelire} à relire</span>
+            </div>
+            {loading
+              ? <div style={{ padding:40, textAlign:'center', color:'rgba(237,232,219,0.3)', fontSize:13 }}>Chargement...</div>
+              : filtered.length === 0
+                ? <div style={{ padding:48, textAlign:'center', color:'rgba(237,232,219,0.3)', fontSize:13 }}>Aucun article dans cette sélection.</div>
+                : <table style={{ width:'100%', borderCollapse:'collapse' }}>
+                    <thead>
+                      <tr style={{ borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
+                        {['Titre', 'Catégorie', 'Statut', 'Date', 'Source', ''].map((h, i) => (
+                          <th key={i} style={{ padding:'11px 14px', textAlign:'left', fontSize:10, fontWeight:700, color:'rgba(237,232,219,0.3)', textTransform:'uppercase', letterSpacing:'0.06em' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filtered.map((a) => {
+                        const st = STATUT_STYLE[a.statut] || STATUT_STYLE.brouillon;
+                        return (
+                          <tr key={a.id} style={{ borderBottom:'1px solid rgba(255,255,255,0.04)', background: a.statut === 'a_relire' ? 'rgba(212,168,83,0.03)' : 'transparent' }}
+                            onMouseEnter={ev => ev.currentTarget.style.background='rgba(255,255,255,0.02)'}
+                            onMouseLeave={ev => ev.currentTarget.style.background= a.statut === 'a_relire' ? 'rgba(212,168,83,0.03)' : 'transparent'}>
+                            <td style={{ padding:'12px 14px', fontSize:13, color:'#EDE8DB', maxWidth:300 }}>
+                              <span style={{ display:'block', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', cursor:'pointer' }} onClick={() => openPreview(a)}>{a.titre}</span>
+                              <a href={`/blog/${a.slug}`} target="_blank" rel="noreferrer" style={{ fontSize:11, color:'rgba(237,232,219,0.3)', textDecoration:'none' }}>/blog/{a.slug}</a>
+                            </td>
+                            <td style={{ padding:'12px 14px', fontSize:12, color:'rgba(237,232,219,0.5)', maxWidth:160 }}>
+                              <span style={{ display:'block', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.categorie || '—'}</span>
+                            </td>
+                            <td style={{ padding:'12px 14px' }}>
+                              <span style={{ fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:20, background:st.bg, color:st.color }}>{st.label}</span>
+                            </td>
+                            <td style={{ padding:'12px 14px', fontSize:12, color:'rgba(237,232,219,0.4)', whiteSpace:'nowrap' }}>{formatDate(a.date_publication || a.created_at)}</td>
+                            <td style={{ padding:'12px 14px' }}>
+                              <span style={{ fontSize:10, padding:'2px 8px', borderRadius:10, background: a.auto_generated ? 'rgba(91,163,199,0.1)' : 'rgba(255,255,255,0.05)', color: a.auto_generated ? '#5BA3C7' : 'rgba(237,232,219,0.3)' }}>
+                                {a.auto_generated ? 'Auto' : 'Manuel'}
+                              </span>
+                            </td>
+                            <td style={{ padding:'12px 14px' }}>
+                              <div style={{ display:'flex', gap:4, alignItems:'center' }}>
+                                <button onClick={() => openPreview(a)} title="Prévisualiser / Modifier" style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(237,232,219,0.4)', display:'flex' }} onMouseEnter={ev => ev.currentTarget.style.color='#EDE8DB'} onMouseLeave={ev => ev.currentTarget.style.color='rgba(237,232,219,0.4)'}><FileText size={14}/></button>
+                                <a href={`/blog/${a.slug}`} target="_blank" rel="noreferrer" title="Voir" style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(237,232,219,0.4)', display:'flex', textDecoration:'none' }} onMouseEnter={ev => ev.currentTarget.style.color='#5BA3C7'} onMouseLeave={ev => ev.currentTarget.style.color='rgba(237,232,219,0.4)'}><ExternalLink size={14}/></a>
+                                <button onClick={() => toggleStatut(a)} title={a.statut === 'publie' ? 'Dépublier' : 'Publier'} style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:a.statut==='publie'?ACCENT:'rgba(237,232,219,0.3)', display:'flex' }}>{a.statut === 'publie' ? <Eye size={14}/> : <EyeOff size={14}/>}</button>
+                                <button onClick={() => handleCorrection(a)} disabled={correcting === a.id} title="Régénérer" style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(212,168,83,0.6)', display:'flex' }} onMouseEnter={ev => ev.currentTarget.style.color='#D4A853'} onMouseLeave={ev => ev.currentTarget.style.color='rgba(212,168,83,0.6)'}>{correcting === a.id ? <Loader size={14} style={{ animation:'spin 1s linear infinite' }}/> : <RefreshCw size={14}/>}</button>
+                                <button onClick={() => supprimer(a.id)} title="Supprimer" style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(237,232,219,0.2)', display:'flex' }} onMouseEnter={ev => ev.currentTarget.style.color='#C75B4E'} onMouseLeave={ev => ev.currentTarget.style.color='rgba(237,232,219,0.2)'}><Trash2 size={14}/></button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+            }
+          </div>
+        </>
+      )}
+
+      {/* ── TAB COMMENTAIRES ── */}
+      {activeTab === 'commentaires' && (
+        <div>
+          <div style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', borderRadius:10, background:'rgba(91,163,199,0.06)', border:'1px solid rgba(91,163,199,0.15)', marginBottom:24, fontSize:13, color:'#5BA3C7' }}>
+            <MessageSquare size={15}/>
+            <span>Les commentaires sont <strong>auto-approuvés</strong> et visibles immédiatement. Tu peux supprimer ceux qui sont inappropriés.</span>
+          </div>
+
+          {cmtLoading
+            ? <div style={{ padding:40, textAlign:'center', color:'rgba(237,232,219,0.3)', fontSize:13 }}>Chargement...</div>
+            : comments.length === 0
+              ? <div style={{ padding:48, textAlign:'center', color:'rgba(237,232,219,0.3)', fontSize:13 }}>Aucun commentaire pour l'instant.</div>
+              : <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                  {comments.map(c => (
+                    <div key={c.id} style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:12, padding:'16px 20px', display:'flex', gap:16, alignItems:'flex-start' }}>
+                      <div style={{ flex:1 }}>
+                        <div style={{ display:'flex', gap:10, alignItems:'center', marginBottom:6, flexWrap:'wrap' }}>
+                          <span style={{ fontSize:13, fontWeight:700, color:'#EDE8DB' }}>{c.nom}</span>
+                          <span style={{ fontSize:11, color:'rgba(237,232,219,0.3)' }}>{formatDateTime(c.created_at)}</span>
+                          {c.blog_articles && (
+                            <a href={`/blog/${c.blog_articles.slug}`} target="_blank" rel="noreferrer"
+                              style={{ fontSize:10, color:'#5BA3C7', textDecoration:'none', background:'rgba(91,163,199,0.1)', padding:'2px 8px', borderRadius:10 }}>
+                              {c.blog_articles.titre?.slice(0, 40)}...
+                            </a>
+                          )}
+                        </div>
+                        <p style={{ fontSize:13, color:'rgba(237,232,219,0.6)', lineHeight:1.6, margin:0 }}>{c.message}</p>
+                      </div>
+                      <button onClick={() => supprimerComment(c.id)} title="Supprimer"
+                        style={{ background:'transparent', border:'none', cursor:'pointer', padding:6, color:'rgba(237,232,219,0.2)', display:'flex', flexShrink:0 }}
+                        onMouseEnter={ev => ev.currentTarget.style.color='#C75B4E'}
+                        onMouseLeave={ev => ev.currentTarget.style.color='rgba(237,232,219,0.2)'}>
+                        <Trash2 size={14}/>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+          }
         </div>
       )}
 
-      {/* Liste articles */}
-      <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, overflow:'hidden' }}>
-        <div style={{ padding:'16px 20px', borderBottom:'1px solid rgba(255,255,255,0.06)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-          <span style={{ fontSize:13, fontWeight:700, color:'#EDE8DB' }}>{filtered.length} article{filtered.length !== 1 ? 's' : ''}</span>
-          <span style={{ fontSize:11, color:'rgba(237,232,219,0.3)' }}>{nbPublies} publiés · {nbBrouillon} brouillons · {nbARelire} à relire</span>
-        </div>
-
-        {loading
-          ? <div style={{ padding:40, textAlign:'center', color:'rgba(237,232,219,0.3)', fontSize:13 }}>Chargement...</div>
-          : filtered.length === 0
-            ? <div style={{ padding:48, textAlign:'center', color:'rgba(237,232,219,0.3)', fontSize:13 }}>Aucun article dans cette sélection.</div>
-            : <table style={{ width:'100%', borderCollapse:'collapse' }}>
-                <thead>
-                  <tr style={{ borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
-                    {['Titre', 'Catégorie', 'Statut', 'Date', 'Source', ''].map((h, i) => (
-                      <th key={i} style={{ padding:'11px 14px', textAlign:'left', fontSize:10, fontWeight:700, color:'rgba(237,232,219,0.3)', textTransform:'uppercase', letterSpacing:'0.06em' }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((a) => {
-                    const st = STATUT_STYLE[a.statut] || STATUT_STYLE.brouillon;
-                    return (
-                      <tr key={a.id}
-                        style={{ borderBottom:'1px solid rgba(255,255,255,0.04)', background: a.statut === 'a_relire' ? 'rgba(212,168,83,0.03)' : 'transparent' }}
-                        onMouseEnter={ev => ev.currentTarget.style.background='rgba(255,255,255,0.02)'}
-                        onMouseLeave={ev => ev.currentTarget.style.background= a.statut === 'a_relire' ? 'rgba(212,168,83,0.03)' : 'transparent'}>
-
-                        <td style={{ padding:'12px 14px', fontSize:13, color:'#EDE8DB', maxWidth:300 }}>
-                          <span style={{ display:'block', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', cursor:'pointer' }}
-                            onClick={() => openPreview(a)}>{a.titre}</span>
-                          <a href={`/blog/${a.slug}`} target="_blank" rel="noreferrer"
-                            style={{ fontSize:11, color:'rgba(237,232,219,0.3)', textDecoration:'none' }}>/blog/{a.slug}</a>
-                        </td>
-
-                        <td style={{ padding:'12px 14px', fontSize:12, color:'rgba(237,232,219,0.5)', maxWidth:160 }}>
-                          <span style={{ display:'block', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.categorie || '—'}</span>
-                        </td>
-
-                        <td style={{ padding:'12px 14px' }}>
-                          <span style={{ fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:20, background:st.bg, color:st.color }}>{st.label}</span>
-                        </td>
-
-                        <td style={{ padding:'12px 14px', fontSize:12, color:'rgba(237,232,219,0.4)', whiteSpace:'nowrap' }}>
-                          {formatDate(a.date_publication || a.created_at)}
-                        </td>
-
-                        <td style={{ padding:'12px 14px' }}>
-                          <span style={{ fontSize:10, padding:'2px 8px', borderRadius:10, background: a.auto_generated ? 'rgba(91,163,199,0.1)' : 'rgba(255,255,255,0.05)', color: a.auto_generated ? '#5BA3C7' : 'rgba(237,232,219,0.3)' }}>
-                            {a.auto_generated ? 'Auto' : 'Manuel'}
-                          </span>
-                        </td>
-
-                        <td style={{ padding:'12px 14px' }}>
-                          <div style={{ display:'flex', gap:4, alignItems:'center' }}>
-                            <button onClick={() => openPreview(a)} title="Prévisualiser / Modifier"
-                              style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(237,232,219,0.4)', display:'flex' }}
-                              onMouseEnter={ev => ev.currentTarget.style.color='#EDE8DB'}
-                              onMouseLeave={ev => ev.currentTarget.style.color='rgba(237,232,219,0.4)'}>
-                              <FileText size={14}/>
-                            </button>
-                            <a href={`/blog/${a.slug}`} target="_blank" rel="noreferrer" title="Voir sur le blog"
-                              style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(237,232,219,0.4)', display:'flex', textDecoration:'none' }}
-                              onMouseEnter={ev => ev.currentTarget.style.color='#5BA3C7'}
-                              onMouseLeave={ev => ev.currentTarget.style.color='rgba(237,232,219,0.4)'}>
-                              <ExternalLink size={14}/>
-                            </a>
-                            <button onClick={() => toggleStatut(a)} title={a.statut === 'publie' ? 'Dépublier' : 'Publier'}
-                              style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:a.statut==='publie'?ACCENT:'rgba(237,232,219,0.3)', display:'flex' }}>
-                              {a.statut === 'publie' ? <Eye size={14}/> : <EyeOff size={14}/>}
-                            </button>
-                            <button onClick={() => handleCorrection(a)} title="Régénérer via pipeline IA"
-                              disabled={correcting === a.id}
-                              style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(212,168,83,0.6)', display:'flex' }}
-                              onMouseEnter={ev => ev.currentTarget.style.color='#D4A853'}
-                              onMouseLeave={ev => ev.currentTarget.style.color='rgba(212,168,83,0.6)'}>
-                              {correcting === a.id ? <Loader size={14} style={{ animation:'spin 1s linear infinite' }}/> : <RefreshCw size={14}/>}
-                            </button>
-                            <button onClick={() => supprimer(a.id)} title="Supprimer"
-                              style={{ background:'transparent', border:'none', cursor:'pointer', padding:4, color:'rgba(237,232,219,0.2)', display:'flex' }}
-                              onMouseEnter={ev => ev.currentTarget.style.color='#C75B4E'}
-                              onMouseLeave={ev => ev.currentTarget.style.color='rgba(237,232,219,0.2)'}>
-                              <Trash2 size={14}/>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-        }
-      </div>
       <style>{`@keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }`}</style>
     </div>
   );
