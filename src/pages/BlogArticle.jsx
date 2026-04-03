@@ -66,8 +66,30 @@ export default function BlogArticle() {
         </div>
       </nav>
 
+      {/* IMAGE EN-TÊTE */}
+      {article.image_url && (
+        <div style={{ width:'100%', maxHeight:420, overflow:'hidden', position:'relative' }}>
+          <img
+            src={article.image_url}
+            alt={article.titre}
+            style={{ width:'100%', height:420, objectFit:'cover', display:'block', filter:'brightness(0.7)' }}
+          />
+          <div style={{ position:'absolute', inset:0, background:'linear-gradient(to bottom, rgba(6,8,11,0.1) 0%, rgba(6,8,11,0.8) 100%)' }}/>
+          {/* Crédit Unsplash */}
+          {article.image_credit && (
+            <a
+              href={article.image_credit_url || 'https://unsplash.com'}
+              target="_blank"
+              rel="noreferrer"
+              style={{ position:'absolute', bottom:12, right:16, fontSize:10, color:'rgba(255,255,255,0.4)', textDecoration:'none' }}>
+              Photo : {article.image_credit} · Unsplash
+            </a>
+          )}
+        </div>
+      )}
+
       {/* ARTICLE */}
-      <article style={{ maxWidth:740, margin:'0 auto', padding:'64px 6% 80px' }}>
+      <article style={{ maxWidth:740, margin:'0 auto', padding: article.image_url ? '40px 6% 80px' : '64px 6% 80px' }}>
 
         {/* Meta */}
         <div style={{ marginBottom:32 }}>

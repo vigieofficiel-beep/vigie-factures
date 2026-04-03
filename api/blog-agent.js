@@ -1,6 +1,6 @@
 // /api/blog-agent.js
 // Actions POST : 'generate' | 'topics' | 'pipeline' | 'refresh'
-// Action GET   : 'sitemap' (via /api/blog-agent?action=sitemap)
+// Action GET   : sitemap XML
 
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
@@ -40,6 +40,27 @@ function generateSlug(titre) {
     .trim()
     .replace(/\s+/g, '-')
     .slice(0, 80);
+}
+
+// ── Unsplash — cherche une image pertinente ────────────────────────
+async function fetchUnsplashImage(query) {
+  try {
+    const q = encodeURIComponent(query.split(' ').slice(0, 4).join(' '));
+    const res = await fetch(
+      `https://api.unsplash.com/search/photos?query=${q}&per_page=1&orientation=landscape`,
+      { headers: { Authorization: `Client-ID ${process.env.UNSPLASH_ACCESS_KEY}` } }
+    );
+    const data = await res.json();
+    const photo = data?.results?.[0];
+    if (!photo) return { image_url: null, image_credit: null, image_credit_url: null };
+    return {
+      image_url: photo.urls.regular,
+      image_credit: photo.user.name,
+      image_credit_url: photo.user.links.html,
+    };
+  } catch {
+    return { image_url: null, image_credit: null, image_credit_url: null };
+  }
 }
 
 // ── ACTION : sitemap (GET) ─────────────────────────────────────────
@@ -113,7 +134,7 @@ L'article doit :
 - Faire entre 1200 et 1800 mots
 - Utiliser un ton professionnel mais accessible
 - Inclure des exemples concrets chiffrés quand c'est pertinent
-- Se terminer par un CTA naturel vers Vigie Pro (application de gestion pour auto-entrepreneurs)
+- Se terminer par un CTA naturel vers Vigie Pro
 
 Réponds UNIQUEMENT en JSON valide :
 {
@@ -123,7 +144,7 @@ Réponds UNIQUEMENT en JSON valide :
   "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"]
 }
 
-Termine toujours l'article par ce disclaimer :
+Termine toujours l'article par :
 "*Ces informations sont fournies à titre indicatif. Pour votre situation personnelle, consultez un expert-comptable ou un conseiller juridique.*"`
     }]
   });
@@ -131,12 +152,20 @@ Termine toujours l'article par ce disclaimer :
   const article = parseJSON(completion.choices[0].message.content);
   const slug = generateSlug(article.titre) + '-' + Date.now().toString(36);
 
+  // Image Unsplash
+  const imageData = await fetchUnsplashImage(article.titre);
+
   const { data, error } = await supabase.from('blog_articles').insert([{
-    slug, titre: article.titre, meta_description: article.meta_description,
-    contenu: article.contenu, categorie, tags: article.tags || [],
+    slug,
+    titre: article.titre,
+    meta_description: article.meta_description,
+    contenu: article.contenu,
+    categorie,
+    tags: article.tags || [],
     statut: publier ? 'publie' : 'brouillon',
     date_publication: publier ? new Date().toISOString() : null,
-    auto_generated: false
+    auto_generated: false,
+    ...imageData
   }]).select().single();
 
   if (error) throw error;
@@ -195,6 +224,7 @@ async function handlePipeline(body) {
   const { titre, categorie, angle, mots_cles, auto_generated = true } = body;
   if (!titre || !categorie) throw new Error('titre et categorie requis');
 
+  // Agent 2 — Recherche
   const rechercheRes = await openai.chat.completions.create({
     model: 'gpt-4o', response_format: { type: "json_object" },
     temperature: 0.2, max_tokens: 800,
@@ -213,6 +243,7 @@ Réponds en JSON :
   });
   const recherche = parseJSON(rechercheRes.choices[0].message.content);
 
+  // Agent 3 — Rédaction
   const redactionRes = await openai.chat.completions.create({
     model: 'gpt-4o', temperature: 0.5, max_tokens: 3000,
     messages: [{
@@ -231,6 +262,7 @@ Réponds en markdown uniquement.`
   });
   const contenu = redactionRes.choices[0].message.content.trim();
 
+  // Agent 4 — SEO + Fact-check
   const seoRes = await openai.chat.completions.create({
     model: 'gpt-4o', response_format: { type: "json_object" },
     temperature: 0.2, max_tokens: 400,
@@ -251,19 +283,41 @@ Réponds en JSON :
   });
   const seo = parseJSON(seoRes.choices[0].message.content);
 
+  // Image Unsplash
+  const imageData = await fetchUnsplashImage(seo.titre_seo || titre);
+
+  // Agent 5 — Publication
   let slug = generateSlug(seo.titre_seo || titre);
   const { data: existing } = await supabase.from('blog_articles').select('id').eq('slug', slug).single();
   if (existing) slug = `${slug}-${Date.now()}`;
 
   const statut = auto_generated ? 'a_relire' : 'publie';
   const { data: article, error } = await supabase.from('blog_articles').insert({
-    slug, titre: seo.titre_seo || titre, meta_description: seo.meta_description,
-    contenu, categorie, tags: seo.tags, statut, source_urls: recherche.sources,
-    auto_generated, date_publication: statut === 'publie' ? new Date().toISOString() : null
+    slug,
+    titre: seo.titre_seo || titre,
+    meta_description: seo.meta_description,
+    contenu,
+    categorie,
+    tags: seo.tags,
+    statut,
+    source_urls: recherche.sources,
+    auto_generated,
+    date_publication: statut === 'publie' ? new Date().toISOString() : null,
+    ...imageData
   }).select().single();
 
   if (error) throw error;
-  return { success: true, article_id: article.id, slug: article.slug, titre: article.titre, statut, score_factuel: seo.score_factuel, remarques: seo.remarques };
+
+  return {
+    success: true,
+    article_id: article.id,
+    slug: article.slug,
+    titre: article.titre,
+    statut,
+    score_factuel: seo.score_factuel,
+    remarques: seo.remarques,
+    image_url: imageData.image_url
+  };
 }
 
 // ── ACTION : refresh ───────────────────────────────────────────────
@@ -316,7 +370,6 @@ Réponds en JSON :
 
 // ── HANDLER PRINCIPAL ──────────────────────────────────────────────
 export default async function handler(req, res) {
-  // GET → sitemap
   if (req.method === 'GET') {
     try { return await handleSitemap(res); }
     catch (error) { return res.status(500).json({ error: error.message }); }
