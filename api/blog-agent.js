@@ -293,7 +293,7 @@ JSON:{"titre_seo":"55-60 car","meta_description":"150-160 car","tags":["t1","t2"
   const { data: existing } = await supabase.from('blog_articles').select('id').eq('slug', slug).single();
   if (existing) slug = `${slug}-${Date.now()}`;
 
-  const statut = auto_generated ? 'a_relire' : 'publie';
+  const statut = 'publie';
   const { data: article, error } = await supabase.from('blog_articles').insert({
     slug, titre: seo.titre_seo || titre, meta_description: seo.meta_description,
     contenu, categorie, tags: seo.tags, statut,
