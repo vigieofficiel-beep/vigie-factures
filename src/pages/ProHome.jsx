@@ -366,6 +366,68 @@ export default function ProHome() {
         </div>
       )}
 
+            {/* BOUTON SCAN MOBILE */}
+      {isMobile && (
+        <div style={{ marginBottom: 16 }}>
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            style={{ display: 'none' }}
+            id="scan-mobile-input"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              const reader = new FileReader();
+              reader.onload = async (ev) => {
+                const base64 = ev.target.result.split(',')[1];
+                try {
+                  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
+                    },
+                    body: JSON.stringify({
+                      model: 'gpt-4o',
+                      max_tokens: 500,
+                      response_format: { type: 'json_object' },
+                      messages: [{
+                        role: 'user',
+                        content: [
+                          {
+                            type: 'image_url',
+                            image_url: { url: `data:image/jpeg;base64,${base64}` }
+                          },
+                          {
+                            type: 'text',
+                            text: `Analyse ce document et extrais les informations. Réponds UNIQUEMENT en JSON :
+{"type_document":"depense|recette|contrat","montant_ttc":0,"montant_ht":0,"date":"JJ/MM/AAAA","fournisseur":"","description":"","nom_contrat":"","date_fin":""}`
+                          }
+                        ]
+                      }]
+                    })
+                  });
+                  const data = await res.json();
+                  const result = JSON.parse(data.choices[0].message.content);
+                  sessionStorage.setItem('ocr_prefill', JSON.stringify({ ...result, source: 'prohome_ocr' }));
+                  if (result.type_document === 'recette') navigate('/pro/recettes');
+                  else if (result.type_document === 'contrat') navigate('/pro/contrats');
+                  else navigate('/pro/depenses');
+                } catch (err) {
+                  alert('Erreur OCR : ' + err.message);
+                }
+              };
+              reader.readAsDataURL(file);
+            }}
+          />
+          <label htmlFor="scan-mobile-input"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px', borderRadius: 12, border: '1px solid rgba(91,163,199,0.4)', background: 'rgba(91,163,199,0.08)', color: '#5BA3C7', fontSize: 14, fontWeight: 700, cursor: 'pointer', width: '100%', boxSizing: 'border-box' }}>
+            📷 Scanner un document
+          </label>
+        </div>
+      )}
+
       {/* RACCOURCIS */}
       <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fit, minmax(200px, 1fr))', gap: isMobile ? 8 : 12 }}>
         {[
@@ -383,7 +445,6 @@ export default function ProHome() {
         ))}
       </div>
 
-      <OnboardingChecklist/>
     </div>
   );
 }
