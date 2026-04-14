@@ -26,9 +26,8 @@ const APPS = [
     color: '#5BC78A',
     emoji: '🧭',
     platforms: [
-      { label: 'Windows (.exe)', icon: Monitor, url: '#', available: true },
-      { label: 'macOS (bientôt)', icon: Monitor, url: '#', available: false },
-    ],
+{ label: 'Windows (.exe) — Bientôt', icon: Monitor, url: '#', available: false },    
+{ label: 'macOS — Bientôt', icon: Monitor, url: '#', available: false },    ],
     features: ['Génération IA de contenu', 'Prospection SIRENE', 'Assistant agenda', 'Multi-projets'],
   },
 ];
