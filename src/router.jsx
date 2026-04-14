@@ -44,6 +44,7 @@ import AuthCallback from './pages/AuthCallback';
 import BlogPage    from './pages/BlogPage';
 import BlogArticle from './pages/BlogArticle';
 import BlogAdmin   from './pages/BlogAdmin';
+import VigieApp    from './pages/VigieApp';
 
 const router = createBrowserRouter([
 
@@ -57,6 +58,7 @@ const router = createBrowserRouter([
   { path: '/tarifs',                   element: <Tarifs /> },
   { path: '/blog',                     element: <BlogPage /> },
   { path: '/blog/:slug',               element: <BlogArticle /> },
+  { path: '/apps',                     element: <VigieApp /> },
   { path: '/cgu',                      element: <CGU /> },
   { path: '/contact',                  element: <Contact /> },
   { path: '/mentions-legales',         element: <MentionsLegales /> },

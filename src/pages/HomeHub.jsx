@@ -121,7 +121,15 @@ export default function HomeHub() {
                   <div style={{ display:'flex', alignItems:'center', gap:6, color:'#5BC78A', fontSize:13, fontWeight:700 }}>Lire <ArrowRight size={14}/></div>
                 </div>
               </Link>
-
+<Link to="/apps" style={{ textDecoration:'none' }} onMouseEnter={() => setHoveredCard('apps')} onMouseLeave={() => setHoveredCard(null)}>
+  <div style={{ position:'relative', overflow:'hidden', background:hoveredCard==='apps'?'rgba(168,91,199,0.15)':'rgba(255,255,255,0.06)', border:`1px solid ${hoveredCard==='apps'?'rgba(168,91,199,0.5)':'rgba(255,255,255,0.12)'}`, borderRadius:20, padding:'32px 28px', backdropFilter:'blur(16px)', transform:hoveredCard==='apps'?'translateY(-4px)':'translateY(0)', boxShadow:hoveredCard==='apps'?'0 20px 60px rgba(168,91,199,0.2)':'0 8px 32px rgba(0,0,0,0.3)', transition:'all 0.3s ease', height:'100%' }}>
+    {hoveredCard==='apps' && <div style={{ position:'absolute', top:-30, right:-30, width:120, height:120, background:'radial-gradient(circle, rgba(168,91,199,0.25), transparent 70%)', pointerEvents:'none' }}/>}
+    <div style={{ width:52, height:52, borderRadius:14, background:'rgba(168,91,199,0.15)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:16, fontSize:26 }}>📱</div>
+    <h2 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:24, fontWeight:700, color:'#EDE8DB', marginBottom:8, textAlign:'left' }}>Vigie App</h2>
+    <p style={{ fontSize:13, color:'rgba(237,232,219,0.5)', lineHeight:1.6, textAlign:'left', marginBottom:18 }}>Téléchargez les apps Vigie sur mobile et desktop</p>
+    <div style={{ display:'flex', alignItems:'center', gap:6, color:'#A85BC7', fontSize:13, fontWeight:700 }}>Télécharger <ArrowRight size={14}/></div>
+  </div>
+</Link>
               {/* Blog Admin — visible uniquement pour l'admin */}
               {isAdmin && (
                 <Link to="/pro/blog-admin" style={{ textDecoration:'none' }} onMouseEnter={() => setHoveredCard('admin')} onMouseLeave={() => setHoveredCard(null)}>
