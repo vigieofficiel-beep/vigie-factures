@@ -112,6 +112,7 @@ export default function BlogAdmin() {
       categorie: article.categorie,
       tags: (article.tags || []).join(', '),
       contenu: article.contenu || '',
+      image_url: article.image_url || '',
     });
   };
 
@@ -123,6 +124,7 @@ export default function BlogAdmin() {
       const { error } = await supabasePro.from('blog_articles').update({
         titre: editData.titre, meta_description: editData.meta_description,
         categorie: editData.categorie, tags: tagsArray, contenu: editData.contenu,
+        image_url: editData.image_url || null,
         updated_at: new Date().toISOString(),
       }).eq('id', preview.id);
       if (error) throw error;
@@ -261,8 +263,13 @@ export default function BlogAdmin() {
                   <div>
                     <label style={{ fontSize:11, fontWeight:600, color:'rgba(237,232,219,0.5)', display:'block', marginBottom:6 }}>Tags</label>
                     <input value={editData.tags} onChange={e => setEditData(p => ({ ...p, tags: e.target.value }))} style={iSEdit} placeholder="tag1, tag2"/>
+                  
                   </div>
                 </div>
+                <label style={{ fontSize:11, fontWeight:600, color:'rgba(237,232,219,0.5)', display:'block', marginBottom:6, marginTop:4 }}>Image (URL)</label>
+{editData.image_url && <img src={editData.image_url} style={{ width:'100%', height:160, objectFit:'cover', borderRadius:8, marginBottom:8 }} alt=""/>}
+<input value={editData.image_url} onChange={e => setEditData(p => ({ ...p, image_url: e.target.value }))} style={{ ...iSEdit, marginBottom:4 }} placeholder="https://images.unsplash.com/..."/>
+<p style={{ fontSize:11, color:'rgba(237,232,219,0.4)', marginBottom:16 }}>Source : unsplash.com · Format 1200x630px</p>
                 <label style={{ fontSize:11, fontWeight:600, color:'rgba(237,232,219,0.5)', display:'block', marginBottom:6 }}>Contenu (Markdown)</label>
                 <textarea value={editData.contenu} onChange={e => setEditData(p => ({ ...p, contenu: e.target.value }))}
                   style={{ ...iSEdit, minHeight:400, resize:'vertical', lineHeight:1.6, fontFamily:'monospace', fontSize:12 }}/>
