@@ -330,8 +330,9 @@ async function handleRefresh(req) {
         content: `Veille juridique/fiscale 2026.
 Titre:"${article.titre}"|Cat:"${article.categorie}"
 Extrait:${article.contenu?.slice(0,1500)}
-Vérifie obsolescence (URSSAF,plafonds,e-invoicing).
-JSON:{"necessite_update":true,"raisons":["r1"],"nouveau_paragraphe":"texte ou null"}`
+Vérifie si cet article est toujours juridiquement valide à la date d'aujourd'hui : ${new Date().toLocaleDateString('fr-FR')}.
+Bases-toi sur les dernières informations connues de urssaf.fr, impots.gouv.fr, service-public.fr et legifrance.gouv.fr.
+JSON:{"necessite_update":true,"raisons":["r1"],"nouveau_paragraphe":"texte mis à jour avec les informations actuelles ou null"}`
       }]
     });
     const check = parseJSON(checkRes.choices[0].message.content);
